@@ -51,6 +51,13 @@ class PageController extends Controller
         // Get site configs
         $siteConfigs = SiteConfig::where('site_id', $site->id)->get()->keyBy('key');
         
+        // Get all active pages for navigation
+        $navPages = TplPage::where('site_id', $site->id)
+            ->where('status', true)
+            ->where('show_in_nav', true)
+            ->orderBy('sort_order')
+            ->get();
+        
         // Parse JSON configs
         $socialLinks = json_decode($siteConfigs->get('social_links')->value ?? '{}', true) ?: [
             'facebook' => '#',
@@ -85,7 +92,7 @@ class PageController extends Controller
         return view('frontend.layouts.app', compact(
             'page', 'designs', 'navDesigns', 'footerDesigns', 
             'lang', 'dir', 'site', 'siteConfigs', 'customCss', 'customScripts',
-            'socialLinks', 'contactInfo'
+            'socialLinks', 'contactInfo', 'navPages'
         ));
     }
 }

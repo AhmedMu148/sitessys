@@ -15,11 +15,13 @@ class TplPage extends Model
         'name',
         'slug',
         'sort_order',
-        'status'
+        'status',
+        'show_in_nav'
     ];
     
     protected $casts = [
-        'status' => 'boolean'
+        'status' => 'boolean',
+        'show_in_nav' => 'boolean'
     ];
     
     public function site()

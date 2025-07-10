@@ -39,6 +39,7 @@
                                         <th>Site</th>
                                         <th>Sort Order</th>
                                         <th>Status</th>
+                                        <th>In Nav</th>
                                         <th>Created</th>
                                         <th>Actions</th>
                                     </tr>
@@ -63,6 +64,13 @@
                                                     <span class="badge bg-success">Active</span>
                                                 @else
                                                     <span class="badge bg-secondary">Inactive</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if($page->show_in_nav)
+                                                    <span class="badge bg-info">Visible</span>
+                                                @else
+                                                    <span class="badge bg-warning">Hidden</span>
                                                 @endif
                                             </td>
                                             <td>{{ $page->created_at->format('M d, Y') }}</td>

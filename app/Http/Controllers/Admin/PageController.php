@@ -37,10 +37,15 @@ class PageController extends Controller
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:tpl_pages,slug',
             'sort_order' => 'integer|min:0',
-            'status' => 'boolean'
+            'status' => 'boolean',
+            'show_in_nav' => 'boolean'
         ]);
 
-        TplPage::create($request->all());
+        $data = $request->all();
+        $data['status'] = $request->has('status');
+        $data['show_in_nav'] = $request->has('show_in_nav');
+        
+        TplPage::create($data);
         
         return redirect()->route('admin.pages.index')
             ->with('success', 'Page created successfully.');

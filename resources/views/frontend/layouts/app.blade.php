@@ -53,12 +53,12 @@
         @php
             $navData = [
                 'brand' => $site->name,
-                'menu_items' => [
-                    ['title' => 'Home', 'url' => '/'],
-                    ['title' => 'About', 'url' => '/about'],
-                    ['title' => 'Services', 'url' => '/services'],
-                    ['title' => 'Contact', 'url' => '/contact']
-                ],
+                'menu_items' => $navPages->map(function($page) {
+                    return [
+                        'title' => $page->name,
+                        'url' => $page->slug === 'home' ? '/' : '/' . $page->slug
+                    ];
+                })->toArray(),
                 'cta_text' => 'Get Started',
                 'cta_url' => '/contact'
             ];

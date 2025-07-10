@@ -78,6 +78,15 @@
                                 <label class="form-check-label" for="status">Active Page</label>
                             </div>
                         </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" name="show_in_nav" class="form-check-input" 
+                                       id="show_in_nav" {{ old('show_in_nav', true) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="show_in_nav">Show in Navigation</label>
+                                <div class="form-text">Uncheck to hide this page from the main navigation menu</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="card-footer">
                         <button type="submit" class="btn btn-primary">
