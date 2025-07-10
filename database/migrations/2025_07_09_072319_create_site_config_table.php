@@ -14,12 +14,10 @@ return new class extends Migration
         Schema::create('site_config', function (Blueprint $table) {
             $table->id();
             $table->foreignId('site_id')->constrained('sites')->onDelete('cascade');
-            $table->foreignId('lang_id')->constrained('tpl_lang')->onDelete('cascade');
-            $table->enum('direction', ['ltr', 'rtl'])->default('ltr');
-            $table->boolean('is_default')->default(false);
+            $table->string('key');
+            $table->text('value')->nullable();
+            $table->foreignId('lang_id')->nullable()->constrained('tpl_lang')->onDelete('cascade');
             $table->timestamps();
-            
-            $table->unique(['site_id', 'lang_id']);
         });
     }
 

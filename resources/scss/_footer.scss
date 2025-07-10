@@ -1,0 +1,18 @@
+.footer-section {
+    .hover-light {
+        transition: color 0.2s ease-in-out;
+        &:hover {
+            color: #fff !important;
+        }
+    }
+    
+    .social-links {
+        a {
+            opacity: 0.75;
+            transition: opacity 0.2s ease-in-out;
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
+}

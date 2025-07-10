@@ -1,3 +1,4 @@
+// Import styles
 import "../scss/app.scss";
 
 // AdminKit (required)

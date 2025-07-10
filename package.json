@@ -3,11 +3,28 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vite build"
+        "build": "npm run copy-css && vite build",
+        "copy-css": "copyfiles -f 'node_modules/@jsvectormap/dist/css/jsvectormap.min.css' 'node_modules/simplebar-core/dist/simplebar.css' 'node_modules/flatpickr/dist/flatpickr.min.css' 'node_modules/animate.css/animate.min.css' 'node_modules/swiper/swiper-bundle.min.css' public/vendor/css/"
     },
     "devDependencies": {
+        "@babel/core": "^7.23.7",
+        "@babel/preset-env": "^7.23.8",
+        "@popperjs/core": "^2.11.8",
         "axios": "^1.6.4",
+        "bootstrap": "^5.3.7",
+        "chart.js": "^4.4.1",
+        "copyfiles": "^2.4.1",
+        "feather-icons": "^4.29.1",
+        "flatpickr": "^4.6.13",
+        "jquery": "^3.7.1",
+        "jsvectormap": "^1.7.0",
         "laravel-vite-plugin": "^1.0.0",
+        "sass": "^1.89.2",
+        "simplebar": "^6.2.5",
         "vite": "^5.0.0"
+    },
+    "dependencies": {
+        "animate.css": "^4.1.1",
+        "swiper": "^11.2.10"
     }
 }

@@ -18,7 +18,7 @@
                     ['title' => 'Contact', 'url' => '/contact']
                 ] as $item)
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is(ltrim($item['url'], '/')) || (request()->is('/') && $item['url'] == '/') ? 'active' : '' }}" 
+                        <a class="nav-link {{ (request()->is(ltrim($item['url'], '/')) || (request()->is('/') && $item['url'] == '/') || (request()->path() == ltrim($item['url'], '/'))) ? 'active' : '' }}" 
                            href="{{ $item['url'] }}">
                             {{ $item['title'] }}
                         </a>
@@ -35,18 +35,4 @@
     </div>
 </nav>
 
-        <div class="sidebar-cta">
-            <div class="sidebar-cta-content">
-                <strong class="d-inline-block mb-2">{{ $data['cta_title'] ?? 'Upgrade to Pro' }}</strong>
-                <div class="mb-3 text-sm">
-                    {{ $data['cta_text'] ?? 'Are you looking for more components? Check out our premium version.' }}
-                </div>
-                <div class="d-grid">
-                    <a href="{{ $data['cta_url'] ?? '#' }}" class="btn btn-primary">
-                        {{ $data['cta_button'] ?? 'Upgrade to Pro' }}
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</nav>
+

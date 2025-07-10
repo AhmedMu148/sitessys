@@ -1,0 +1,75 @@
+// Override Bootstrap variables
+
+// Color system
+$primary: #3B82F6;
+$secondary: #6B7280;
+$success: #10B981;
+$info: #3B82F6;
+$warning: #F59E0B;
+$danger: #EF4444;
+$light: #F3F4F6;
+$dark: #1F2937;
+
+// Options
+$enable-gradients: false;
+$enable-shadows: false;
+$enable-negative-margins: true;
+
+// Spacing
+$spacer: 1rem;
+$grid-gutter-width: 1.5rem;
+
+// Body
+$body-bg: #f8fafc;
+$body-color: $dark;
+
+// Typography
+$font-family-sans-serif: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+$font-size-base: 0.875rem;
+$line-height-base: 1.5;
+
+// Buttons
+$input-btn-padding-y: .5rem;
+$input-btn-padding-x: 1rem;
+
+// Cards
+$card-border-width: 0;
+$card-border-radius: .5rem;
+$card-cap-bg: #fff;
+$card-spacer-y: 1rem;
+$card-spacer-x: 1rem;
+$card-box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+
+// Badges
+$badge-font-size: .75em;
+$badge-font-weight: 600;
+$badge-padding-y: .35em;
+$badge-padding-x: .65em;
+
+// Breadcrumbs
+$breadcrumb-padding-y: 0;
+$breadcrumb-padding-x: 0;
+$breadcrumb-bg: transparent;
+$breadcrumb-border-radius: 0;
+$breadcrumb-margin-bottom: 0;
+$breadcrumb-divider-color: $secondary;
+$breadcrumb-active-color: $secondary;
+
+// Navbar
+$navbar-padding-y: 1rem;
+$navbar-padding-x: 1.5rem;
+$navbar-nav-link-padding-x: .5rem;
+$navbar-brand-padding-y: 0;
+
+// Alerts
+$alert-padding-y: .75rem;
+$alert-padding-x: 1.25rem;
+$alert-margin-bottom: 1rem;
+$alert-border-radius: .35rem;
+$alert-link-font-weight: 600;
+
+// Progress bars
+$progress-height: .75rem;
+$progress-font-size: .65rem;
+$progress-bg: $light;
+$progress-border-radius: $progress-height / 2;

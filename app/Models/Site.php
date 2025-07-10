@@ -12,6 +12,8 @@ class Site extends Model
     protected $fillable = [
         'name',
         'domain',
+        'description',
+        'default_lang_id',
         'status'
     ];
     

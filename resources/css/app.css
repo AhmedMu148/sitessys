@@ -1,0 +1,4 @@
+/* Import AdminKit styles */
+@import "../../adminkit-main/src/scss/app.scss";
+
+/* Additional custom styles */

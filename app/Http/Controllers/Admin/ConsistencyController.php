@@ -68,13 +68,33 @@ class ConsistencyController extends Controller
         
         // Update all navbar designs
         foreach($pages as $page) {
-            $navDesign = TplDesign::where('page_id', $page->id)
+            $navDesign = TplDesign::where('site_id', $site->id)
+                ->where('page_id', $page->id)
                 ->where('layout_type_id', $navType->id)
                 ->first();
             
             if ($navDesign) {
                 $navDesign->data = $standardNavData;
                 $navDesign->save();
+            } else {
+                // Create a navigation for pages that don't have one
+                // Find a template to use for layout_id
+                $templateNav = TplDesign::where('site_id', $site->id)
+                    ->where('layout_type_id', $navType->id)
+                    ->first();
+                
+                if ($templateNav) {
+                    TplDesign::create([
+                        'site_id' => $site->id,
+                        'page_id' => $page->id,
+                        'layout_id' => $templateNav->layout_id,
+                        'layout_type_id' => $navType->id,
+                        'lang_code' => $templateNav->lang_code ?? 'en',
+                        'sort_order' => 1,
+                        'data' => $standardNavData,
+                        'status' => true
+                    ]);
+                }
             }
         }
         

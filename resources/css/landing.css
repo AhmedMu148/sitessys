@@ -1,0 +1,39 @@
+/* Landing page specific styles */
+.landing-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content {
+    flex: 1;
+}
+
+/* Hero section */
+.hero-section {
+    padding: 4rem 0;
+    background-color: var(--bs-light);
+}
+
+/* Features section */
+.features-section {
+    padding: 4rem 0;
+}
+
+/* Testimonials section */
+.testimonials-section {
+    padding: 4rem 0;
+    background-color: var(--bs-light);
+}
+
+/* Contact section */
+.contact-section {
+    padding: 4rem 0;
+}
+
+/* Footer */
+.footer {
+    padding: 2rem 0;
+    background-color: var(--bs-dark);
+    color: var(--bs-light);
+}

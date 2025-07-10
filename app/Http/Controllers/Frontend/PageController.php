@@ -10,6 +10,7 @@ use App\Models\SiteConfig;
 use App\Models\TplDesign;
 use App\Models\TplCustomCss;
 use App\Models\TplCustomScript;
+use App\Models\TplLang;
 
 class PageController extends Controller
 {
@@ -32,33 +33,50 @@ class PageController extends Controller
             abort(404, 'Page not found');
         }
         
-        // Get site configuration
-        $siteConfig = SiteConfig::where('site_id', $site->id)
-            ->where('is_default', true)
-            ->with('language')
-            ->first();
-            
-        if (!$siteConfig) {
-            $siteConfig = SiteConfig::where('site_id', $site->id)
-                ->with('language')
-                ->first();
-        }
+        // Get site configuration with language info
+        $defaultLang = TplLang::find($site->default_lang_id);
+        $langConfigs = SiteConfig::where('site_id', $site->id)
+            ->where('key', 'language_config')
+            ->get()
+            ->keyBy('lang_id');
         
-        $lang = $siteConfig ? $siteConfig->language->code : 'en';
-        $dir = $siteConfig ? $siteConfig->direction : 'ltr';
+        // Get the current language config
+        $currentLangConfig = $langConfigs->get($defaultLang->id);
+        $langSettings = json_decode($currentLangConfig->value ?? '{}', true);
+        
+        // Set language and direction
+        $lang = $defaultLang->code ?? 'en';
+        $dir = $langSettings['direction'] ?? 'ltr';
+        
+        // Get site configs
+        $siteConfigs = SiteConfig::where('site_id', $site->id)->get()->keyBy('key');
+        
+        // Parse JSON configs
+        $socialLinks = json_decode($siteConfigs->get('social_links')->value ?? '{}', true) ?: [
+            'facebook' => '#',
+            'twitter' => '#',
+            'linkedin' => '#',
+            'instagram' => '#'
+        ];
+        
+        $contactInfo = json_decode($siteConfigs->get('contact_info')->value ?? '{}', true) ?: [
+            'email' => 'info@example.com',
+            'phone' => '+1 234 567 890',
+            'address' => '123 Street Name, City, Country'
+        ];
         
         // Get page designs
         $designs = TplDesign::where('site_id', $site->id)
             ->where('page_id', $page->id)
             ->where('lang_code', $lang)
             ->where('status', true)
-            ->with(['layout', 'layoutType'])
+            ->with(['layout', 'layout.type'])
             ->orderBy('sort_order')
             ->get();
             
         // Get nav and footer designs
-        $navDesigns = $designs->where('layoutType.name', 'nav');
-        $footerDesigns = $designs->where('layoutType.name', 'footer');
+        $navDesigns = $designs->where('layout.type.name', 'nav');
+        $footerDesigns = $designs->where('layout.type.name', 'footer');
         
         // Get custom CSS and scripts
         $customCss = TplCustomCss::where('site_id', $site->id)->get();
@@ -66,7 +84,8 @@ class PageController extends Controller
         
         return view('frontend.layouts.app', compact(
             'page', 'designs', 'navDesigns', 'footerDesigns', 
-            'lang', 'dir', 'site', 'customCss', 'customScripts'
+            'lang', 'dir', 'site', 'siteConfigs', 'customCss', 'customScripts',
+            'socialLinks', 'contactInfo'
         ));
     }
 }

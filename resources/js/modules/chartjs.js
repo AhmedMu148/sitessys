@@ -1,6 +1,4 @@
 // Usage: https://www.chartjs.org/
-import Chart from "chart.js";
-
-Chart.defaults.global.defaultFontColor = window.theme["gray-600"];
+import { Chart } from 'chart.js/auto';
 Chart.defaults.global.defaultFontFamily = "'Inter', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";
 window.Chart = Chart;
