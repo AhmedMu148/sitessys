@@ -13,11 +13,10 @@ return new class extends Migration
     {
         Schema::create('sites', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->default('My Site');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->string('site_name');
             $table->string('domain')->nullable();
-            $table->text('description')->nullable();
             $table->boolean('status')->default(true);
-            $table->foreignId('default_lang_id')->nullable()->constrained('tpl_lang')->onDelete('set null');
             $table->timestamps();
         });
     }

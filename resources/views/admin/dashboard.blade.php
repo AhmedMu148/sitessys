@@ -14,15 +14,15 @@
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col mt-0">
-                                        <h5 class="card-title">Total Pages</h5>
+                                        <h5 class="card-title">Total Sites</h5>
                                     </div>
                                     <div class="col-auto">
                                         <div class="stat text-primary">
-                                            <i class="align-middle" data-feather="file-text"></i>
+                                            <i class="align-middle" data-feather="globe"></i>
                                         </div>
                                     </div>
                                 </div>
-                                <h1 class="mt-1 mb-3">{{ $stats['pages'] ?? 0 }}</h1>
+                                <h1 class="mt-1 mb-3">{{ $stats['sites'] ?? 0 }}</h1>
                                 <div class="mb-0">
                                     <span class="text-success"> <i class="mdi mdi-arrow-bottom-right"></i> +2.5% </span>
                                     <span class="text-muted">Since last week</span>
@@ -33,15 +33,15 @@
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col mt-0">
-                                        <h5 class="card-title">Active Layouts</h5>
+                                        <h5 class="card-title">Total Users</h5>
                                     </div>
                                     <div class="col-auto">
                                         <div class="stat text-primary">
-                                            <i class="align-middle" data-feather="layout"></i>
+                                            <i class="align-middle" data-feather="users"></i>
                                         </div>
                                     </div>
                                 </div>
-                                <h1 class="mt-1 mb-3">{{ $stats['layouts'] ?? 0 }}</h1>
+                                <h1 class="mt-1 mb-3">{{ $stats['users'] ?? 0 }}</h1>
                                 <div class="mb-0">
                                     <span class="text-success"> <i class="mdi mdi-arrow-bottom-right"></i> +1.2% </span>
                                     <span class="text-muted">Since last week</span>

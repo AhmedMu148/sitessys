@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -42,4 +43,44 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    /**
+     * Get the sites for the user.
+     */
+    public function sites()
+    {
+        return $this->hasMany(Site::class);
+    }
+
+    /**
+     * Check if user is owner (can see all sites)
+     */
+    public function isOwner()
+    {
+        return $this->role === 'owner';
+    }
+
+    /**
+     * Check if user is admin (has one site)
+     */
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Check if user is regular user
+     */
+    public function isUser()
+    {
+        return $this->role === 'user';
+    }
+
+    /**
+     * Get the user's primary site (for admins)
+     */
+    public function primarySite()
+    {
+        return $this->sites()->first();
+    }
 }

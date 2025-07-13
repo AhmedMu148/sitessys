@@ -25,7 +25,7 @@
     <div class="wrapper">
         <nav id="sidebar" class="sidebar js-sidebar">
             <div class="sidebar-content js-simplebar">
-                <a class="sidebar-brand" href="{{ route('admin.dashboard') }}">
+                <a class="sidebar-brand" href="{{ route('admin.site-content.index') }}">
                     <span class="align-middle">AdminKit</span>
                 </a>
 
@@ -41,34 +41,40 @@
                     </li>
 
                     <li class="sidebar-header">
-                        Content Management
+                        Site Management
                     </li>
 
-                    <li class="sidebar-item {{ request()->routeIs('admin.layouts.*') ? 'active' : '' }}">
-                        <a class="sidebar-link" href="{{ route('admin.layouts.index') }}">
-                            <i class="align-middle" data-feather="layout"></i> <span class="align-middle">Layouts</span>
+                    <li class="sidebar-item {{ request()->routeIs('admin.dashboard') || request()->routeIs('admin.site-content.index') ? 'active' : '' }}">
+                        <a class="sidebar-link" href="{{ route('admin.site-content.index') }}">
+                            <i class="align-middle" data-feather="home"></i> <span class="align-middle">Dashboard</span>
                         </a>
                     </li>
 
-                    <li class="sidebar-item {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
-                        <a class="sidebar-link" href="{{ route('admin.pages.index') }}">
+                    <li class="sidebar-item {{ request()->routeIs('admin.site-content.pages') ? 'active' : '' }}">
+                        <a class="sidebar-link" href="{{ route('admin.site-content.pages') }}">
                             <i class="align-middle" data-feather="file-text"></i> <span class="align-middle">Pages</span>
                         </a>
                     </li>
 
-                    <li class="sidebar-item {{ request()->routeIs('admin.designs.*') ? 'active' : '' }}">
-                        <a class="sidebar-link" href="{{ route('admin.designs.index') }}">
-                            <i class="align-middle" data-feather="grid"></i> <span class="align-middle">Designs</span>
+                    <li class="sidebar-item {{ request()->routeIs('admin.site-content.sections') ? 'active' : '' }}">
+                        <a class="sidebar-link" href="{{ route('admin.site-content.sections') }}">
+                            <i class="align-middle" data-feather="grid"></i> <span class="align-middle">Sections</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-item {{ request()->routeIs('admin.site-content.config') ? 'active' : '' }}">
+                        <a class="sidebar-link" href="{{ route('admin.site-content.config') }}">
+                            <i class="align-middle" data-feather="settings"></i> <span class="align-middle">Site Settings</span>
                         </a>
                     </li>
 
                     <li class="sidebar-header">
-                        Settings
+                        Design & Layout
                     </li>
 
-                    <li class="sidebar-item {{ request()->routeIs('admin.config.*') ? 'active' : '' }}">
-                        <a class="sidebar-link" href="{{ route('admin.config.index') }}">
-                            <i class="align-middle" data-feather="settings"></i> <span class="align-middle">Site Config</span>
+                    <li class="sidebar-item {{ request()->routeIs('admin.layouts.*') ? 'active' : '' }}">
+                        <a class="sidebar-link" href="{{ route('admin.layouts.index') }}">
+                            <i class="align-middle" data-feather="layout"></i> <span class="align-middle">Layout Templates</span>
                         </a>
                     </li>
 
@@ -90,15 +96,13 @@
                         </a>
                     </li>
 
+                    <li class="sidebar-header">
+                        System
+                    </li>
+
                     <li class="sidebar-item {{ request()->routeIs('admin.languages.*') ? 'active' : '' }}">
                         <a class="sidebar-link" href="{{ route('admin.languages.index') }}">
                             <i class="align-middle" data-feather="globe"></i> <span class="align-middle">Languages</span>
-                        </a>
-                    </li>
-
-                    <li class="sidebar-item {{ request()->routeIs('admin.consistency.*') ? 'active' : '' }}">
-                        <a class="sidebar-link" href="{{ route('admin.consistency.index') }}">
-                            <i class="align-middle" data-feather="check-square"></i> <span class="align-middle">Consistency</span>
                         </a>
                     </li>
                 </ul>
@@ -269,24 +273,18 @@
     </div>
 
     <script src="{{ asset('js/app.js') }}"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
     <script>
         // Initialize Feather icons
         document.addEventListener('DOMContentLoaded', function() {
-            if (typeof feather !== 'undefined') {
-                feather.replace();
-            } else {
-                // Load Feather icons if not available
-                var script = document.createElement('script');
-                script.src = 'https://unpkg.com/feather-icons';
-                script.onload = function() {
-                    feather.replace();
-                };
-                document.head.appendChild(script);
-            }
+            feather.replace();
         });
     </script>
     @yield('js')
-    @yield('js')
+    @stack('scripts')
 </body>
 
 </html>
