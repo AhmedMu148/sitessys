@@ -42,13 +42,42 @@
 
                     <li class="sidebar-header">
                         Content Management
-                    </li>
+                                        </li>
+                                <li class="sidebar-item {{ request()->routeIs('admin.layouts.*') ? 'active' : '' }} has-dropdown">
+                                    <a class="sidebar-link" data-bs-toggle="collapse" href="#layoutsDropdown" role="button" aria-expanded="false" aria-controls="layoutsDropdown">
+                                        <i class="align-middle" data-feather="layout"></i> 
+                                        <span class="align-middle">Layouts</span> 
+                                        <i class="feather-icon ms-2" data-feather="chevron-down"></i>
+                                    </a>
+                                   <div class="collapse" id="layoutsDropdown">
+    <ul class="sidebar-nav ms-3">
+        <!-- Nav Layout -->
+        <li class="sidebar-item {{ request()->get('type') === 'nav' ? 'active' : '' }}">
+            <a class="sidebar-link" href="{{ route('admin.layouts.index', ['type' => 'nav']) }}">
+                <i class="align-middle" data-feather="menu"></i>
+                <span class="align-middle">Nav</span>
+            </a>
+        </li>
+        <!-- Body (Section) Layout -->
+        <li class="sidebar-item {{ request()->get('type') === 'section' ? 'active' : '' }}">
+            <a class="sidebar-link" href="{{ route('admin.layouts.index', ['type' => 'section']) }}">
+                <i class="align-middle" data-feather="box"></i>
+                <span class="align-middle">Body</span>
+            </a>
+        </li>
+        <!-- Footer Layout -->
+        <li class="sidebar-item {{ request()->get('type') === 'footer' ? 'active' : '' }}">
+            <a class="sidebar-link" href="{{ route('admin.layouts.index', ['type' => 'footer']) }}">
+                <i class="align-middle" data-feather="archive"></i>
+                <span class="align-middle">Footer</span>
+            </a>
+        </li>
+    </ul>
+</div>
 
-                    <li class="sidebar-item {{ request()->routeIs('admin.layouts.*') ? 'active' : '' }}">
-                        <a class="sidebar-link" href="{{ route('admin.layouts.index') }}">
-                            <i class="align-middle" data-feather="layout"></i> <span class="align-middle">Layouts</span>
-                        </a>
-                    </li>
+                                </li>
+
+
 
                     <li class="sidebar-item {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
                         <a class="sidebar-link" href="{{ route('admin.pages.index') }}">
