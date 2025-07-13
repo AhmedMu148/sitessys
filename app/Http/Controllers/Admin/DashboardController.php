@@ -8,6 +8,8 @@ use App\Models\TplPage;
 use App\Models\TplLayout;
 use App\Models\TplDesign;
 use App\Models\TplLang;
+use App\Models\Site;
+use App\Models\User;
 
 class DashboardController extends Controller
 {
@@ -15,14 +17,15 @@ class DashboardController extends Controller
     {
         // Get statistics
         $stats = [
+            'sites' => Site::count(),
+            'users' => User::count(),
             'pages' => TplPage::count(),
             'layouts' => TplLayout::count(),
-            'designs' => TplDesign::count(),
             'languages' => TplLang::count(),
         ];
 
-        // Get recent pages
-        $recentPages = TplPage::latest()->take(5)->get();
+        // Get recent sites
+        $recentSites = Site::with('user')->latest()->take(5)->get();
 
         // Get recent updates (simulated data)
         $recentUpdates = [
@@ -52,6 +55,6 @@ class DashboardController extends Controller
             ],
         ];
 
-        return view('admin.dashboard', compact('stats', 'recentPages', 'recentUpdates'));
+        return view('admin.dashboard', compact('stats', 'recentSites', 'recentUpdates'));
     }
 }

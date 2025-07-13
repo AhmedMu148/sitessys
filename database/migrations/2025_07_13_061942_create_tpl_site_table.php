@@ -11,14 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('tpl_site', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->string('role')->default('admin');
-            $table->rememberToken();
+            $table->foreignId('site_id')->constrained('sites')->onDelete('cascade');
+            $table->integer('nav'); // tpl_layouts = 5
+            $table->json('pages'); // [tpl_pages = 5,9,12,11]
+            $table->integer('footer'); // tpl_layouts = 10
             $table->timestamps();
         });
     }
@@ -28,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('tpl_site');
     }
 };

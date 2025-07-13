@@ -13,22 +13,16 @@ class SiteConfig extends Model
     
     protected $fillable = [
         'site_id',
-        'lang_id',
-        'direction',
-        'is_default'
+        'data',
+        'lang_id'
     ];
     
     protected $casts = [
-        'is_default' => 'boolean'
+        'data' => 'array'
     ];
     
     public function site()
     {
-        return $this->belongsTo(Site::class, 'site_id');
-    }
-    
-    public function language()
-    {
-        return $this->belongsTo(TplLang::class, 'lang_id');
+        return $this->belongsTo(Site::class);
     }
 }

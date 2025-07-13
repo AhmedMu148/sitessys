@@ -15,11 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('site_id')->constrained('sites')->onDelete('cascade');
             $table->string('name');
-            $table->string('slug')->unique();
-            $table->integer('sort_order')->default(0);
-            $table->boolean('status')->default(true);
+            $table->string('link');
+            $table->string('section_id'); // [1,3,5,9] - can be multiple sections
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 

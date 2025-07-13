@@ -5,15 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TplPage extends Model
+class TplSection extends Model
 {
     use HasFactory;
+    
+    protected $table = 'tpl_sections';
     
     protected $fillable = [
         'site_id',
         'name',
-        'link',
-        'section_id'
+        'content',
+        'position',
+        'lang_id'
+    ];
+    
+    protected $casts = [
+        'position' => 'integer'
     ];
     
     public function site()

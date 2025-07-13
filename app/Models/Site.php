@@ -10,10 +10,9 @@ class Site extends Model
     use HasFactory;
     
     protected $fillable = [
-        'name',
+        'user_id',
+        'site_name',
         'domain',
-        'description',
-        'default_lang_id',
         'status'
     ];
     
@@ -21,33 +20,43 @@ class Site extends Model
         'status' => 'boolean'
     ];
     
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+    
+    public function config()
+    {
+        return $this->hasMany(SiteConfig::class);
+    }
+    
+    public function social()
+    {
+        return $this->hasOne(SiteSocial::class);
+    }
+    
+    public function contact()
+    {
+        return $this->hasOne(SiteContact::class);
+    }
+    
+    public function seoIntegrations()
+    {
+        return $this->hasMany(SiteSeoInt::class);
+    }
+    
+    public function sections()
+    {
+        return $this->hasMany(TplSection::class);
+    }
+    
     public function pages()
     {
         return $this->hasMany(TplPage::class, 'site_id');
     }
     
-    public function designs()
+    public function tplSite()
     {
-        return $this->hasMany(TplDesign::class, 'site_id');
-    }
-    
-    public function config()
-    {
-        return $this->hasMany(SiteConfig::class, 'site_id');
-    }
-    
-    public function customCss()
-    {
-        return $this->hasMany(TplCustomCss::class, 'site_id');
-    }
-    
-    public function customScripts()
-    {
-        return $this->hasMany(TplCustomScript::class, 'site_id');
-    }
-    
-    public function colorPalette()
-    {
-        return $this->hasMany(TplColorPalette::class, 'site_id');
+        return $this->hasOne(TplSite::class);
     }
 }

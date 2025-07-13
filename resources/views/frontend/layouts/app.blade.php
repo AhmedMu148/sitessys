@@ -4,140 +4,95 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    @php
-        $metaDescription = $siteConfigs->where('key', 'meta_description')->first()->value ?? "{$site->name} - {$page->name}";
-    @endphp
-    <meta name="description" content="{{ $metaDescription }}">
-    <meta name="author" content="{{ $site->name }}">
+    <meta name="description" content="{{ $config['description'] ?? $site->site_name }}">
+    <meta name="keywords" content="{{ $config['keyword'] ?? 'website' }}">
+    <meta name="author" content="{{ $site->site_name }}">
     
     <link rel="preconnect" href="https://fonts.gstatic.com">
-    @php
-        $favicon = $siteConfigs->where('key', 'favicon')->first()->value ?? 'img/favicon.ico';
-    @endphp
-    <link rel="shortcut icon" href="{{ asset($favicon) }}" />
+    <link rel="shortcut icon" href="{{ asset($config['favicon'] ?? 'favicon.ico') }}" />
     
-    <title>{{ $page->name }} - {{ $site->name }}</title>
+    <title>{{ $config['title'] ?? $site->site_name }} - {{ $page->name }}</title>
     
-    <!-- Third-party CSS -->
-    <link href="{{ asset('vendor/css/jsvectormap.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('vendor/css/simplebar.css') }}" rel="stylesheet">
-    <link href="{{ asset('vendor/css/flatpickr.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('vendor/css/animate.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('vendor/css/swiper-bundle.min.css') }}" rel="stylesheet">
-    
-    <!-- Application assets -->
-    @vite(['resources/scss/app.scss', 'resources/js/app.js'])
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    
-    <!-- Custom CSS -->
-    @foreach($customCss as $css)
-        <style>
-            {!! $css->content !!}
-        </style>
-    @endforeach
-    
-    <!-- Custom head scripts -->
-    @foreach($customScripts->where('location', 'head') as $script)
-        <script>
-            {!! $script->content !!}
-        </script>
-    @endforeach
     
     @stack('head')
 </head>
 
 <body>
-    <!-- Landing Page Layout -->
-    <div class="landing-page">
-        <!-- Navigation -->
-        @php
-            $navData = [
-                'brand' => $site->name,
-                'menu_items' => $navPages->map(function($page) {
-                    return [
-                        'title' => $page->name,
-                        'url' => $page->slug === 'home' ? '/' : '/' . $page->slug
-                    ];
-                })->toArray(),
-                'cta_text' => 'Get Started',
-                'cta_url' => '/contact'
-            ];
-        @endphp
-        @include('frontend.components.nav', ['data' => $navData])
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">{{ $site->site_name ?? 'My Site' }}</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/about">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/contact">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
-        <!-- Page Content -->
-        <main>
-            @foreach($designs->whereNotIn('layoutType.name', ['nav', 'footer']) as $design)
-                @php
-                    $componentName = $design->layout->name;
-                    $data = json_decode($design->data ?? '{}', true);
-                    $data['logo'] = $siteConfigs->where('key', 'logo')->first()->value ?? 'img/logo.svg';
-                    $data['contactInfo'] = json_decode($siteConfigs->where('key', 'contact_info')->first()->value ?? '{}', true);
-                    $data['socialLinks'] = json_decode($siteConfigs->where('key', 'social_links')->first()->value ?? '{}', true);
-                @endphp
-                @includeIf("frontend.components.$componentName", ['data' => $data])
+    <!-- Main Content -->
+    <main>
+        @if($sections && $sections->count() > 0)
+            @foreach($sections as $section)
+                <div class="section py-5" id="section-{{ $section->id }}">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-12">
+                                <h2>{{ $section->parsed_content['title'] ?? 'Section Title' }}</h2>
+                                <div class="content">
+                                    {!! nl2br(e($section->parsed_content['content'] ?? 'Section content goes here.')) !!}
+                                </div>
+                                @if(!empty($section->parsed_content['button_text']))
+                                    <div class="mt-3">
+                                        <button class="btn btn-primary">
+                                            {{ $section->parsed_content['button_text'] }}
+                                        </button>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
             @endforeach
-        </main>
+        @else
+            <!-- Default content if no sections -->
+            <div class="container my-5">
+                <div class="row">
+                    <div class="col-12">
+                        <h1>{{ $page->name }}</h1>
+                        <p>Welcome to {{ $site->site_name }}</p>
+                        <p class="text-muted">This page has no sections assigned. Please contact the administrator to add content.</p>
+                    </div>
+                </div>
+            </div>
+        @endif
+    </main>
 
-        <!-- Footer -->
-        @php
-            $footerData = [
-                'logo' => $siteConfigs->where('key', 'logo')->first()->value ?? 'img/logo.svg',
-                'description' => $site->description,
-                'contact_info' => json_decode($siteConfigs->where('key', 'contact_info')->first()->value ?? '{}', true),
-                'social_links' => json_decode($siteConfigs->where('key', 'social_links')->first()->value ?? '{}', true),
-                'menu_columns' => [
-                    [
-                        'title' => 'Company',
-                        'links' => [
-                            ['title' => 'About Us', 'url' => '/about'],
-                            ['title' => 'Services', 'url' => '/services'],
-                            ['title' => 'Contact', 'url' => '/contact']
-                        ]
-                    ],
-                    [
-                        'title' => 'Legal',
-                        'links' => [
-                            ['title' => 'Privacy Policy', 'url' => '/privacy'],
-                            ['title' => 'Terms of Service', 'url' => '/terms'],
-                            ['title' => 'Cookie Policy', 'url' => '/cookies']
-                        ]
-                    ]
-                ]
-            ];
-        @endphp
-        @include('frontend.components.footer', ['data' => $footerData])
-    </div>
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>{{ $site->site_name ?? 'My Site' }}</h5>
+                    <p>{{ $config['description'] ?? 'Welcome to our website' }}</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p>&copy; 2025 {{ $site->site_name ?? 'My Site' }}. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
     
-    <!-- Bootstrap & AdminKit Scripts -->
-    <script src="{{ asset('build/assets/js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ asset('build/assets/js/swiper-bundle.min.js') }}"></script>
-    <script src="{{ asset('build/assets/js/simplebar.min.js') }}"></script>
-    
-    <!-- Initialize Feather Icons -->
-    <script>
-        feather.replace();
-    </script>
-    
-    <!-- Initialize tooltips and popovers -->
-    <script>
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-        
-        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-        popoverTriggerList.map(function (popoverTriggerEl) {
-            return new bootstrap.Popover(popoverTriggerEl);
-        });
-    </script>
-    
-    <!-- Custom body scripts -->
-    @foreach($customScripts->where('location', 'body') as $script)
-        <script>
-            {!! $script->content !!}
-        </script>
-    @endforeach
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     @stack('scripts')
 </body>

@@ -11,6 +11,9 @@ use App\Http\Controllers\Admin\ColorPaletteController;
 use App\Http\Controllers\Admin\CustomCssController;
 use App\Http\Controllers\Admin\CustomScriptController;
 use App\Http\Controllers\Admin\LanguageController;
+use App\Http\Controllers\Admin\SiteController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\SiteContentController;
 use App\Http\Controllers\Admin\ConsistencyController;
 
 /*
@@ -30,7 +33,16 @@ Route::get('/{slug}', [PageController::class, 'show'])->where('slug', '^(?!admin
 
 // Admin routes
 Route::prefix('admin')->name('admin.')->group(function() {
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/', [SiteContentController::class, 'index'])->name('dashboard');
+    
+    // Site Content Management (for admins managing their own site)
+    Route::prefix('site-content')->name('site-content.')->group(function() {
+        Route::get('/', [SiteContentController::class, 'index'])->name('index');
+        Route::get('/pages', [SiteContentController::class, 'pages'])->name('pages');
+        Route::get('/sections', [SiteContentController::class, 'sections'])->name('sections');
+        Route::get('/config', [SiteContentController::class, 'config'])->name('config');
+        Route::post('/config', [SiteContentController::class, 'updateConfig'])->name('config.update');
+    });
     
     // Content Management
     Route::resource('layouts', LayoutController::class);

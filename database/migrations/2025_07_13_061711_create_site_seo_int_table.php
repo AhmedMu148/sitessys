@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('site_config', function (Blueprint $table) {
+        Schema::create('site_seo_int', function (Blueprint $table) {
             $table->id();
             $table->foreignId('site_id')->constrained('sites')->onDelete('cascade');
-            $table->json('data'); // logo, favicon, title, keyword, description
-            $table->string('lang_id'); // [1,2,5] - can be multiple languages
+            $table->string('int_name'); // ses, hrefs
+            $table->json('data'); // ['username' => xxxx, 'api_key' => xxxx, 'email' => xxxx, 'balance' => xxxx, 'api_link' => xxxx]
+            $table->boolean('status')->default(true);
             $table->timestamps();
         });
     }
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('site_config');
+        Schema::dropIfExists('site_seo_int');
     }
 };
