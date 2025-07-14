@@ -35,6 +35,9 @@ Route::get('/{slug}', [PageController::class, 'show'])->where('slug', '^(?!admin
 Route::prefix('admin')->name('admin.')->group(function() {
     Route::get('/', [SiteContentController::class, 'index'])->name('dashboard');
     
+    // Site Management
+    Route::resource('sites', SiteController::class);
+
     // Site Content Management (for admins managing their own site)
     Route::prefix('site-content')->name('site-content.')->group(function() {
         Route::get('/', [SiteContentController::class, 'index'])->name('index');
@@ -43,7 +46,7 @@ Route::prefix('admin')->name('admin.')->group(function() {
         Route::get('/config', [SiteContentController::class, 'config'])->name('config');
         Route::post('/config', [SiteContentController::class, 'updateConfig'])->name('config.update');
     });
-    
+
     // Content Management
     Route::resource('layouts', LayoutController::class);
     Route::resource('pages', AdminPageController::class);
