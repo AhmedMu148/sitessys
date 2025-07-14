@@ -62,4 +62,8 @@ Route::prefix('admin')->name('admin.')->group(function() {
     Route::get('consistency', [ConsistencyController::class, 'index'])->name('consistency.index');
     Route::post('consistency/navbar', [ConsistencyController::class, 'fixNavbar'])->name('consistency.navbar');
     Route::post('consistency/footer', [ConsistencyController::class, 'fixFooter'])->name('consistency.footer');
+    
+    // تعطيل وتفعيل Layout (بدون تكرار prefix/name)
+    Route::post('layouts/{layout}/deactivate', [LayoutController::class, 'deactivate'])->name('layouts.deactivate');
+    Route::post('layouts/{layout}/activate', [LayoutController::class, 'activate'])->name('layouts.activate');
 });

@@ -56,16 +56,16 @@ class PageController extends Controller
         // Get site template configuration
         $tplSite = TplSite::where('site_id', $site->id)->first();
         
-        // Get navigation layout
+        // Get navigation layout (active only)
         $navLayout = null;
         if ($tplSite && $tplSite->nav) {
-            $navLayout = TplLayout::find($tplSite->nav);
+            $navLayout = TplLayout::where('id', $tplSite->nav)->where('status', true)->first();
         }
         
-        // Get footer layout
+        // Get footer layout (active only)
         $footerLayout = null;
         if ($tplSite && $tplSite->footer) {
-            $footerLayout = TplLayout::find($tplSite->footer);
+            $footerLayout = TplLayout::where('id', $tplSite->footer)->where('status', true)->first();
         }
         
         // Get page sections

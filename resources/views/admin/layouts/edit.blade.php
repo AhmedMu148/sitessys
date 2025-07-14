@@ -1,90 +1,166 @@
 @extends('admin.layouts.master')
 
-@section('page_title', 'Edit Layout')
+@section('title', 'Edit Layout')
 
-@section('page_content')
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">Edit Layout</h3>
+@section('content')
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="h3 mb-0"><strong>Edit</strong> Layout</h1>
+                <a href="{{ route('admin.layouts.index') }}" class="btn btn-secondary">
+                    <i class="align-middle" data-feather="arrow-left"></i> Back to Layouts
+                </a>
+            </div>
+        </div>
     </div>
-    <form action="{{ route('admin.layouts.update', $layout) }}" method="POST" enctype="multipart/form-data">
-        @csrf
-        @method('PUT')
-        <div class="card-body">
-            <div class="form-group">
-                <label for="type_id">Layout Type</label>
-                <select name="type_id" id="type_id" class="form-control @error('type_id') is-invalid @enderror">
-                    <option value="">Select Layout Type</option>
-                    @foreach($types as $type)
-                        <option value="{{ $type->id }}" {{ ($layout->type_id == $type->id) ? 'selected' : '' }}>
-                            {{ ucfirst($type->name) }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('type_id')
-                    <span class="invalid-feedback">{{ $message }}</span>
-                @enderror
-            </div>
-            
-            <div class="form-group">
-                <label for="name">Name</label>
-                <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" 
-                       value="{{ old('name', $layout->name) }}" required>
-                @error('name')
-                    <span class="invalid-feedback">{{ $message }}</span>
-                @enderror
-            </div>
-            
-            <div class="form-group">
-                <label for="preview_image">Preview Image</label>
-                @if($layout->preview_image)
-                    <div class="mb-2">
-                        <img src="{{ asset('storage/' . $layout->preview_image) }}" alt="Current Preview" class="img-thumbnail" style="max-width: 200px;">
+
+    <div class="row">
+        <div class="col-12 col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Layout Information</h5>
+                </div>
+                <form action="{{ route('admin.layouts.update', $layout) }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT')
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="type_id" class="form-label">Layout Type</label>
+                                <select name="type_id" id="type_id" class="form-select @error('type_id') is-invalid @enderror">
+                                    <option value="">Select Layout Type</option>
+                                    @foreach($types as $type)
+                                        <option value="{{ $type->id }}" {{ (old('type_id', $layout->type_id) == $type->id) ? 'selected' : '' }}>
+                                            {{ ucfirst($type->name) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('type_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">Name</label>
+                                <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" 
+                                       value="{{ old('name', $layout->name) }}" required placeholder="Enter layout name">
+                                @error('name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="preview_image" class="form-label">Preview Image</label>
+                            @if($layout->preview_image)
+                                <div class="mb-2">
+                                    <img src="{{ asset('storage/' . $layout->preview_image) }}" alt="Current Preview" class="img-thumbnail" style="max-width: 200px;">
+                                </div>
+                            @endif
+                            <input type="file" name="preview_image" id="preview_image" 
+                                   class="form-control @error('preview_image') is-invalid @enderror" 
+                                   accept="image/*">
+                            @error('preview_image')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <div class="form-text">Upload a preview image for this layout (optional)</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="html_template" class="form-label">HTML Template</label>
+                            <textarea name="html_template" id="html_template" rows="15" 
+                                      class="form-control @error('html_template') is-invalid @enderror" 
+                                      required placeholder="Enter HTML template code...">@if(old('html_template') !== null){{ old('html_template') }}@else{{ $layout->data }}@endif</textarea>
+                            @error('html_template')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <div class="form-text">
+                                Use <code>&#123;&#123; $data[&quot;key&quot;] &#125;&#125;</code> for dynamic content placeholders.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" name="status" class="form-check-input" 
+                                       id="status" value="1" {{ old('status', $layout->status) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="status">Active Layout</label>
+                            </div>
+                        </div>
                     </div>
-                @endif
-                <input type="file" name="preview_image" id="preview_image" 
-                       class="form-control @error('preview_image') is-invalid @enderror" 
-                       accept="image/*">
-                @error('preview_image')
-                    <span class="invalid-feedback">{{ $message }}</span>
-                @enderror
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="align-middle" data-feather="save"></i> Update Layout
+                        </button>
+                        <a href="{{ route('admin.layouts.index') }}" class="btn btn-secondary">
+                            <i class="align-middle" data-feather="x"></i> Cancel
+                        </a>
+                    </div>
+                </form>
             </div>
-            
-            <div class="form-group">
-                <label for="html_template">HTML Template</label>
-                <textarea name="html_template" id="html_template" rows="15" 
-                          class="form-control @error('html_template') is-invalid @enderror" 
-                          required>{{ old('html_template', $layout->html_template) }}</textarea>
-                @error('html_template')
-                    <span class="invalid-feedback">{{ $message }}</span>
-                @enderror
-                <small class="form-text text-muted">
-                    Use <code>{{ '{{ $data["key"] }}' }}</code> for dynamic content.
-                </small>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Layout Types</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">Navigation</h6>
+                                <small class="text-muted">Site navigation menus</small>
+                            </div>
+                            <span class="badge bg-primary rounded-pill">nav</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">Section</h6>
+                                <small class="text-muted">Page content sections</small>
+                            </div>
+                            <span class="badge bg-success rounded-pill">section</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">Footer</h6>
+                                <small class="text-muted">Site footer content</small>
+                            </div>
+                            <span class="badge bg-info rounded-pill">footer</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <div class="form-group">
-                <div class="custom-control custom-switch">
-                    <input type="checkbox" name="status" class="custom-control-input" 
-                           id="status" {{ old('status', $layout->status) ? 'checked' : '' }}>
-                    <label class="custom-control-label" for="status">Active</label>
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Template Variables</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6>Common Variables:</h6>
+                        <ul class="list-unstyled small">
+                            <li><code>&#123;&#123; $data[&quot;title&quot;] &#125;&#125;</code> - Title text</li>
+                            <li><code>&#123;&#123; $data[&quot;content&quot;] &#125;&#125;</code> - Main content</li>
+                            <li><code>&#123;&#123; $data[&quot;image&quot;] &#125;&#125;</code> - Image URL</li>
+                            <li><code>&#123;&#123; $data[&quot;url&quot;] &#125;&#125;</code> - Link URL</li>
+                        </ul>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="align-middle" data-feather="info"></i>
+                        <strong>Tip:</strong> Use descriptive variable names for better organization.
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="card-footer">
-            <button type="submit" class="btn btn-primary">Update Layout</button>
-            <a href="{{ route('admin.layouts.index') }}" class="btn btn-secondary">Cancel</a>
-        </div>
-    </form>
-</div>
+    </div>
 @endsection
 
-@section('page_js')
+@section('js')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Add syntax highlighting or code editor here if needed
+    // Add monospace font for code textarea
     const textarea = document.getElementById('html_template');
-    textarea.style.fontFamily = 'monospace';
+    textarea.style.fontFamily = 'Consolas, Monaco, "Courier New", monospace';
+    textarea.style.fontSize = '14px';
+    // Auto-resize textarea
+    textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+    });
 });
 </script>
 @endsection

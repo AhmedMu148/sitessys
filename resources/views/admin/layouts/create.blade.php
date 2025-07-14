@@ -64,12 +64,12 @@
                             <label for="html_template" class="form-label">HTML Template</label>
                             <textarea name="html_template" id="html_template" rows="15" 
                                       class="form-control @error('html_template') is-invalid @enderror" 
-                                      required placeholder="Enter HTML template code...">{{ old('html_template') }}</textarea>
+                                      required placeholder="Enter HTML template code...">@if(old('html_template') !== null){{ old('html_template') }}@endif</textarea>
                             @error('html_template')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                             <div class="form-text">
-                                Use <code>{{ '{{ $data["key"] }}' }}</code> for dynamic content placeholders.
+                                Use <code>&#123;&#123; $data[&quot;key&quot;] &#125;&#125;</code> for dynamic content placeholders.
                             </div>
                         </div>
                         
@@ -133,10 +133,10 @@
                     <div class="mb-3">
                         <h6>Common Variables:</h6>
                         <ul class="list-unstyled small">
-                            <li><code>{{ '{{ $data["title"] }}' }}</code> - Title text</li>
-                            <li><code>{{ '{{ $data["content"] }}' }}</code> - Main content</li>
-                            <li><code>{{ '{{ $data["image"] }}' }}</code> - Image URL</li>
-                            <li><code>{{ '{{ $data["url"] }}' }}</code> - Link URL</li>
+                            <li><code>&#123;&#123; $data[&quot;title&quot;] &#125;&#125;</code> - Title text</li>
+                            <li><code>&#123;&#123; $data[&quot;content&quot;] &#125;&#125;</code> - Main content</li>
+                            <li><code>&#123;&#123; $data[&quot;image&quot;] &#125;&#125;</code> - Image URL</li>
+                            <li><code>&#123;&#123; $data[&quot;url&quot;] &#125;&#125;</code> - Link URL</li>
                         </ul>
                     </div>
                     <div class="alert alert-info">

@@ -136,6 +136,10 @@ class LayoutController extends Controller
 
         $data = $request->all();
 
+        // إذا كان الحقل في قاعدة البيانات اسمه data وليس html_template
+        $data['data'] = $data['html_template'];
+        unset($data['html_template']);
+
         // If a new preview image is uploaded, delete the old one then store the new
         if ($request->hasFile('preview_image')) {
             if ($layout->preview_image) {
@@ -177,5 +181,25 @@ class LayoutController extends Controller
         return redirect()
             ->route('admin.layouts.index')
             ->with('success', 'Layout deleted successfully.');
+    }
+
+    /**
+     * Deactivate the specified layout (set status = false).
+     */
+    public function deactivate(TplLayout $layout)
+    {
+        $layout->status = false;
+        $layout->save();
+        return redirect()->route('admin.layouts.index')->with('success', 'Layout deactivated successfully.');
+    }
+
+    /**
+     * Activate the specified layout (set status = true).
+     */
+    public function activate(TplLayout $layout)
+    {
+        $layout->status = true;
+        $layout->save();
+        return redirect()->route('admin.layouts.index')->with('success', 'Layout activated successfully.');
     }
 }
