@@ -163,7 +163,7 @@
     </div>
 
     {{-- Grid overview below the table --}}
-  @if($layouts->count())
+   @if($layouts->count())
     <div class="row">
         <div class="col-12 mb-3">
             <h5>Layouts Overview</h5>
@@ -265,7 +265,5 @@
         </div>
     </div>
 @endif
-
-
 
 @endsection
