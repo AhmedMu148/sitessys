@@ -5,22 +5,26 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TplLayout extends Model
+class SiteSeoInt extends Model
 {
     use HasFactory;
     
+    protected $table = 'site_seo_int';
+    
     protected $fillable = [
-        'type_id',
+        'site_id',
+        'int_name',
         'data',
         'status'
     ];
     
     protected $casts = [
+        'data' => 'array',
         'status' => 'boolean'
     ];
     
-    public function type()
+    public function site()
     {
-        return $this->belongsTo(TplLayoutType::class, 'type_id');
+        return $this->belongsTo(Site::class);
     }
 }

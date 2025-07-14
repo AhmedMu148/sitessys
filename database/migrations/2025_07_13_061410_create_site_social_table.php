@@ -11,8 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('tpl_pages', function (Blueprint $table) {
-            $table->boolean('show_in_nav')->default(true)->after('status');
+        Schema::create('site_social', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('site_id')->constrained('sites')->onDelete('cascade');
+            $table->json('data');
+            $table->timestamps();
         });
     }
 
@@ -21,8 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('tpl_pages', function (Blueprint $table) {
-            $table->dropColumn('show_in_nav');
-        });
+        Schema::dropIfExists('site_social');
     }
 };

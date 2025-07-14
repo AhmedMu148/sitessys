@@ -14,12 +14,9 @@ return new class extends Migration
         Schema::create('tpl_layouts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('type_id')->constrained('tpl_layout_types')->onDelete('cascade');
-            $table->string('name');
-            $table->string('preview_image')->nullable();
-            $table->longText('html_template');
+            $table->longText('data'); // html
             $table->boolean('status')->default(true);
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 
