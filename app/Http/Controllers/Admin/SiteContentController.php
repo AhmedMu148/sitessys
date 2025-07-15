@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Site;
 use App\Models\TplPage;
-use App\Models\TplSection;
+use App\Models\PageSection;
 use App\Models\SiteConfig;
 use App\Models\TplSite;
 use App\Models\TplLayout;
@@ -18,18 +18,30 @@ class SiteContentController extends Controller
      */
     public function index()
     {
-        // For now, get the first admin's site
-        // Later this will be based on authenticated user
-        $user = \App\Models\User::where('role', 'admin')->first();
-        $site = $user ? $user->primarySite() : null;
+        // Get current authenticated user
+        $user = auth()->user();
+        
+        // If no authenticated user, redirect to login
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        
+        // Get user's site or create a default one
+        $site = Site::where('user_id', $user->id)->where('status', true)->first();
         
         if (!$site) {
-            return redirect()->route('admin.sites.create')->with('error', 'No site found. Please create a site first.');
+            // Create a default site for the user
+            $site = Site::create([
+                'user_id' => $user->id,
+                'site_name' => $user->name . "'s Site",
+                'domain' => null,
+                'status' => true
+            ]);
         }
         
         $stats = [
             'pages' => TplPage::where('site_id', $site->id)->count(),
-            'sections' => TplSection::where('site_id', $site->id)->count(),
+            'sections' => PageSection::where('site_id', $site->id)->count(),
             'config_items' => SiteConfig::where('site_id', $site->id)->count(),
         ];
         
@@ -39,49 +51,20 @@ class SiteContentController extends Controller
     }
 
     /**
-     * Show pages management
-     */
-    public function pages()
-    {
-        $user = \App\Models\User::where('role', 'admin')->first();
-        $site = $user ? $user->primarySite() : null;
-        
-        if (!$site) {
-            return redirect()->route('admin.sites.create')->with('error', 'No site found.');
-        }
-        
-        $pages = TplPage::where('site_id', $site->id)->paginate(10);
-        
-        return view('admin.site-content.pages', compact('site', 'pages'));
-    }
-
-    /**
-     * Show sections management
-     */
-    public function sections()
-    {
-        $user = \App\Models\User::where('role', 'admin')->first();
-        $site = $user ? $user->primarySite() : null;
-        
-        if (!$site) {
-            return redirect()->route('admin.sites.create')->with('error', 'No site found.');
-        }
-        
-        $sections = TplSection::where('site_id', $site->id)->paginate(10);
-        
-        return view('admin.site-content.sections', compact('site', 'sections'));
-    }
-
-    /**
      * Show site configuration
      */
     public function config()
     {
-        $user = \App\Models\User::where('role', 'admin')->first();
-        $site = $user ? $user->primarySite() : null;
+        $user = auth()->user();
+        
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        
+        $site = Site::where('user_id', $user->id)->where('status', true)->first();
         
         if (!$site) {
-            return redirect()->route('admin.sites.create')->with('error', 'No site found.');
+            return redirect()->route('admin.dashboard')->with('error', 'No site found. Please set up your site first.');
         }
         
         $config = SiteConfig::where('site_id', $site->id)->first();
@@ -94,11 +77,16 @@ class SiteContentController extends Controller
      */
     public function updateConfig(Request $request)
     {
-        $user = \App\Models\User::where('role', 'admin')->first();
-        $site = $user ? $user->primarySite() : null;
+        $user = auth()->user();
+        
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        
+        $site = Site::where('user_id', $user->id)->where('status', true)->first();
         
         if (!$site) {
-            return redirect()->route('admin.sites.create')->with('error', 'No site found.');
+            return redirect()->route('admin.dashboard')->with('error', 'No site found. Please set up your site first.');
         }
         
         $request->validate([

@@ -9,7 +9,7 @@ use App\Models\SiteConfig;
 use App\Models\SiteSocial;
 use App\Models\SiteContact;
 use App\Models\SiteSeoInt;
-use App\Models\TplSection;
+use App\Models\PageSection;
 use App\Models\TplPage;
 use App\Models\TplSite;
 use Illuminate\Http\Request;
@@ -153,49 +153,36 @@ class SiteController extends Controller
             'status' => false
         ]);
 
-        // Create 60 sections (30 per language: 6 pages × 5 sections)
-        $sectionData = [
-            'en' => [
-                'title' => 'Section Title',
-                'content' => 'Section content in English',
-                'button_text' => 'Learn More'
-            ],
-            'ar' => [
-                'title' => 'عنوان القسم',
-                'content' => 'محتوى القسم باللغة العربية',
-                'button_text' => 'اعرف المزيد'
-            ]
-        ];
-
-        for ($i = 1; $i <= 60; $i++) {
-            TplSection::create([
-                'site_id' => $site->id,
-                'data' => $sectionData
-            ]);
-        }
-
-        // Create 6 pages
+        // Create 6 pages with the new enhanced structure
         $pageLinks = [
-            'Home' => '/',
-            'About' => '/about',
-            'Services' => '/services',
-            'Portfolio' => '/portfolio',
-            'Blog' => '/blog',
-            'Contact' => '/contact'
+            'Home' => ['/', 'home'],
+            'About' => ['/about', 'about'],
+            'Services' => ['/services', 'services'],
+            'Portfolio' => ['/portfolio', 'portfolio'],
+            'Blog' => ['/blog', 'blog'],
+            'Contact' => ['/contact', 'contact']
         ];
 
         $createdPages = [];
-        foreach ($pageLinks as $name => $link) {
-            $sectionIds = [];
-            for ($i = 0; $i < 5; $i++) {
-                $sectionIds[] = rand(1, 60);
-            }
+        $sortOrder = 1;
+        foreach ($pageLinks as $name => $linkData) {
+            [$link, $slug] = $linkData;
             
             $createdPages[] = TplPage::create([
                 'site_id' => $site->id,
                 'name' => $name,
+                'slug' => $slug,
                 'link' => $link,
-                'section_id' => implode(',', $sectionIds)
+                'description' => 'Learn more about ' . strtolower($name) . ' at our website',
+                'meta_data' => json_encode([
+                    'title' => $name . ' - ' . $site->site_name,
+                    'description' => 'Learn more about ' . strtolower($name) . ' at our website',
+                    'keywords' => strtolower($name) . ', website, business'
+                ]),
+                'is_active' => true,
+                'show_in_nav' => $name !== 'Home',
+                'sort_order' => $sortOrder++,
+                'section_id' => '' // No longer needed with PageSection model
             ]);
         }
 
