@@ -34,9 +34,15 @@ class LayoutSeeder extends Seeder
 
         // Create modern navigation layout
         TplLayout::create([
-            'name' => 'Modern Header',
             'type_id' => $types['nav']->id,
-            'html_template' => $this->getNavigationContent(),
+            'data' => $this->getNavigationContent(),
+            'status' => true
+        ]);
+
+        // Create classic navigation layout
+        TplLayout::create([
+            'type_id' => $types['nav']->id,
+            'data' => $this->getClassicNavContent(),
             'status' => true
         ]);
 
@@ -58,20 +64,27 @@ class LayoutSeeder extends Seeder
 
         foreach ($sections as $name => $html_template) {
             TplLayout::create([
-                'name' => $name,
                 'type_id' => $types['section']->id,
-                'html_template' => $html_template,
+                'data' => $html_template,
                 'status' => true
             ]);
         }
 
         // Create modern footer layout
         TplLayout::create([
-            'name' => 'Modern Footer',
             'type_id' => $types['footer']->id,
-            'html_template' => $this->getFooterContent(),
+            'data' => $this->getFooterContent(),
             'status' => true
         ]);
+
+        // Create simple footer layout
+        TplLayout::create([
+            'type_id' => $types['footer']->id,
+            'data' => $this->getSimpleFooterContent(),
+            'status' => true
+        ]);
+
+        $this->command->info('✅ Layout types and layouts created successfully!');
     }
 
     private function getNavigationContent(): string
@@ -953,7 +966,7 @@ class LayoutSeeder extends Seeder
                                         <span>{{ $nonfeature }}</span>
                                     </li>
                                 @endforeach
-                            </ul>
+                            </div>
                         </div>
                         
                         <div class="card-footer bg-transparent border-0 p-4 pt-0 text-center">
@@ -1021,5 +1034,36 @@ class LayoutSeeder extends Seeder
     private function getQuoteContent(): string
     {
         return '@include("frontend.components.quote-form", ["data" => $data])';
+    }
+
+    private function getClassicNavContent(): string
+    {
+        return '<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            {{ $site->name ?? "Your Site" }}
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+                <li class="nav-item"><a class="nav-link" href="#services">Services</a></li>
+                <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>';
+    }
+
+    private function getSimpleFooterContent(): string
+    {
+        return '<footer class="bg-light py-4 text-center">
+    <div class="container">
+        <p class="mb-0">&copy; 2025 {{ $site->name ?? "Your Site" }}. All rights reserved.</p>
+    </div>
+</footer>';
     }
 }
