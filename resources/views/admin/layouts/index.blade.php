@@ -121,17 +121,29 @@
                                                        class="btn btn-sm btn-outline-primary">
                                                         <i class="align-middle" data-feather="edit"></i>
                                                     </a>
-                                                    <form action="{{ route('admin.layouts.destroy', $layout) }}"
+                                                    <form action="{{ route('admin.layouts.deactivate', $layout) }}"
                                                           method="POST"
-                                                          onsubmit="return confirm('Are you sure you want to delete this layout?');"
+                                                          onsubmit="return confirm('Are you sure you want to deactivate this layout?');"
                                                           style="display:inline;">
                                                         @csrf
-                                                        @method('DELETE')
                                                         <button type="submit"
-                                                                class="btn btn-sm btn-outline-danger">
-                                                            <i class="align-middle" data-feather="trash-2"></i>
+                                                                class="btn btn-sm btn-outline-warning">
+                                                            <i class="align-middle" data-feather="slash"></i>
+                                                            Deactivate
                                                         </button>
                                                     </form>
+                                                    @if(!$layout->status)
+                                                    <form action="{{ route('admin.layouts.activate', $layout) }}"
+                                                          method="POST"
+                                                          style="display:inline; margin-left: 5px;">
+                                                        @csrf
+                                                        <button type="submit"
+                                                                class="btn btn-sm btn-outline-success">
+                                                            <i class="align-middle" data-feather="check"></i>
+                                                            Activate
+                                                        </button>
+                                                    </form>
+                                                    @endif
                                                 </div>
                                             </td>
                                         </tr>
@@ -163,7 +175,7 @@
     </div>
 
     {{-- Grid overview below the table --}}
-  @if($layouts->count())
+   @if($layouts->count())
     <div class="row">
         <div class="col-12 mb-3">
             <h5>Layouts Overview</h5>
@@ -240,17 +252,29 @@
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
-                                        <form action="{{ route('admin.layouts.destroy', $layout) }}"
+                                        <form action="{{ route('admin.layouts.deactivate', $layout) }}"
                                               method="POST"
-                                              onsubmit="return confirm('هل أنت متأكد من حذف هذا Layout؟');">
+                                              onsubmit="return confirm('هل أنت متأكد من تعطيل هذا Layout؟');">
                                             @csrf
-                                            @method('DELETE')
-                                            <button class="dropdown-item text-danger" type="submit">
-                                                <i class="align-middle me-1" data-feather="trash-2"></i>
-                                                Delete
+                                            <button class="dropdown-item text-warning" type="submit">
+                                                <i class="align-middle me-1" data-feather="slash"></i>
+                                                Deactivate
                                             </button>
                                         </form>
                                     </li>
+                                    @if(!$layout->status)
+                                    <li>
+                                        <form action="{{ route('admin.layouts.activate', $layout) }}"
+                                              method="POST"
+                                              style="display:inline;">
+                                            @csrf
+                                            <button class="dropdown-item text-success" type="submit">
+                                                <i class="align-middle me-1" data-feather="check"></i>
+                                                Activate
+                                            </button>
+                                        </form>
+                                    </li>
+                                    @endif
                                 </ul>
                             </div>
                         </div>
@@ -266,6 +290,24 @@
     </div>
 @endif
 
+@endsection
 
-
+@section('js')
+    {{-- تأكد من تحميل Bootstrap JS من CDN إذا لم يكن موجوداً بالفعل --}}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof bootstrap === 'undefined') {
+                console.error('Bootstrap JS is NOT loaded! Dropdowns will not work.');
+            } else {
+                console.log('Bootstrap JS loaded successfully.');
+            }
+            // إعادة تفعيل أيقونات feather بعد ظهور القائمة المنسدلة
+            document.querySelectorAll('.dropdown').forEach(function(drop){
+                drop.addEventListener('shown.bs.dropdown', function(){
+                    if(window.feather) feather.replace();
+                });
+            });
+        });
+    </script>
 @endsection
