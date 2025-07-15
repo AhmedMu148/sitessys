@@ -36,7 +36,7 @@
                                         <th>ID</th>
                                         <th>Name</th>
                                         <th>Slug</th>
-                                        <th>Site</th>
+                                        <th>Sections</th>
                                         <th>Sort Order</th>
                                         <th>Status</th>
                                         <th>In Nav</th>
@@ -57,10 +57,19 @@
                                             <td>
                                                 <code>{{ $page->slug }}</code>
                                             </td>
-                                            <td>{{ $page->site->name }}</td>
+                                            <td>
+                                                @if($page->sections)
+                                                    <span class="badge bg-primary">{{ $page->sections->count() }}</span>
+                                                    @if($page->sections->where('is_active', true)->count() > 0)
+                                                        <span class="badge bg-success">{{ $page->sections->where('is_active', true)->count() }} active</span>
+                                                    @endif
+                                                @else
+                                                    <span class="text-muted">No sections</span>
+                                                @endif
+                                            </td>
                                             <td>{{ $page->sort_order }}</td>
                                             <td>
-                                                @if($page->status)
+                                                @if($page->is_active)
                                                     <span class="badge bg-success">Active</span>
                                                 @else
                                                     <span class="badge bg-secondary">Inactive</span>
@@ -76,27 +85,34 @@
                                             <td>{{ $page->created_at->format('M d, Y') }}</td>
                                             <td>
                                                 <div class="btn-group" role="group">
-                                                    <a href="/" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                                    <a href="/" target="_blank" class="btn btn-sm btn-outline-secondary" title="Preview">
                                                         <i class="align-middle" data-feather="external-link"></i>
                                                     </a>
                                                     <a href="{{ route('admin.pages.show', $page) }}" 
-                                                       class="btn btn-sm btn-outline-info">
+                                                       class="btn btn-sm btn-outline-info" title="View Details">
                                                         <i class="align-middle" data-feather="eye"></i>
                                                     </a>
+                                                    <a href="{{ route('admin.page-sections.index', ['page_id' => $page->id]) }}" 
+                                                       class="btn btn-sm btn-outline-primary" title="Manage Sections">
+                                                        <i class="align-middle" data-feather="layers"></i>
+                                                    </a>
                                                     <a href="{{ route('admin.pages.edit', $page) }}" 
-                                                       class="btn btn-sm btn-outline-primary">
+                                                       class="btn btn-sm btn-outline-warning" title="Edit Page">
                                                         <i class="align-middle" data-feather="edit"></i>
                                                     </a>
+                                                    @if($page->slug !== 'home')
                                                     <form action="{{ route('admin.pages.destroy', $page) }}" 
                                                           method="POST" style="display: inline;">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" 
                                                                 class="btn btn-sm btn-outline-danger"
+                                                                title="Delete Page"
                                                                 onclick="return confirm('Are you sure you want to delete this page?')">
                                                             <i class="align-middle" data-feather="trash-2"></i>
                                                         </button>
                                                     </form>
+                                                    @endif
                                                 </div>
                                             </td>
                                         </tr>

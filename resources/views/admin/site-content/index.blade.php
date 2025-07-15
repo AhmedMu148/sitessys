@@ -43,7 +43,7 @@
                     </div>
                     <h1 class="mt-1 mb-3">{{ $stats['pages'] }}</h1>
                     <div class="mb-0">
-                        <a href="{{ route('admin.site-content.pages') }}" class="text-primary">Manage Pages</a>
+                        <a href="{{ route('admin.pages.index') }}" class="text-primary">Manage Pages</a>
                     </div>
                 </div>
             </div>
@@ -64,7 +64,7 @@
                     </div>
                     <h1 class="mt-1 mb-3">{{ $stats['sections'] }}</h1>
                     <div class="mb-0">
-                        <a href="{{ route('admin.site-content.sections') }}" class="text-success">Manage Sections</a>
+                        <a href="{{ route('admin.pages.index') }}" class="text-success">Manage Pages</a>
                     </div>
                 </div>
             </div>
@@ -85,7 +85,7 @@
                     </div>
                     <h1 class="mt-1 mb-3">{{ $stats['config_items'] }}</h1>
                     <div class="mb-0">
-                        <a href="{{ route('admin.site-content.config') }}" class="text-warning">Site Settings</a>
+                        <a href="{{ route('admin.headers-footers.index') }}" class="text-warning">Headers & Footers</a>
                     </div>
                 </div>
             </div>
@@ -127,18 +127,18 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3">
-                            <a href="{{ route('admin.site-content.pages') }}" class="btn btn-primary w-100 mb-2">
+                            <a href="{{ route('admin.pages.create') }}" class="btn btn-primary w-100 mb-2">
                                 <i data-feather="plus"></i> Add New Page
                             </a>
                         </div>
                         <div class="col-md-3">
-                            <a href="{{ route('admin.site-content.sections') }}" class="btn btn-success w-100 mb-2">
-                                <i data-feather="grid"></i> Manage Sections
+                            <a href="{{ route('admin.pages.index') }}" class="btn btn-success w-100 mb-2">
+                                <i data-feather="grid"></i> Manage Pages
                             </a>
                         </div>
                         <div class="col-md-3">
-                            <a href="{{ route('admin.site-content.config') }}" class="btn btn-warning w-100 mb-2">
-                                <i data-feather="settings"></i> Site Settings
+                            <a href="{{ route('admin.headers-footers.index') }}" class="btn btn-warning w-100 mb-2">
+                                <i data-feather="settings"></i> Headers & Footers
                             </a>
                         </div>
                         <div class="col-md-3">
@@ -194,7 +194,7 @@
                             <i data-feather="file-text" class="text-muted" style="width: 48px; height: 48px;"></i>
                             <h5 class="mt-3">No pages yet</h5>
                             <p class="text-muted">Start building your site by creating pages and sections.</p>
-                            <a href="{{ route('admin.site-content.pages') }}" class="btn btn-primary">
+                            <a href="{{ route('admin.pages.create') }}" class="btn btn-primary">
                                 <i data-feather="plus"></i> Create First Page
                             </a>
                         </div>

@@ -80,21 +80,15 @@
 
 
 
-                    <li class="sidebar-item {{ request()->routeIs('admin.site-content.pages') ? 'active' : '' }}">
-                        <a class="sidebar-link" href="{{ route('admin.site-content.pages') }}">
+                    <li class="sidebar-item {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
+                        <a class="sidebar-link" href="{{ route('admin.pages.index') }}">
                             <i class="align-middle" data-feather="file-text"></i> <span class="align-middle">Pages</span>
                         </a>
                     </li>
 
-                    <li class="sidebar-item {{ request()->routeIs('admin.site-content.sections') ? 'active' : '' }}">
-                        <a class="sidebar-link" href="{{ route('admin.site-content.sections') }}">
-                            <i class="align-middle" data-feather="grid"></i> <span class="align-middle">Sections</span>
-                        </a>
-                    </li>
-
-                    <li class="sidebar-item {{ request()->routeIs('admin.site-content.config') ? 'active' : '' }}">
-                        <a class="sidebar-link" href="{{ route('admin.site-content.config') }}">
-                            <i class="align-middle" data-feather="settings"></i> <span class="align-middle">Site Settings</span>
+                    <li class="sidebar-item {{ request()->routeIs('admin.headers-footers.*') ? 'active' : '' }}">
+                        <a class="sidebar-link" href="{{ route('admin.headers-footers.index') }}">
+                            <i class="align-middle" data-feather="layout"></i> <span class="align-middle">Headers & Footers</span>
                         </a>
                     </li>
 
@@ -104,7 +98,7 @@
 
                     <li class="sidebar-item {{ request()->routeIs('admin.layouts.*') ? 'active' : '' }}">
                         <a class="sidebar-link" href="{{ route('admin.layouts.index') }}">
-                            <i class="align-middle" data-feather="layout"></i> <span class="align-middle">Layout Templates</span>
+                            <i class="align-middle" data-feather="layers"></i> <span class="align-middle">Layout Templates</span>
                         </a>
                     </li>
 
