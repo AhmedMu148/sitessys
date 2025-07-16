@@ -78,19 +78,35 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user is owner (can see all sites)
+     * Check if user can access admin panel
      */
-    public function isOwner()
+    public function canAccessAdmin()
     {
-        return $this->role === 'owner';
+        return $this->hasAnyRole(['super-admin', 'admin', 'team-member']) && $this->is_active;
     }
 
     /**
-     * Check if user is admin (has one site)
+     * Check if user is owner (super-admin with full access)
+     */
+    public function isOwner()
+    {
+        return $this->hasRole('super-admin');
+    }
+
+    /**
+     * Check if user is admin (site management access)
      */
     public function isAdmin()
     {
-        return $this->role === 'admin';
+        return $this->hasRole('admin');
+    }
+
+    /**
+     * Check if user is team member (limited admin access)
+     */
+    public function isTeamMember()
+    {
+        return $this->hasRole('team-member');
     }
 
     /**
@@ -98,7 +114,7 @@ class User extends Authenticatable
      */
     public function isUser()
     {
-        return $this->role === 'user';
+        return $this->hasRole('user');
     }
 
     /**
@@ -155,14 +171,6 @@ class User extends Authenticatable
         }
         
         return null;
-    }
-
-    /**
-     * Check if user can access admin panel
-     */
-    public function canAccessAdmin()
-    {
-        return $this->hasAnyRole(['super-admin', 'admin']) && $this->is_active;
     }
 
     /**

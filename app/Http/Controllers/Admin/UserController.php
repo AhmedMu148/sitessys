@@ -29,12 +29,16 @@ class UserController extends Controller
             'role' => 'required|string'
         ]);
 
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => $request->role
+            'role' => $request->role,
+            'is_active' => true,
         ]);
+
+        // Assign the role using Spatie permissions
+        $user->assignRole($request->role);
 
         return redirect()->route('admin.users.index')->with('success', 'User created successfully!');
     }

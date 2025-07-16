@@ -1,6 +1,19 @@
 @extends('admin.layouts.master')
 
-@section('title', 'Create New User')
+@sectio                        <div class="mb-3">
+                            <label for="role" class="form-label">Role</label>
+                            <select name="role" id="role" class="form-select @error('role') is-invalid @enderror" required>
+                                <option value="">Select Role</option>
+                                @if(auth()->user()->hasRole('super-admin'))
+                                    <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                                    <option value="team-member" {{ old('role') == 'team-member' ? 'selected' : '' }}>Team Member</option>
+                                @endif
+                                <option value="user" {{ old('role') == 'user' ? 'selected' : '' }}>User</option>
+                            </select>
+                            @error('role')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>'Create New User')
 
 @section('content')
 <div class="container-fluid p-0">
@@ -79,13 +92,22 @@
                     <h5 class="card-title mb-0">Information</h5>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted">Create a new user account. Users can be assigned as site owners and will have access to manage their sites.</p>
+                    <p class="text-muted">Create a new user account for the site. Users will have different levels of access based on their assigned role.</p>
                     
                     <h6>Available Roles:</h6>
                     <ul class="list-unstyled">
-                        <li><strong>Admin:</strong> Full system access</li>
-                        <li><strong>User:</strong> Site management access</li>
+                        @if(auth()->user()->hasRole('super-admin'))
+                            <li><strong>Admin:</strong> Site management and content control</li>
+                            <li><strong>Team Member:</strong> Content editing and template management</li>
+                        @endif
+                        <li><strong>User:</strong> Basic site access and interaction</li>
                     </ul>
+                    
+                    @if(auth()->user()->hasRole('super-admin'))
+                        <div class="alert alert-info">
+                            <small><strong>Note:</strong> As a Super Admin, you can create Admin and Team Member accounts. Regular users can register themselves through the public registration form.</small>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

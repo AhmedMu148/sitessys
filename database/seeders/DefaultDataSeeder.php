@@ -14,35 +14,7 @@ class DefaultDataSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create a super admin user
-        $superAdmin = User::firstOrCreate(
-            ['email' => 'admin@example.com'],
-            [
-                'name' => 'Super Admin',
-                'password' => Hash::make('password'),
-                'role' => 'super-admin',
-                'subdomain' => 'admin',
-                'is_active' => true,
-            ]
-        );
-
-        $superAdmin->assignRole('super-admin');
-
-        // Create demo admin user
-        $demoAdmin = User::firstOrCreate(
-            ['email' => 'demo@example.com'],
-            [
-                'name' => 'Demo Admin',
-                'password' => Hash::make('password'),
-                'role' => 'admin',
-                'subdomain' => 'demo',
-                'is_active' => true,
-            ]
-        );
-
-        $demoAdmin->assignRole('admin');
-
-        // Create default templates
+        // Only create default templates - users are handled by SingleSiteSeeder
         $this->createDefaultTemplates();
     }
 

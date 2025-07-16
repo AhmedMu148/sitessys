@@ -20,12 +20,28 @@
             @if (Route::has('login'))
                 <div class="sm:fixed sm:top-0 sm:right-0 p-6 text-right z-10">
                     @auth
-                        <a href="{{ url('/home') }}" class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">Home</a>
+                        @if(auth()->user()->hasAnyRole(['super-admin', 'admin', 'team-member']))
+                            <a href="{{ route('admin.dashboard') }}" class="font-semibold text-blue-600 hover:text-blue-800 focus:outline focus:outline-2 focus:rounded-sm focus:outline-blue-500 mr-4">
+                                <i class="fas fa-tachometer-alt"></i> Admin Panel
+                            </a>
+                        @endif
+                        <form method="POST" action="{{ route('logout') }}" class="inline">
+                            @csrf
+                            <button type="submit" class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </form>
                     @else
-                        <a href="{{ route('login') }}" class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">Log in</a>
-
+                        <a href="{{ route('login') }}" class="font-semibold text-green-600 hover:text-green-800 focus:outline focus:outline-2 focus:rounded-sm focus:outline-green-500 mr-4">
+                            <i class="fas fa-user"></i> User Login
+                        </a>
+                        <a href="{{ route('admin.login') }}" class="font-semibold text-blue-600 hover:text-blue-800 focus:outline focus:outline-2 focus:rounded-sm focus:outline-blue-500 mr-4">
+                            <i class="fas fa-shield-alt"></i> Admin Login
+                        </a>
                         @if (Route::has('register'))
-                            <a href="{{ route('register') }}" class="ml-4 font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">Register</a>
+                            <a href="{{ route('register') }}" class="font-semibold text-indigo-600 hover:text-indigo-800 focus:outline focus:outline-2 focus:rounded-sm focus:outline-indigo-500">
+                                <i class="fas fa-user-plus"></i> Register
+                            </a>
                         @endif
                     @endauth
                 </div>
