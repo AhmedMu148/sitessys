@@ -185,13 +185,14 @@ class SingleSiteSeeder extends Seeder
     }
 
     /**
-     * Create a regular user for testing
+     * Create regular users for testing
      */
     private function createRegularUser(): void
     {
-        $this->command->info('👤 Creating regular user...');
+        $this->command->info('👤 Creating regular users...');
         
-        $user = User::updateOrCreate(
+        // Regular User 1
+        $user1 = User::updateOrCreate(
             ['email' => 'user@spsystem.com'],
             [
                 'name' => 'Regular User',
@@ -213,11 +214,38 @@ class SingleSiteSeeder extends Seeder
             ]
         );
 
-        if (!$user->hasRole('user')) {
-            $user->assignRole('user');
+        if (!$user1->hasRole('user')) {
+            $user1->assignRole('user');
         }
 
-        $this->command->info('✅ Regular user created successfully!');
+        // Regular User 2 - Additional test user
+        $user2 = User::updateOrCreate(
+            ['email' => 'john@spsystem.com'],
+            [
+                'name' => 'John Smith',
+                'password' => Hash::make('john123'),
+                'role' => 'user',
+                'subdomain' => null,
+                'domain' => null,
+                'is_active' => true,
+                'phone' => '+1-555-JOHN',
+                'bio' => 'Another regular user for testing platform features and functionalities.',
+                'settings' => json_encode([
+                    'theme' => 'dark',
+                    'language' => 'en',
+                    'notifications' => false,
+                    'timezone' => 'America/New_York'
+                ]),
+                'email_verified_at' => now(),
+                'last_login_at' => now()->subHours(8),
+            ]
+        );
+
+        if (!$user2->hasRole('user')) {
+            $user2->assignRole('user');
+        }
+
+        $this->command->info('✅ Regular users created successfully!');
     }
 
     /**
@@ -252,6 +280,11 @@ class SingleSiteSeeder extends Seeder
         $this->command->info('👤 REGULAR USER:');
         $this->command->info('Email: user@spsystem.com');
         $this->command->info('Password: user123');
+        $this->command->info('Role: User (Basic Access)');
+        $this->command->info('');
+        $this->command->info('👤 ADDITIONAL USER:');
+        $this->command->info('Email: john@spsystem.com');
+        $this->command->info('Password: john123');
         $this->command->info('Role: User (Basic Access)');
         $this->command->info('');
         $this->command->info('🌐 ACCESS DOMAINS:');

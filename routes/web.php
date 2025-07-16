@@ -38,6 +38,11 @@ Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('regi
 Route::post('/register', [AuthController::class, 'webRegister'])->name('register.post');
 Route::post('/logout', [AuthController::class, 'webLogout'])->name('logout');
 
+// User dashboard/welcome page for authenticated regular users
+Route::get('/dashboard', function () {
+    return view('welcome');
+})->middleware(['auth'])->name('user.dashboard');
+
 // Admin authentication routes
 Route::get('/admin/login', [AuthController::class, 'showAdminLoginForm'])->name('admin.login');
 Route::post('/admin/login', [AuthController::class, 'adminLogin'])->name('admin.login.post');
@@ -99,8 +104,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 });
 
 // Frontend routes (with tenant middleware for multi-tenant support)
-// These should come last to avoid conflicts with admin routes
+// Main site content - these routes should handle the owner's site content
 Route::middleware(['tenant'])->group(function () {
+    // Root route shows the main site's home page
     Route::get('/', [PageController::class, 'show'])->defaults('slug', 'home')->name('home');
-    Route::get('/{slug}', [PageController::class, 'show'])->where('slug', '^(?!admin|login|register|logout).*$');
+    // Other pages by slug (but exclude admin, auth, and user routes)
+    Route::get('/{slug}', [PageController::class, 'show'])->where('slug', '^(?!admin|login|register|logout|dashboard).*$');
 });

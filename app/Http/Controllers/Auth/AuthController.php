@@ -86,7 +86,7 @@ class AuthController extends Controller
             return redirect()->route('admin.dashboard')
                 ->with('success', 'Registration successful! Welcome to your dashboard.');
         } else {
-            return redirect()->route('home')
+            return redirect()->route('welcome')
                 ->with('success', 'Registration successful! Welcome to the site.');
         }
     }
@@ -124,8 +124,8 @@ class AuthController extends Controller
             $user->updateLastLogin();
             $request->session()->regenerate();
 
-            // Regular users go to home page
-            return redirect()->intended(route('home'))
+            // Regular users go to user dashboard
+            return redirect()->intended('/dashboard')
                 ->with('success', 'Welcome back, ' . $user->name . '!');
         }
 
