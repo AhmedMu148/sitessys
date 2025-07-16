@@ -21,11 +21,22 @@ class LayoutController extends Controller
      */
     public function index(Request $request)
     {
+        // Get current user's site
+        $user = auth()->user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        
+        $site = $user->sites()->where('status', true)->first();
+        if (!$site) {
+            return redirect()->route('admin.dashboard')->with('error', 'No site found. Please set up your site first.');
+        }
+
         // Read optional "type" filter from the query string
         $typeFilter = $request->query('type');
 
-        // Build a base query that eager-loads the "type" relation
-        $query = TplLayout::with('type');
+        // Build a base query that eager-loads the "type" relation and filters by user's site
+        $query = TplLayout::with('type')->where('site_id', $site->id);
 
         if ($typeFilter) {
             // Find the matching layout type by its "name"
@@ -64,6 +75,17 @@ class LayoutController extends Controller
      */
     public function store(Request $request)
     {
+        // Get current user's site
+        $user = auth()->user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        
+        $site = $user->sites()->where('status', true)->first();
+        if (!$site) {
+            return redirect()->route('admin.dashboard')->with('error', 'No site found. Please set up your site first.');
+        }
+
         // Validate incoming data
         $request->validate([
             'type_id'       => 'required|exists:tpl_layout_types,id',
@@ -74,6 +96,11 @@ class LayoutController extends Controller
         ]);
 
         $data = $request->all();
+        
+        // Set the user and site for the new layout
+        $data['user_id'] = $user->id;
+        $data['site_id'] = $site->id;
+        $data['data'] = $data['html_template'] ?? ''; // Map html_template to data field
 
         // If user uploaded a preview image, store it
         if ($request->hasFile('preview_image')) {
@@ -99,6 +126,12 @@ class LayoutController extends Controller
      */
     public function show(TplLayout $layout)
     {
+        // Verify user owns this layout's site
+        $user = auth()->user();
+        if (!$user || $layout->site_id !== $user->sites()->where('status', true)->first()?->id) {
+            abort(403, 'Unauthorized to view this layout.');
+        }
+
         // Show details for a single layout
         return view('admin.layouts.show', compact('layout'));
     }
@@ -111,6 +144,12 @@ class LayoutController extends Controller
      */
     public function edit(TplLayout $layout)
     {
+        // Verify user owns this layout's site
+        $user = auth()->user();
+        if (!$user || $layout->site_id !== $user->sites()->where('status', true)->first()?->id) {
+            abort(403, 'Unauthorized to edit this layout.');
+        }
+
         // Retrieve active types for the edit form
         $types = TplLayoutType::where('status', true)->get();
         return view('admin.layouts.edit', compact('layout', 'types'));
@@ -125,6 +164,12 @@ class LayoutController extends Controller
      */
     public function update(Request $request, TplLayout $layout)
     {
+        // Verify user owns this layout's site
+        $user = auth()->user();
+        if (!$user || $layout->site_id !== $user->sites()->where('status', true)->first()?->id) {
+            abort(403, 'Unauthorized to update this layout.');
+        }
+
         // Validate incoming data
         $request->validate([
             'type_id'       => 'required|exists:tpl_layout_types,id',
@@ -169,6 +214,12 @@ class LayoutController extends Controller
      */
     public function destroy(TplLayout $layout)
     {
+        // Verify user owns this layout's site
+        $user = auth()->user();
+        if (!$user || $layout->site_id !== $user->sites()->where('status', true)->first()?->id) {
+            abort(403, 'Unauthorized to delete this layout.');
+        }
+
         // Delete the preview image file if it exists
         if ($layout->preview_image) {
             Storage::disk('public')->delete($layout->preview_image);
@@ -188,6 +239,12 @@ class LayoutController extends Controller
      */
     public function deactivate(TplLayout $layout)
     {
+        // Verify user owns this layout's site
+        $user = auth()->user();
+        if (!$user || $layout->site_id !== $user->sites()->where('status', true)->first()?->id) {
+            abort(403, 'Unauthorized to deactivate this layout.');
+        }
+
         $layout->status = false;
         $layout->save();
         return redirect()->route('admin.layouts.index')->with('success', 'Layout deactivated successfully.');
@@ -198,6 +255,12 @@ class LayoutController extends Controller
      */
     public function activate(TplLayout $layout)
     {
+        // Verify user owns this layout's site
+        $user = auth()->user();
+        if (!$user || $layout->site_id !== $user->sites()->where('status', true)->first()?->id) {
+            abort(403, 'Unauthorized to activate this layout.');
+        }
+
         $layout->status = true;
         $layout->save();
         return redirect()->route('admin.layouts.index')->with('success', 'Layout activated successfully.');

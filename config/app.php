@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ServiceProvider;
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Application Name
@@ -185,4 +184,15 @@ return [
         // 'Example' => App\Facades\Example::class,
     ])->toArray(),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Main Domain
+    |--------------------------------------------------------------------------
+    |
+    | This value is the main domain for the multi-tenant system.
+    | Subdomains will be created under this domain.
+    |
+    */
+
+    'main_domain' => env('APP_MAIN_DOMAIN', 'localhost'),
 ];

@@ -25,21 +25,6 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="site_id" class="form-label">Site</label>
-                                <select name="site_id" id="site_id" class="form-select @error('site_id') is-invalid @enderror">
-                                    <option value="">Select Site</option>
-                                    @foreach($sites as $site)
-                                        <option value="{{ $site->id }}" {{ old('site_id') == $site->id ? 'selected' : '' }}>
-                                            {{ $site->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('site_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
                                 <label for="name" class="form-label">Page Name</label>
                                 <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" 
                                        value="{{ old('name') }}" required placeholder="Enter page name">
@@ -47,9 +32,7 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                        </div>
-                        
-                        <div class="row">
+                            
                             <div class="col-md-6 mb-3">
                                 <label for="slug" class="form-label">Slug</label>
                                 <input type="text" name="slug" id="slug" class="form-control @error('slug') is-invalid @enderror" 
@@ -59,7 +42,8 @@
                                 @enderror
                                 <div class="form-text">URL-friendly version of the page name</div>
                             </div>
-                            
+                        </div>
+                        <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="sort_order" class="form-label">Sort Order</label>
                                 <input type="number" name="sort_order" id="sort_order" class="form-control @error('sort_order') is-invalid @enderror" 
@@ -69,13 +53,46 @@
                                 @enderror
                                 <div class="form-text">Higher numbers appear first</div>
                             </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="description" class="form-label">Description <small class="text-muted">(Optional)</small></label>
+                                <input type="text" name="description" id="description" class="form-control @error('description') is-invalid @enderror" 
+                                       value="{{ old('description') }}" placeholder="Brief page description">
+                                @error('description')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <!-- Meta Data Section -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="meta_title" class="form-label">Meta Title <small class="text-muted">(SEO)</small></label>
+                                <input type="text" name="meta_data[title]" id="meta_title" class="form-control" 
+                                       value="{{ old('meta_data.title') }}" placeholder="SEO page title">
+                                <div class="form-text">Recommended: 50-60 characters</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="meta_keywords" class="form-label">Meta Keywords <small class="text-muted">(SEO)</small></label>
+                                <input type="text" name="meta_data[keywords]" id="meta_keywords" class="form-control" 
+                                       value="{{ old('meta_data.keywords') }}" placeholder="keyword1, keyword2, keyword3">
+                                <div class="form-text">Comma-separated keywords</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="meta_description" class="form-label">Meta Description <small class="text-muted">(SEO)</small></label>
+                            <textarea name="meta_data[description]" id="meta_description" rows="2" class="form-control" 
+                                      placeholder="SEO page description">{{ old('meta_data.description') }}</textarea>
+                            <div class="form-text">Recommended: 150-160 characters</div>
                         </div>
                         
                         <div class="mb-3">
                             <div class="form-check form-switch">
-                                <input type="checkbox" name="status" class="form-check-input" 
-                                       id="status" {{ old('status', true) ? 'checked' : '' }}>
-                                <label class="form-check-label" for="status">Active Page</label>
+                                <input type="checkbox" name="is_active" class="form-check-input" 
+                                       id="is_active" {{ old('is_active', true) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="is_active">Active Page</label>
                             </div>
                         </div>
                         
@@ -102,6 +119,28 @@
         
         <div class="col-12 col-lg-4">
             <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Current Site</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar me-3">
+                            <div class="avatar-title bg-primary rounded">
+                                {{ strtoupper(substr($site->name, 0, 2)) }}
+                            </div>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">{{ $site->name }}</h6>
+                            <small class="text-muted">{{ $site->domain ?? 'No domain set' }}</small>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <span class="badge bg-success">Active Site</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Page Tips</h5>
                 </div>

@@ -13,7 +13,9 @@ class Site extends Model
         'user_id',
         'site_name',
         'domain',
-        'status'
+        'status',
+        'active_header_id',
+        'active_footer_id'
     ];
     
     protected $casts = [
@@ -45,11 +47,6 @@ class Site extends Model
         return $this->hasMany(SiteSeoInt::class);
     }
     
-    public function sections()
-    {
-        return $this->hasMany(TplSection::class);
-    }
-    
     public function pages()
     {
         return $this->hasMany(TplPage::class, 'site_id');
@@ -58,5 +55,52 @@ class Site extends Model
     public function tplSite()
     {
         return $this->hasOne(TplSite::class);
+    }
+    
+    // Active header/footer relationships
+    public function activeHeader()
+    {
+        return $this->belongsTo(TplLayout::class, 'active_header_id');
+    }
+    
+    public function activeFooter()
+    {
+        return $this->belongsTo(TplLayout::class, 'active_footer_id');
+    }
+    
+    // All layouts owned by this site
+    public function layouts()
+    {
+        return $this->hasMany(TplLayout::class);
+    }
+    
+    // Header layouts for this site
+    public function headerLayouts()
+    {
+        return $this->layouts()->whereHas('type', function ($query) {
+            $query->where('name', 'nav');
+        });
+    }
+    
+    // Footer layouts for this site
+    public function footerLayouts()
+    {
+        return $this->layouts()->whereHas('type', function ($query) {
+            $query->where('name', 'footer');
+        });
+    }
+    
+    // Section layouts for this site
+    public function sectionLayouts()
+    {
+        return $this->layouts()->whereHas('type', function ($query) {
+            $query->where('name', 'section');
+        });
+    }
+    
+    // Page sections
+    public function pageSections()
+    {
+        return $this->hasMany(PageSection::class);
     }
 }
