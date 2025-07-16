@@ -13,6 +13,8 @@ class RolePermissionSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->command->info('Creating permissions...');
+        
         // Create permissions
         $permissions = [
             // User management
@@ -59,15 +61,17 @@ class RolePermissionSeeder extends Seeder
             Permission::firstOrCreate(['name' => $permission]);
         }
 
+        $this->command->info('Creating roles...');
+
         // Create roles and assign permissions
         
         // Super Admin - Full access
         $superAdmin = Role::firstOrCreate(['name' => 'super-admin']);
-        $superAdmin->givePermissionTo(Permission::all());
+        $superAdmin->syncPermissions(Permission::all());
 
         // Admin - Manage their own site and content
         $admin = Role::firstOrCreate(['name' => 'admin']);
-        $admin->givePermissionTo([
+        $admin->syncPermissions([
             'access-admin',
             'view-dashboard',
             'view-templates',
@@ -89,7 +93,7 @@ class RolePermissionSeeder extends Seeder
 
         // Team Member - Limited access
         $teamMember = Role::firstOrCreate(['name' => 'team-member']);
-        $teamMember->givePermissionTo([
+        $teamMember->syncPermissions([
             'access-admin',
             'view-dashboard',
             'view-content',
@@ -99,8 +103,10 @@ class RolePermissionSeeder extends Seeder
 
         // User - Basic access
         $user = Role::firstOrCreate(['name' => 'user']);
-        $user->givePermissionTo([
+        $user->syncPermissions([
             'view-content',
         ]);
+        
+        $this->command->info('✅ Roles and permissions created successfully!');
     }
 }

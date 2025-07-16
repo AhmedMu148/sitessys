@@ -23,13 +23,40 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call([
-            RolePermissionSeeder::class,
-            DefaultTemplateSeeder::class,
-            LayoutSeeder::class,      // Create layout types and layouts first
-            DefaultDataSeeder::class,  // This should create users and sites
-            TestDataSeeder::class,    // Uses TemplateCloneService for proper setup
-        ]);
+        $this->command->info('🚀 Starting database seeding...');
+        
+        try {
+            // Step 1: Create roles and permissions first
+            $this->command->info('📝 Creating roles and permissions...');
+            $this->call(RolePermissionSeeder::class);
+            
+            // Step 2: Create layout types and default layouts
+            $this->command->info('🎨 Creating layout types and templates...');
+            $this->call(LayoutSeeder::class);
+            
+            // Step 3: Create default master templates
+            $this->command->info('📄 Creating default templates...');
+            $this->call(DefaultTemplateSeeder::class);
+            
+            // Step 4: Create admin user with working site
+            $this->command->info('👤 Creating admin user...');
+            $this->call(AdminUserSeeder::class);
+            
+            // Step 5: Create additional test users if needed
+            $this->command->info('🧪 Creating test data...');
+            $this->call(TestDataSeeder::class);
+            
+            $this->command->info('✅ Database seeding completed successfully!');
+            $this->command->info('');
+            $this->command->info('🔐 Admin Login Details:');
+            $this->command->info('Email: admin@example.com');
+            $this->command->info('Password: admin123');
+            $this->command->info('URL: http://localhost:8000/admin');
+            
+        } catch (\Exception $e) {
+            $this->command->error('❌ Seeding failed: ' . $e->getMessage());
+            throw $e;
+        }
     }
 
     /**

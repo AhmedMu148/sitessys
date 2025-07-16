@@ -13,47 +13,71 @@ class LayoutSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create layout types
+        $this->command->info('Creating layout types...');
+        
+        // Create layout types with firstOrCreate to avoid duplicates
         $types = [
-            'nav' => TplLayoutType::create([
-                'name' => 'nav',
-                'description' => 'Navigation section',
-                'status' => true
-            ]),
-            'section' => TplLayoutType::create([
-                'name' => 'section',
-                'description' => 'Content section',
-                'status' => true
-            ]),
-            'footer' => TplLayoutType::create([
-                'name' => 'footer',
-                'description' => 'Footer section',
-                'status' => true
-            ])
+            'nav' => TplLayoutType::firstOrCreate(
+                ['name' => 'nav'],
+                [
+                    'description' => 'Navigation section',
+                    'status' => true
+                ]
+            ),
+            'section' => TplLayoutType::firstOrCreate(
+                ['name' => 'section'],
+                [
+                    'description' => 'Content section',
+                    'status' => true
+                ]
+            ),
+            'footer' => TplLayoutType::firstOrCreate(
+                ['name' => 'footer'],
+                [
+                    'description' => 'Footer section',
+                    'status' => true
+                ]
+            )
         ];
 
+        $this->command->info('Creating default layouts...');
+
         // Create modern navigation layout
-        TplLayout::create([
-            'type_id' => $types['nav']->id,
-            'data' => $this->getNavigationContent(),
-            'status' => true
-        ]);
+        TplLayout::firstOrCreate(
+            [
+                'type_id' => $types['nav']->id,
+                'name' => 'Modern Navigation',
+                'user_id' => null,
+                'site_id' => null
+            ],
+            [
+                'data' => $this->getNavigationContent(),
+                'status' => true
+            ]
+        );
 
         // Create classic navigation layout
-        TplLayout::create([
-            'type_id' => $types['nav']->id,
-            'data' => $this->getClassicNavContent(),
-            'status' => true
-        ]);
+        TplLayout::firstOrCreate(
+            [
+                'type_id' => $types['nav']->id,
+                'name' => 'Classic Navigation',
+                'user_id' => null,
+                'site_id' => null
+            ],
+            [
+                'data' => $this->getClassicNavContent(),
+                'status' => true
+            ]
+        );
 
         // Create section layouts
         $sections = [
-            'modern-hero' => $this->getHeroContent(),
-            'features-grid' => $this->getFeaturesContent(),
-            'about-section' => $this->getAboutContent(),
-            'services-grid' => $this->getServicesContent(),
-            'team-members' => $this->getTeamContent(),
-            'testimonials' => $this->getTestimonialsContent(),
+            'Hero Section' => $this->getHeroContent(),
+            'Features Grid' => $this->getFeaturesContent(),
+            'About Section' => $this->getAboutContent(),
+            'Services Grid' => $this->getServicesContent(),
+            'Team Members' => $this->getTeamContent(),
+            'Testimonials' => $this->getTestimonialsContent(),
             'Blog Grid' => $this->getBlogGridContent(),
             'Contact Form' => $this->getContactContent(),
             'Newsletter Form' => $this->getNewsletterContent(),
@@ -63,26 +87,47 @@ class LayoutSeeder extends Seeder
         ];
 
         foreach ($sections as $name => $html_template) {
-            TplLayout::create([
-                'type_id' => $types['section']->id,
-                'data' => $html_template,
-                'status' => true
-            ]);
+            TplLayout::firstOrCreate(
+                [
+                    'type_id' => $types['section']->id,
+                    'name' => $name,
+                    'user_id' => null,
+                    'site_id' => null
+                ],
+                [
+                    'data' => $html_template,
+                    'status' => true
+                ]
+            );
         }
 
         // Create modern footer layout
-        TplLayout::create([
-            'type_id' => $types['footer']->id,
-            'data' => $this->getFooterContent(),
-            'status' => true
-        ]);
+        TplLayout::firstOrCreate(
+            [
+                'type_id' => $types['footer']->id,
+                'name' => 'Modern Footer',
+                'user_id' => null,
+                'site_id' => null
+            ],
+            [
+                'data' => $this->getFooterContent(),
+                'status' => true
+            ]
+        );
 
         // Create simple footer layout
-        TplLayout::create([
-            'type_id' => $types['footer']->id,
-            'data' => $this->getSimpleFooterContent(),
-            'status' => true
-        ]);
+        TplLayout::firstOrCreate(
+            [
+                'type_id' => $types['footer']->id,
+                'name' => 'Simple Footer',
+                'user_id' => null,
+                'site_id' => null
+            ],
+            [
+                'data' => $this->getSimpleFooterContent(),
+                'status' => true
+            ]
+        );
 
         $this->command->info('✅ Layout types and layouts created successfully!');
     }
