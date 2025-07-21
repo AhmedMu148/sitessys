@@ -175,8 +175,8 @@
                             <a href="{{ route('admin.layouts.create') }}" class="btn btn-outline-primary">
                                 <i class="align-middle" data-feather="layout"></i> New Layout
                             </a>
-                            <a href="{{ route('admin.headers-footers.index') }}" class="btn btn-outline-primary">
-                                <i class="align-middle" data-feather="grid"></i> Headers & Footers
+                            <a href="{{ route('admin.templates.index') }}" class="btn btn-outline-primary">
+                                <i class="align-middle" data-feather="grid"></i> Templates
                             </a>
                         </div>
                     </div>

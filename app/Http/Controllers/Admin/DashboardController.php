@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\TplPage;
 use App\Models\TplLayout;
-use App\Models\TplDesign;
 use App\Models\TplLang;
+use App\Models\ThemeCategory;
 use App\Models\Site;
 use App\Models\User;
 
@@ -21,8 +21,12 @@ class DashboardController extends Controller
             'users' => User::count(),
             'pages' => TplPage::count(),
             'layouts' => TplLayout::count(),
+            'designs' => ThemeCategory::count(), // Use categories as design count
             'languages' => TplLang::count(),
         ];
+
+        // Get recent pages for dashboard
+        $recentPages = TplPage::with('site')->latest()->take(5)->get();
 
         // Get recent sites
         $recentSites = Site::with('user')->latest()->take(5)->get();
@@ -55,6 +59,6 @@ class DashboardController extends Controller
             ],
         ];
 
-        return view('admin.dashboard', compact('stats', 'recentSites', 'recentUpdates'));
+        return view('admin.dashboard', compact('stats', 'recentPages', 'recentSites', 'recentUpdates'));
     }
 }

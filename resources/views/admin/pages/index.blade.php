@@ -29,25 +29,81 @@
                     @endif
                     
                     @if($pages->count() > 0)
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Name</th>
-                                        <th>Slug</th>
-                                        <th>Sections</th>
-                                        <th>Sort Order</th>
-                                        <th>Status</th>
-                                        <th>In Nav</th>
-                                        <th>Created</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($pages as $page)
-                                        <tr>
-                                            <td>{{ $page->id }}</td>
+                        <div class="row">
+                            @foreach($pages as $page)
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h5 class="card-title d-flex justify-content-between align-items-start">
+                                                <span>{{ $page->getTitle() ?? $page->name }}</span>
+                                                @if(!$page->status)
+                                                    <span class="badge bg-secondary">Inactive</span>
+                                                @endif
+                                            </h5>
+                                            <p class="card-text">
+                                                <small class="text-muted">
+                                                    Theme: {{ $page->themePage->name ?? 'Default' }}
+                                                    @if($page->themePage)
+                                                        <span class="badge bg-info">{{ $page->themePage->category->name ?? 'Uncategorized' }}</span>
+                                                    @endif
+                                                </small>
+                                            </p>
+                                            <p class="card-text">
+                                                <small class="text-muted">
+                                                    <i class="align-middle" data-feather="link"></i> {{ $page->link }}
+                                                </small>
+                                            </p>
+                                            <p class="card-text">
+                                                <small class="text-muted">
+                                                    {{ $page->sections->count() }} sections | 
+                                                    @if($page->show_in_nav)
+                                                        <span class="text-success">In Navigation</span>
+                                                    @else
+                                                        <span class="text-muted">Not in Navigation</span>
+                                                    @endif
+                                                </small>
+                                            </p>
+                                            
+                                            <div class="dropdown">
+                                                <button class="btn btn-secondary btn-sm dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
+                                                    Actions
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <a class="dropdown-item" href="{{ route('admin.pages.edit', $page->id) }}">
+                                                            <i class="align-middle" data-feather="edit"></i> Edit
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="{{ route('admin.pages.view', $page->id) }}" target="_blank">
+                                                            <i class="align-middle" data-feather="eye"></i> View
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="{{ route('admin.pages.sections.index', $page->id) }}">
+                                                            <i class="align-middle" data-feather="grid"></i> Manage Sections
+                                                        </a>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <form action="{{ route('admin.pages.destroy', $page->id) }}" method="POST" 
+                                                              onsubmit="return confirm('Are you sure you want to delete this page?')" class="d-inline">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="dropdown-item text-danger">
+                                                                <i class="align-middle" data-feather="trash"></i> Delete
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                        
+                        {{ $pages->links() }}
                                             <td>
                                                 <strong>{{ $page->name }}</strong>
                                                 @if($page->slug == 'home')

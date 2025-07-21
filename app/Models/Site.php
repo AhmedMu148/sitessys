@@ -12,95 +12,77 @@ class Site extends Model
     protected $fillable = [
         'user_id',
         'site_name',
-        'domain',
-        'status',
+        'url',
+        'status_id',
         'active_header_id',
         'active_footer_id'
     ];
     
     protected $casts = [
-        'status' => 'boolean'
+        'status_id' => 'boolean'
     ];
-    
+
+    /**
+     * Get the user that owns this site
+     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
-    
+
+    /**
+     * Get the site configuration
+     */
     public function config()
     {
-        return $this->hasMany(SiteConfig::class);
+        return $this->hasOne(SiteConfig::class);
     }
-    
-    public function social()
-    {
-        return $this->hasOne(SiteSocial::class);
-    }
-    
-    public function contact()
-    {
-        return $this->hasOne(SiteContact::class);
-    }
-    
-    public function seoIntegrations()
-    {
-        return $this->hasMany(SiteSeoInt::class);
-    }
-    
-    public function pages()
-    {
-        return $this->hasMany(TplPage::class, 'site_id');
-    }
-    
-    public function tplSite()
-    {
-        return $this->hasOne(TplSite::class);
-    }
-    
-    // Active header/footer relationships
+
+    /**
+     * Get the active header layout
+     */
     public function activeHeader()
     {
         return $this->belongsTo(TplLayout::class, 'active_header_id');
     }
-    
+
+    /**
+     * Get the active footer layout
+     */
     public function activeFooter()
     {
         return $this->belongsTo(TplLayout::class, 'active_footer_id');
     }
-    
-    // All layouts owned by this site
-    public function layouts()
+
+    /**
+     * Get site pages
+     */
+    public function pages()
     {
-        return $this->hasMany(TplLayout::class);
+        return $this->hasMany(TplPage::class, 'site_id');
     }
-    
-    // Header layouts for this site
-    public function headerLayouts()
+
+    /**
+     * Get site media
+     */
+    public function media()
     {
-        return $this->layouts()->whereHas('type', function ($query) {
-            $query->where('name', 'nav');
-        });
+        return $this->hasMany(SiteImgMedia::class);
     }
-    
-    // Footer layouts for this site
-    public function footerLayouts()
+
+    /**
+     * Check if site is active
+     */
+    public function isActive()
     {
-        return $this->layouts()->whereHas('type', function ($query) {
-            $query->where('name', 'footer');
-        });
+        return $this->status_id;
     }
-    
-    // Section layouts for this site
-    public function sectionLayouts()
+
+    /**
+     * Get the display name (site_name or fallback)
+     */
+    public function getDisplayName()
     {
-        return $this->layouts()->whereHas('type', function ($query) {
-            $query->where('name', 'section');
-        });
-    }
-    
-    // Page sections
-    public function pageSections()
-    {
-        return $this->hasMany(PageSection::class);
+        return $this->site_name ?: 'Untitled Site';
     }
 }

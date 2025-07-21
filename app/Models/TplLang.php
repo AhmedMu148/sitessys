@@ -9,21 +9,23 @@ class TplLang extends Model
 {
     use HasFactory;
     
-    protected $table = 'tpl_lang';
+    protected $table = 'tpl_langs';
     
     protected $fillable = [
-        'name',
         'code',
-        'dir',
-        'status'
+        'name',
+        'dir'
     ];
     
-    protected $casts = [
-        'status' => 'boolean'
-    ];
-    
-    public function siteConfig()
+    // Removed scopeActive as status field doesn't exist in new schema
+
+    public function isRtl()
     {
-        return $this->hasMany(SiteConfig::class, 'lang_id');
+        return $this->dir === 'rtl';
+    }
+
+    public function isLtr()
+    {
+        return $this->dir === 'ltr';
     }
 }

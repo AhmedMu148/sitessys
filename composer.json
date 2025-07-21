@@ -12,7 +12,10 @@
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
-        "spatie/laravel-permission": "^6.20"
+        "spatie/laravel-permission": "^6.20",
+        "igaster/laravel-theme": "^2.0",
+        "spatie/laravel-medialibrary": "^10.0",
+        "spatie/laravel-translatable": "^6.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",

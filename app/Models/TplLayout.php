@@ -10,71 +10,95 @@ class TplLayout extends Model
     use HasFactory;
     
     protected $fillable = [
-        'type_id',
-        'user_id',
-        'site_id', 
+        'tpl_id',
+        'layout_type',
         'name',
         'description',
-        'data',
+        'preview_image',
+        'path',
+        'default_config',
+        'content',
+        'configurable_fields',
         'status',
-        'is_active',
         'sort_order'
     ];
     
     protected $casts = [
-        'status' => 'boolean',
-        'is_active' => 'boolean'
+        'default_config' => 'array',
+        'content' => 'array',
+        'configurable_fields' => 'array',
+        'status' => 'boolean'
     ];
-    
-    public function type()
+
+    /**
+     * Get sites using this layout as header
+     */
+    public function sitesUsingAsHeader()
     {
-        return $this->belongsTo(TplLayoutType::class, 'type_id');
+        return $this->hasMany(Site::class, 'active_header_id');
+    }
+
+    /**
+     * Get sites using this layout as footer
+     */
+    public function sitesUsingAsFooter()
+    {
+        return $this->hasMany(Site::class, 'active_footer_id');
     }
     
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-    
-    public function site()
-    {
-        return $this->belongsTo(Site::class);
-    }
-    
-    // Scopes
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
-    
-    public function scopeForUser($query, $userId)
-    {
-        return $query->where('user_id', $userId);
-    }
-    
-    public function scopeForSite($query, $siteId)
-    {
-        return $query->where('site_id', $siteId);
-    }
-    
+    /**
+     * Scope to get header layouts
+     */
     public function scopeHeaders($query)
     {
-        return $query->whereHas('type', function ($q) {
-            $q->where('name', 'nav');
-        });
+        return $query->where('layout_type', 'header');
     }
     
+    /**
+     * Scope to get footer layouts
+     */
     public function scopeFooters($query)
     {
-        return $query->whereHas('type', function ($q) {
-            $q->where('name', 'footer');
-        });
+        return $query->where('layout_type', 'footer');
     }
-    
+
+    /**
+     * Scope to get section layouts
+     */
     public function scopeSections($query)
     {
-        return $query->whereHas('type', function ($q) {
-            $q->where('name', 'section');
-        });
+        return $query->where('layout_type', 'section');
+    }
+
+    /**
+     * Scope for active layouts
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', true);
+    }
+
+    /**
+     * Scope to order by sort_order
+     */
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('sort_order');
+    }
+
+    /**
+     * Check if this is a header layout
+     */
+    public function isHeader()
+    {
+        return $this->layout_type === 'header';
+    }
+
+    /**
+     * Check if this is a footer layout
+     */
+    public function isFooter()
+    {
+        return $this->layout_type === 'footer';
     }
 }

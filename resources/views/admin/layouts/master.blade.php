@@ -27,8 +27,8 @@
     <div class="wrapper">
         <nav id="sidebar" class="sidebar js-sidebar">
             <div class="sidebar-content js-simplebar">
-                <a class="sidebar-brand" href="{{ route('admin.site-content.index') }}">
-                    <span class="align-middle">AdminKit</span>
+                <a class="sidebar-brand" href="{{ route('admin.dashboard') }}">
+                    <span class="align-middle">Template System</span>
                 </a>
 
                 <ul class="sidebar-nav">
@@ -44,43 +44,13 @@
 
                     <li class="sidebar-header">
                         Content Management
-                                        </li>
-                                <li class="sidebar-item {{ request()->routeIs('admin.layouts.*') ? 'active' : '' }} has-dropdown">
-                                    <a class="sidebar-link" data-bs-toggle="collapse" href="#layoutsDropdown" role="button" aria-expanded="false" aria-controls="layoutsDropdown">
-                                        <i class="align-middle" data-feather="layout"></i> 
-                                        <span class="align-middle">Layouts</span> 
-                                        <i class="feather-icon ms-2" data-feather="chevron-down"></i>
-                                    </a>
-                                   <div class="collapse" id="layoutsDropdown">
-    <ul class="sidebar-nav ms-3">
-        <!-- Nav Layout -->
-        <li class="sidebar-item {{ request()->get('type') === 'nav' ? 'active' : '' }}">
-            <a class="sidebar-link" href="{{ route('admin.layouts.index', ['type' => 'nav']) }}">
-                <i class="align-middle" data-feather="menu"></i>
-                <span class="align-middle">Nav</span>
-            </a>
-        </li>
-        <!-- Body (Section) Layout -->
-        <li class="sidebar-item {{ request()->get('type') === 'section' ? 'active' : '' }}">
-            <a class="sidebar-link" href="{{ route('admin.layouts.index', ['type' => 'section']) }}">
-                <i class="align-middle" data-feather="box"></i>
-                <span class="align-middle">Body</span>
-            </a>
-        </li>
-        <!-- Footer Layout -->
-        <li class="sidebar-item {{ request()->get('type') === 'footer' ? 'active' : '' }}">
-            <a class="sidebar-link" href="{{ route('admin.layouts.index', ['type' => 'footer']) }}">
-                <i class="align-middle" data-feather="archive"></i>
-                <span class="align-middle">Footer</span>
-            </a>
-        </li>
-    </ul>
-</div>
+                    </li>
 
-                                </li>
-
-
-
+                    <li class="sidebar-item {{ request()->routeIs('admin.sites.*') ? 'active' : '' }}">
+                        <a class="sidebar-link" href="{{ route('admin.sites.index') }}">
+                            <i class="align-middle" data-feather="globe"></i> <span class="align-middle">Sites</span>
+                        </a>
+                    </li>
 
                     <li class="sidebar-item {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
                         <a class="sidebar-link" href="{{ route('admin.pages.index') }}">
@@ -88,37 +58,15 @@
                         </a>
                     </li>
 
-                    <li class="sidebar-item {{ request()->routeIs('admin.headers-footers.*') ? 'active' : '' }}">
-                        <a class="sidebar-link" href="{{ route('admin.headers-footers.index') }}">
-                            <i class="align-middle" data-feather="layout"></i> <span class="align-middle">Headers & Footers</span>
-                        </a>
-                    </li>
-
-                    <li class="sidebar-header">
-                        Design & Layout
-                    </li>
-
                     <li class="sidebar-item {{ request()->routeIs('admin.layouts.*') ? 'active' : '' }}">
                         <a class="sidebar-link" href="{{ route('admin.layouts.index') }}">
-                            <i class="align-middle" data-feather="layers"></i> <span class="align-middle">Layout Templates</span>
+                            <i class="align-middle" data-feather="layout"></i> <span class="align-middle">Layouts</span>
                         </a>
                     </li>
 
-                    <li class="sidebar-item {{ request()->routeIs('admin.color-palette.*') ? 'active' : '' }}">
-                        <a class="sidebar-link" href="{{ route('admin.color-palette.index') }}">
-                            <i class="align-middle" data-feather="palette"></i> <span class="align-middle">Color Palette</span>
-                        </a>
-                    </li>
-
-                    <li class="sidebar-item {{ request()->routeIs('admin.custom-css.*') ? 'active' : '' }}">
-                        <a class="sidebar-link" href="{{ route('admin.custom-css.index') }}">
-                            <i class="align-middle" data-feather="code"></i> <span class="align-middle">Custom CSS</span>
-                        </a>
-                    </li>
-
-                    <li class="sidebar-item {{ request()->routeIs('admin.custom-scripts.*') ? 'active' : '' }}">
-                        <a class="sidebar-link" href="{{ route('admin.custom-scripts.index') }}">
-                            <i class="align-middle" data-feather="terminal"></i> <span class="align-middle">Custom Scripts</span>
+                    <li class="sidebar-item {{ request()->routeIs('admin.templates.*') ? 'active' : '' }}">
+                        <a class="sidebar-link" href="{{ route('admin.templates.index') }}">
+                            <i class="align-middle" data-feather="layers"></i> <span class="align-middle">Templates</span>
                         </a>
                     </li>
 
@@ -126,9 +74,15 @@
                         System
                     </li>
 
-                    <li class="sidebar-item {{ request()->routeIs('admin.languages.*') ? 'active' : '' }}">
-                        <a class="sidebar-link" href="{{ route('admin.languages.index') }}">
-                            <i class="align-middle" data-feather="globe"></i> <span class="align-middle">Languages</span>
+                    <li class="sidebar-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                        <a class="sidebar-link" href="{{ route('admin.users.index') }}">
+                            <i class="align-middle" data-feather="users"></i> <span class="align-middle">Users</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-item {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                        <a class="sidebar-link" href="{{ route('admin.settings.index') }}">
+                            <i class="align-middle" data-feather="settings"></i> <span class="align-middle">Settings</span>
                         </a>
                     </li>
                 </ul>

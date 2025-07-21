@@ -17,7 +17,11 @@ class AdminAccess
     {
         $user = $request->user();
         
+        // If not authenticated, redirect to admin login
         if (!$user) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Unauthenticated'], 401);
+            }
             return redirect()->route('admin.login');
         }
 
