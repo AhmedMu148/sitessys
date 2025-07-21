@@ -18,6 +18,7 @@
 
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
@@ -30,7 +31,13 @@
                         <div class="text-center mt-4">
                             <h1 class="h2">{{ config('app.name') }}</h1>
                             <p class="lead">
-                                Sign in to your account to continue
+                                @if(request()->routeIs('admin.login'))
+                                    Admin Panel Access
+                                @elseif(request()->routeIs('register'))
+                                    Create Your Account
+                                @else
+                                    Welcome Back
+                                @endif
                             </p>
                         </div>
 

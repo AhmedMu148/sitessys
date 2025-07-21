@@ -13,27 +13,38 @@ class TplSite extends Model
     
     protected $fillable = [
         'site_id',
-        'nav',
-        'pages',
-        'footer'
+        'nav_data',
+        'footer_data'
     ];
     
     protected $casts = [
-        'pages' => 'array'
+        'nav_data' => 'array',
+        'footer_data' => 'array'
     ];
-    
+
+    /**
+     * Get the site this template belongs to
+     */
     public function site()
     {
         return $this->belongsTo(Site::class);
     }
-    
-    public function navLayout()
+
+    /**
+     * Get navigation links
+     */
+    public function getNavLinks()
     {
-        return $this->belongsTo(TplLayout::class, 'nav');
+        $navData = $this->nav_data ?? [];
+        return $navData['links'] ?? [];
     }
-    
-    public function footerLayout()
+
+    /**
+     * Get footer links
+     */
+    public function getFooterLinks()
     {
-        return $this->belongsTo(TplLayout::class, 'footer');
+        $footerData = $this->footer_data ?? [];
+        return $footerData['links'] ?? [];
     }
 }

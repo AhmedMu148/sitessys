@@ -6,8 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Site;
 use App\Models\TplPage;
 use App\Models\TplLayout;
-use App\Models\TplLayoutType;
-use App\Models\PageSection;
+use App\Models\TplPageSection;
+use App\Models\SiteConfig;
+use App\Models\SiteImgMedia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -19,7 +20,7 @@ class PageSectionController extends Controller
     public function index($pageId)
     {
         $user = Auth::user();
-        $site = $user->sites()->where('status', true)->first();
+        $site = $user->sites()->where('status_id', true)->first();
         
         if (!$site) {
             return redirect()->route('admin.dashboard')
@@ -30,13 +31,18 @@ class PageSectionController extends Controller
             ->where('site_id', $site->id)
             ->firstOrFail();
         
-        $sections = PageSection::where('page_id', $pageId)
+        $sections = TplPageSection::where('page_id', $pageId)
             ->where('site_id', $site->id)
-            ->with('layout.type')
+            ->with('layout')
+            ->orderBy('sort_order')
+            ->get();
+
+        $templates = TplLayout::where('layout_type', 'section')
+            ->where('status', true)
             ->orderBy('sort_order')
             ->get();
         
-        return view('admin.pages.sections.index', compact('page', 'sections', 'site'));
+        return view('admin.pages.sections.index', compact('page', 'sections', 'site', 'templates'));
     }
     
     /**
@@ -45,20 +51,18 @@ class PageSectionController extends Controller
     public function create($pageId)
     {
         $user = Auth::user();
-        $site = $user->sites()->where('status', true)->first();
+        $site = $user->sites()->where('status_id', true)->first();
         
         $page = TplPage::where('id', $pageId)
             ->where('site_id', $site->id)
             ->firstOrFail();
         
-        // Get available section layouts for this site
-        $sectionType = TplLayoutType::where('name', 'section')->first();
-        $availableLayouts = TplLayout::where('site_id', $site->id)
-            ->where('type_id', $sectionType->id)
-            ->where('is_active', true)
+        $templates = TplLayout::where('layout_type', 'section')
+            ->where('status', true)
+            ->orderBy('sort_order')
             ->get();
         
-        return view('admin.pages.sections.create', compact('page', 'availableLayouts', 'site'));
+        return view('admin.pages.sections.create', compact('page', 'templates', 'site'));
     }
     
     /**
@@ -68,30 +72,32 @@ class PageSectionController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'layout_id' => 'required|exists:tpl_layouts,id',
-            'content_data' => 'nullable|json',
-            'settings' => 'nullable|json',
+            'tpl_layouts_id' => 'required|exists:tpl_layouts,id',
+            'content' => 'nullable|array',
+            'custom_styles' => 'nullable|string',
+            'custom_scripts' => 'nullable|string',
         ]);
         
         $user = Auth::user();
-        $site = $user->sites()->where('status', true)->first();
+        $site = $user->sites()->where('status_id', true)->first();
         
         $page = TplPage::where('id', $pageId)
             ->where('site_id', $site->id)
             ->firstOrFail();
         
         // Get next sort order
-        $maxSortOrder = PageSection::where('page_id', $pageId)->max('sort_order') ?? 0;
+        $maxSortOrder = TplPageSection::where('page_id', $pageId)->max('sort_order') ?? 0;
         
-        $section = PageSection::create([
+        $section = TplPageSection::create([
             'page_id' => $pageId,
-            'layout_id' => $request->layout_id,
             'site_id' => $site->id,
+            'tpl_layouts_id' => $request->tpl_layouts_id,
             'name' => $request->name,
-            'is_active' => true,
+            'content' => $request->input('content', []),
+            'custom_styles' => $request->custom_styles,
+            'custom_scripts' => $request->custom_scripts,
+            'status' => true,
             'sort_order' => $maxSortOrder + 1,
-            'content_data' => $request->content_data ? json_decode($request->content_data, true) : null,
-            'settings' => $request->settings ? json_decode($request->settings, true) : null,
         ]);
         
         return redirect()->route('admin.pages.sections.index', $pageId)
@@ -104,25 +110,28 @@ class PageSectionController extends Controller
     public function edit($pageId, $sectionId)
     {
         $user = Auth::user();
-        $site = $user->sites()->where('status', true)->first();
+        $site = $user->sites()->where('status_id', true)->first();
         
         $page = TplPage::where('id', $pageId)
             ->where('site_id', $site->id)
             ->firstOrFail();
         
-        $section = PageSection::where('id', $sectionId)
+        $section = TplPageSection::where('id', $sectionId)
             ->where('page_id', $pageId)
             ->where('site_id', $site->id)
+            ->with('layout')
             ->firstOrFail();
-        
-        // Get available section layouts
-        $sectionType = TplLayoutType::where('name', 'section')->first();
-        $availableLayouts = TplLayout::where('site_id', $site->id)
-            ->where('type_id', $sectionType->id)
-            ->where('is_active', true)
+
+        $templates = TplLayout::where('layout_type', 'section')
+            ->where('status', true)
+            ->orderBy('sort_order')
             ->get();
+
+        // Get supported languages from site config
+        $siteConfig = SiteConfig::where('site_id', $site->id)->first();
+        $languages = $siteConfig ? $siteConfig->getSupportedLanguages() : ['en'];
         
-        return view('admin.pages.sections.edit', compact('page', 'section', 'availableLayouts', 'site'));
+        return view('admin.pages.sections.edit', compact('page', 'section', 'templates', 'site', 'languages'));
     }
     
     /**
@@ -132,91 +141,162 @@ class PageSectionController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'layout_id' => 'required|exists:tpl_layouts,id',
-            'content_data' => 'nullable|json',
-            'settings' => 'nullable|json',
+            'tpl_layouts_id' => 'required|exists:tpl_layouts,id',
+            'content' => 'nullable|array',
+            'custom_styles' => 'nullable|string',
+            'custom_scripts' => 'nullable|string',
         ]);
         
         $user = Auth::user();
-        $site = $user->sites()->where('status', true)->first();
+        $site = $user->sites()->where('status_id', true)->first();
         
-        $section = PageSection::where('id', $sectionId)
+        $section = TplPageSection::where('id', $sectionId)
             ->where('page_id', $pageId)
             ->where('site_id', $site->id)
             ->firstOrFail();
-        
+
         $section->update([
+            'tpl_layouts_id' => $request->tpl_layouts_id,
             'name' => $request->name,
-            'layout_id' => $request->layout_id,
-            'content_data' => $request->content_data ? json_decode($request->content_data, true) : null,
-            'settings' => $request->settings ? json_decode($request->settings, true) : null,
+            'content' => $request->input('content', []),
+            'custom_styles' => $request->custom_styles,
+            'custom_scripts' => $request->custom_scripts,
         ]);
         
         return redirect()->route('admin.pages.sections.index', $pageId)
             ->with('success', 'Section updated successfully!');
     }
-    
+
     /**
-     * Toggle section active status
+     * Toggle section status (active/inactive)
      */
-    public function toggleActive($pageId, $sectionId)
+    public function toggle($pageId, $sectionId)
     {
         $user = Auth::user();
-        $site = $user->sites()->where('status', true)->first();
+        $site = $user->sites()->where('status_id', true)->first();
         
-        $section = PageSection::where('id', $sectionId)
+        $section = TplPageSection::where('id', $sectionId)
             ->where('page_id', $pageId)
             ->where('site_id', $site->id)
             ->firstOrFail();
+
+        $section->update(['status' => !$section->status]);
         
-        $section->update(['is_active' => !$section->is_active]);
+        $message = $section->status ? 'Section activated successfully!' : 'Section deactivated successfully!';
         
-        $status = $section->is_active ? 'activated' : 'deactivated';
-        
-        return redirect()->back()
-            ->with('success', "Section {$status} successfully!");
+        return redirect()->route('admin.pages.sections.index', $pageId)
+            ->with('success', $message);
     }
-    
+
     /**
-     * Update sections order
+     * Show section order form
      */
-    public function updateOrder(Request $request, $pageId)
+    public function order($pageId, $sectionId)
+    {
+        $user = Auth::user();
+        $site = $user->sites()->where('status_id', true)->first();
+        
+        $page = TplPage::where('id', $pageId)
+            ->where('site_id', $site->id)
+            ->firstOrFail();
+        
+        $section = TplPageSection::where('id', $sectionId)
+            ->where('page_id', $pageId)
+            ->where('site_id', $site->id)
+            ->firstOrFail();
+
+        $allSections = TplPageSection::where('page_id', $pageId)
+            ->where('site_id', $site->id)
+            ->orderBy('sort_order')
+            ->get();
+        
+        return view('admin.pages.sections.order', compact('page', 'section', 'allSections', 'site'));
+    }
+
+    /**
+     * Update section order
+     */
+    public function updateOrder(Request $request, $pageId, $sectionId)
     {
         $request->validate([
-            'sections' => 'required|array',
-            'sections.*.id' => 'required|exists:page_sections,id',
-            'sections.*.sort_order' => 'required|integer',
+            'sort_order' => 'required|integer|min:0'
         ]);
         
         $user = Auth::user();
-        $site = $user->sites()->where('status', true)->first();
+        $site = $user->sites()->where('status_id', true)->first();
         
-        foreach ($request->sections as $sectionData) {
-            PageSection::where('id', $sectionData['id'])
-                ->where('page_id', $pageId)
-                ->where('site_id', $site->id)
-                ->update(['sort_order' => $sectionData['sort_order']]);
-        }
+        $section = TplPageSection::where('id', $sectionId)
+            ->where('page_id', $pageId)
+            ->where('site_id', $site->id)
+            ->firstOrFail();
+
+        $section->update(['sort_order' => $request->sort_order]);
         
-        return response()->json(['success' => true]);
+        return redirect()->route('admin.pages.sections.index', $pageId)
+            ->with('success', 'Section order updated successfully!');
     }
     
     /**
-     * Remove the specified section from storage
+     * Delete the specified section
      */
     public function destroy($pageId, $sectionId)
     {
         $user = Auth::user();
-        $site = $user->sites()->where('status', true)->first();
+        $site = $user->sites()->where('status_id', true)->first();
         
-        $section = PageSection::where('id', $sectionId)
+        $section = TplPageSection::where('id', $sectionId)
             ->where('page_id', $pageId)
             ->where('site_id', $site->id)
             ->firstOrFail();
-        
+
         $section->delete();
         
         return redirect()->route('admin.pages.sections.index', $pageId)
             ->with('success', 'Section deleted successfully!');
+    }
+
+    /**
+     * Upload image for section
+     */
+    public function uploadImage(Request $request, $pageId, $sectionId)
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048'
+        ]);
+
+        $user = Auth::user();
+        $site = $user->sites()->where('status_id', true)->first();
+        
+        $section = TplPageSection::where('id', $sectionId)
+            ->where('page_id', $pageId)
+            ->where('site_id', $site->id)
+            ->firstOrFail();
+
+        // Add image to media collection
+        $media = $section->addMedia($request->file('image'))
+            ->toMediaCollection('section_images');
+
+        // Update section content with image URL
+        $locale = app()->getLocale();
+        $content = $section->content;
+        if (!isset($content[$locale])) {
+            $content[$locale] = [];
+        }
+        $content[$locale]['image'] = $media->getUrl();
+        $section->update(['content' => $content]);
+
+        // Create or update site_img_media record
+        SiteImgMedia::updateOrCreate(
+            [
+                'site_id' => $site->id,
+                'section_id' => $section->id
+            ],
+            [
+                'max_files' => 10,
+                'allowed_types' => ['image/*']
+            ]
+        );
+
+        return redirect()->back()->with('success', 'Image uploaded successfully!');
     }
 }

@@ -13,49 +13,65 @@ class TplPage extends Model
         'site_id',
         'name',
         'link',
-        'section_id',
         'slug',
-        'description',
-        'is_active',
+        'data',
         'show_in_nav',
-        'sort_order',
-        'meta_data'
+        'status',
+        'page_theme_id'
     ];
     
     protected $casts = [
-        'is_active' => 'boolean',
+        'data' => 'array',
         'show_in_nav' => 'boolean',
-        'meta_data' => 'array'
+        'status' => 'boolean'
     ];
-    
+
+    /**
+     * Get the site this page belongs to
+     */
     public function site()
     {
         return $this->belongsTo(Site::class);
     }
-    
+
+    /**
+     * Get the theme page this page is based on
+     */
+    public function themePage()
+    {
+        return $this->belongsTo(ThemePage::class, 'page_theme_id');
+    }
+
+    /**
+     * Get sections for this page
+     */
     public function sections()
     {
-        return $this->hasMany(PageSection::class, 'page_id');
+        return $this->hasMany(TplPageSection::class, 'page_id');
     }
-    
-    public function activeSections()
-    {
-        return $this->sections()->active()->ordered();
-    }
-    
-    // Scopes
+
+    /**
+     * Scope for active pages
+     */
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->where('status', true);
     }
-    
+
+    /**
+     * Scope for pages shown in navigation
+     */
     public function scopeInNav($query)
     {
         return $query->where('show_in_nav', true);
     }
-    
-    public function scopeOrdered($query)
+
+    /**
+     * Get the page title from data or fallback to name
+     */
+    public function getTitle($locale = 'en')
     {
-        return $query->orderBy('sort_order', 'asc');
+        $data = $this->data ?? [];
+        return $data[$locale]['title'] ?? $this->name;
     }
 }

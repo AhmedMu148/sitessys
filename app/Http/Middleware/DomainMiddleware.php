@@ -27,12 +27,28 @@ class DomainMiddleware
         ];
         
         // Skip for admin routes or main domain or bypass domains
+        // For single site architecture, we allow access on main domains
         if ($request->is('admin/*') || 
             $request->is('login') || 
             $request->is('register') || 
             $request->is('logout') ||
+            $request->is('api/*') ||
             in_array($host, $bypassDomains) || 
             $host === $mainDomain) {
+            
+            // For bypass domains, set a default tenant context if available
+            if (in_array($host, $bypassDomains)) {
+                $defaultTenant = User::where('role', 'super-admin')
+                    ->where('is_active', true)
+                    ->first();
+                
+                if ($defaultTenant) {
+                    $request->attributes->set('tenant_user', $defaultTenant);
+                    view()->share('tenant_user', $defaultTenant);
+                    view()->share('tenant_site', $defaultTenant->sites()->first());
+                }
+            }
+            
             return $next($request);
         }
 

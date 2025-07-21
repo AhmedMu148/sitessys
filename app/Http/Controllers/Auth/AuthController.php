@@ -38,7 +38,17 @@ class AuthController extends Controller
     }
 
     /**
+     * Show admin login form
+     */
+    public function showAdminLoginForm()
+    {
+        return view('auth.admin-login');
+    }
+
+    /**
      * Handle web registration
+     * In single-site architecture, regular users register as 'user' role
+     * Only super-admin can create admin/team-member accounts
      */
     public function webRegister(Request $request)
     {
@@ -46,38 +56,43 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'subdomain' => 'nullable|string|max:50|unique:users|regex:/^[a-z0-9-]+$/',
-            'domain' => 'nullable|string|max:255|unique:users',
         ]);
 
         if ($validator->fails()) {
             return back()->withErrors($validator)->withInput();
         }
 
+        // In single-site architecture, new registrations are regular users
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'subdomain' => $request->subdomain,
-            'domain' => $request->domain,
-            'role' => 'admin',
+            'subdomain' => null, // No subdomain for regular users
+            'domain' => null,    // No custom domain for regular users
+            'role' => 'user',    // Default role for public registration
             'is_active' => true,
         ]);
 
-        // Assign default role
-        $user->assignRole('admin');
+        // Assign user role
+        $user->assignRole('user');
 
-        // Clone default template and create site for user
-        $this->templateCloneService->cloneDefaultTemplateForUser($user);
+        // No template cloning for regular users in single-site architecture
+        // They access the main site content
 
         Auth::login($user);
 
-        return redirect()->route('admin.dashboard')
-            ->with('success', 'Registration successful! Welcome to your dashboard.');
+        // Redirect based on role
+        if ($user->hasRole(['super-admin', 'admin'])) {
+            return redirect()->route('admin.dashboard')
+                ->with('success', 'Registration successful! Welcome to your dashboard.');
+        } else {
+            return redirect()->route('welcome')
+                ->with('success', 'Registration successful! Welcome to the site.');
+        }
     }
 
     /**
-     * Handle web login
+     * Handle web login (regular users only)
      */
     public function webLogin(Request $request)
     {
@@ -91,6 +106,14 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $user = Auth::user();
             
+            // Check if user is an admin - redirect them to admin login
+            if ($user->hasAnyRole(['super-admin', 'admin', 'team-member'])) {
+                Auth::logout();
+                return redirect()->route('admin.login')->withErrors([
+                    'email' => 'Admin users must login through the admin portal.',
+                ])->withInput($request->except('password'));
+            }
+            
             if (!$user->is_active) {
                 Auth::logout();
                 return back()->withErrors([
@@ -101,7 +124,9 @@ class AuthController extends Controller
             $user->updateLastLogin();
             $request->session()->regenerate();
 
-            return redirect()->intended(route('admin.dashboard'));
+            // Regular users go to user dashboard
+            return redirect()->intended('/dashboard')
+                ->with('success', 'Welcome back, ' . $user->name . '!');
         }
 
         return back()->withErrors([
@@ -110,19 +135,72 @@ class AuthController extends Controller
     }
 
     /**
+     * Handle admin login
+     */
+    public function adminLogin(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        $credentials = $request->only('email', 'password');
+
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            $user = Auth::user();
+            
+            // Check if user is actually an admin/team member
+            if (!$user->hasAnyRole(['super-admin', 'admin', 'team-member'])) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'Access denied. This login is for administrators only.',
+                ])->withInput($request->except('password'));
+            }
+            
+            if (!$user->is_active) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'Your admin account has been deactivated.',
+                ]);
+            }
+
+            $user->updateLastLogin();
+            $request->session()->regenerate();
+
+            return redirect()->intended(route('admin.dashboard'))
+                ->with('success', 'Welcome back, ' . $user->name . '!');
+        }
+
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our admin records.',
+        ])->withInput($request->except('password'));
+    }
+
+    /**
      * Handle web logout
      */
     public function webLogout(Request $request)
     {
+        $user = Auth::user();
+        $wasAdmin = $user && $user->hasAnyRole(['super-admin', 'admin', 'team-member']);
+        
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        // Redirect based on where they came from
+        if ($wasAdmin) {
+            return redirect()->route('admin.login')
+                ->with('success', 'You have been successfully logged out from admin panel.');
+        } else {
+            return redirect()->route('login')
+                ->with('success', 'You have been successfully logged out.');
+        }
     }
 
     /**
      * API Register a new user
+     * In single-site architecture, API registration creates regular users
      */
     public function register(Request $request)
     {
@@ -130,8 +208,6 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'subdomain' => 'nullable|string|max:50|unique:users|regex:/^[a-z0-9-]+$/',
-            'domain' => 'nullable|string|max:255|unique:users',
         ]);
 
         if ($validator->fails()) {
@@ -142,20 +218,21 @@ class AuthController extends Controller
             ], 422);
         }
 
+        // API registration creates regular users in single-site architecture
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'subdomain' => $request->subdomain,
-            'domain' => $request->domain,
-            'role' => 'admin',
+            'subdomain' => null,
+            'domain' => null,
+            'role' => 'user',
             'is_active' => true,
         ]);
 
-        // Assign default role
-        $user->assignRole('admin');
+        // Assign user role
+        $user->assignRole('user');
 
-        // Clone default template and create site for user
+        // No template cloning for regular users in single-site architecture
         $this->templateCloneService->cloneDefaultTemplateForUser($user);
 
         $token = $user->createToken('auth-token')->plainTextToken;

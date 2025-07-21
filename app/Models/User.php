@@ -2,75 +2,53 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
-/**
- * @property int $id
- * @property string $name
- * @property string $email
- * @property string $role
- * @property bool $is_active
- * @property \Carbon\Carbon $last_login_at
- * @method \Illuminate\Database\Eloquent\Relations\HasMany templates()
- * @method \Illuminate\Database\Eloquent\Relations\HasMany sites()
- * @method \Illuminate\Database\Eloquent\Relations\HasOne activeTemplate()
- * @method void updateLastLogin()
- */
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+    use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
         'role',
-        'subdomain',
-        'domain',
-        'is_active',
-        'phone',
-        'bio',
-        'avatar',
-        'settings',
+        'status_id',
+        'preferred_language',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'last_login_at' => 'datetime',
         'password' => 'hashed',
-        'is_active' => 'boolean',
-        'settings' => 'json',
+        'status_id' => 'boolean',
     ];
 
     /**
-     * Get the sites for the user.
+     * Accessor for is_active (alias for status_id)
+     */
+    public function getIsActiveAttribute()
+    {
+        return $this->status_id;
+    }
+
+    /**
+     * Mutator for is_active (alias for status_id)
+     */
+    public function setIsActiveAttribute($value)
+    {
+        $this->status_id = $value;
+    }
+
+    /**
+     * Get sites owned by this user
      */
     public function sites()
     {
@@ -78,91 +56,59 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user is owner (can see all sites)
+     * Check if user is super admin
      */
-    public function isOwner()
+    public function isSuperAdmin()
     {
-        return $this->role === 'owner';
+        return $this->role === 'super-admin';
     }
 
     /**
-     * Check if user is admin (has one site)
+     * Check if user is admin
      */
     public function isAdmin()
     {
-        return $this->role === 'admin';
+        return in_array($this->role, ['admin', 'super-admin']);
     }
 
     /**
-     * Check if user is regular user
+     * Check if user is active
      */
-    public function isUser()
+    public function isActive()
     {
-        return $this->role === 'user';
+        return $this->status_id;
     }
 
     /**
-     * Get the user's primary site (for admins)
+     * Get the user's display name
      */
-    public function primarySite()
+    public function getDisplayName()
     {
-        return $this->sites()->first();
+        return $this->name ?: $this->email;
     }
 
     /**
-     * Get the user's templates
+     * Check if user has any of the given roles
      */
-    public function templates(): HasMany
+    public function hasAnyRole($roles)
     {
-        return $this->hasMany(UserTemplate::class);
-    }
-
-    /**
-     * Get the user's active template
-     */
-    public function activeTemplate(): HasOne
-    {
-        return $this->hasOne(UserTemplate::class)->where('is_active', true);
-    }
-
-    /**
-     * Get the user's API access logs
-     */
-    public function apiAccessLogs()
-    {
-        return $this->hasMany(ApiAccessLog::class);
-    }
-
-    /**
-     * Check if user has a specific permission
-     */
-    public function hasPermissionTo($permission)
-    {
-        return $this->can($permission);
-    }
-
-    /**
-     * Get user's domain URL
-     */
-    public function getDomainUrlAttribute()
-    {
-        if ($this->domain) {
-            return 'https://' . $this->domain;
+        if (is_string($roles)) {
+            return $this->role === $roles;
         }
         
-        if ($this->subdomain) {
-            return 'https://' . $this->subdomain . '.' . config('app.main_domain', 'example.com');
+        if (is_array($roles)) {
+            return in_array($this->role, $roles);
         }
         
-        return null;
+        return false;
     }
 
     /**
-     * Check if user can access admin panel
+     * Check if user has specific role(s)
      */
-    public function canAccessAdmin()
+    public function hasRole($roles)
     {
-        return $this->hasAnyRole(['super-admin', 'admin']) && $this->is_active;
+        return $this->hasAnyRole($roles);
     }
 
     /**
@@ -170,6 +116,6 @@ class User extends Authenticatable
      */
     public function updateLastLogin()
     {
-        $this->update(['last_login_at' => now()]);
+        $this->update(['updated_at' => now()]);
     }
 }

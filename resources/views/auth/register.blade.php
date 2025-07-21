@@ -6,6 +6,11 @@
 <div class="card">
     <div class="card-body">
         <div class="m-sm-3">
+            <div class="text-center mb-4">
+                <h2 class="text-info"><i class="fas fa-user-plus"></i> Create Account</h2>
+                <p class="text-muted">Join our platform</p>
+            </div>
+            
             <form method="POST" action="{{ route('register.post') }}">
                 @csrf
                 <div class="mb-3">
@@ -29,31 +34,6 @@
                 </div>
                 
                 <div class="mb-3">
-                    <label class="form-label">Subdomain (Optional)</label>
-                    <div class="input-group">
-                        <input class="form-control form-control-lg @error('subdomain') is-invalid @enderror" 
-                               type="text" name="subdomain" placeholder="yoursite" 
-                               value="{{ old('subdomain') }}" />
-                        <span class="input-group-text">.{{ config('app.main_domain', 'example.com') }}</span>
-                    </div>
-                    @error('subdomain')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                    <small class="form-text text-muted">Your website will be accessible at this subdomain</small>
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">Custom Domain (Optional)</label>
-                    <input class="form-control form-control-lg @error('domain') is-invalid @enderror" 
-                           type="text" name="domain" placeholder="yourdomain.com" 
-                           value="{{ old('domain') }}" />
-                    @error('domain')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                    <small class="form-text text-muted">Use your own domain name</small>
-                </div>
-                
-                <div class="mb-3">
                     <label class="form-label">Password</label>
                     <input class="form-control form-control-lg @error('password') is-invalid @enderror" 
                            type="password" name="password" placeholder="Enter your password" required />
@@ -69,7 +49,9 @@
                 </div>
                 
                 <div class="d-grid gap-2 mt-3">
-                    <button type="submit" class="btn btn-lg btn-primary">Sign up</button>
+                    <button type="submit" class="btn btn-lg btn-info">
+                        <i class="fas fa-user-plus me-2"></i>Create Account
+                    </button>
                 </div>
             </form>
         </div>
@@ -77,6 +59,12 @@
 </div>
 
 <div class="text-center mb-3">
-    Already have an account? <a href="{{ route('login') }}">Sign in</a>
+    Already have an account? <a href="{{ route('login') }}" class="text-success">Sign in</a>
+    <br>
+    <small class="text-muted mt-2 d-block">
+        <a href="{{ route('admin.login') }}" class="text-primary">
+            <i class="fas fa-shield-alt"></i> Admin Login
+        </a>
+    </small>
 </div>
 @endsection

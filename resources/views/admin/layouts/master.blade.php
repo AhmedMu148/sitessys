@@ -15,6 +15,8 @@
 
     <title>@yield('title', 'Admin Dashboard') - Template Management System</title>
 
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     
@@ -25,8 +27,8 @@
     <div class="wrapper">
         <nav id="sidebar" class="sidebar js-sidebar">
             <div class="sidebar-content js-simplebar">
-                <a class="sidebar-brand" href="{{ route('admin.site-content.index') }}">
-                    <span class="align-middle">AdminKit</span>
+                <a class="sidebar-brand" href="{{ route('admin.dashboard') }}">
+                    <span class="align-middle">Template System</span>
                 </a>
 
                 <ul class="sidebar-nav">
@@ -42,43 +44,13 @@
 
                     <li class="sidebar-header">
                         Content Management
-                                        </li>
-                                <li class="sidebar-item {{ request()->routeIs('admin.layouts.*') ? 'active' : '' }} has-dropdown">
-                                    <a class="sidebar-link" data-bs-toggle="collapse" href="#layoutsDropdown" role="button" aria-expanded="false" aria-controls="layoutsDropdown">
-                                        <i class="align-middle" data-feather="layout"></i> 
-                                        <span class="align-middle">Layouts</span> 
-                                        <i class="feather-icon ms-2" data-feather="chevron-down"></i>
-                                    </a>
-                                   <div class="collapse" id="layoutsDropdown">
-    <ul class="sidebar-nav ms-3">
-        <!-- Nav Layout -->
-        <li class="sidebar-item {{ request()->get('type') === 'nav' ? 'active' : '' }}">
-            <a class="sidebar-link" href="{{ route('admin.layouts.index', ['type' => 'nav']) }}">
-                <i class="align-middle" data-feather="menu"></i>
-                <span class="align-middle">Nav</span>
-            </a>
-        </li>
-        <!-- Body (Section) Layout -->
-        <li class="sidebar-item {{ request()->get('type') === 'section' ? 'active' : '' }}">
-            <a class="sidebar-link" href="{{ route('admin.layouts.index', ['type' => 'section']) }}">
-                <i class="align-middle" data-feather="box"></i>
-                <span class="align-middle">Body</span>
-            </a>
-        </li>
-        <!-- Footer Layout -->
-        <li class="sidebar-item {{ request()->get('type') === 'footer' ? 'active' : '' }}">
-            <a class="sidebar-link" href="{{ route('admin.layouts.index', ['type' => 'footer']) }}">
-                <i class="align-middle" data-feather="archive"></i>
-                <span class="align-middle">Footer</span>
-            </a>
-        </li>
-    </ul>
-</div>
+                    </li>
 
-                                </li>
-
-
-
+                    <li class="sidebar-item {{ request()->routeIs('admin.sites.*') ? 'active' : '' }}">
+                        <a class="sidebar-link" href="{{ route('admin.sites.index') }}">
+                            <i class="align-middle" data-feather="globe"></i> <span class="align-middle">Sites</span>
+                        </a>
+                    </li>
 
                     <li class="sidebar-item {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
                         <a class="sidebar-link" href="{{ route('admin.pages.index') }}">
@@ -86,37 +58,15 @@
                         </a>
                     </li>
 
-                    <li class="sidebar-item {{ request()->routeIs('admin.headers-footers.*') ? 'active' : '' }}">
-                        <a class="sidebar-link" href="{{ route('admin.headers-footers.index') }}">
-                            <i class="align-middle" data-feather="layout"></i> <span class="align-middle">Headers & Footers</span>
-                        </a>
-                    </li>
-
-                    <li class="sidebar-header">
-                        Design & Layout
-                    </li>
-
                     <li class="sidebar-item {{ request()->routeIs('admin.layouts.*') ? 'active' : '' }}">
                         <a class="sidebar-link" href="{{ route('admin.layouts.index') }}">
-                            <i class="align-middle" data-feather="layers"></i> <span class="align-middle">Layout Templates</span>
+                            <i class="align-middle" data-feather="layout"></i> <span class="align-middle">Layouts</span>
                         </a>
                     </li>
 
-                    <li class="sidebar-item {{ request()->routeIs('admin.color-palette.*') ? 'active' : '' }}">
-                        <a class="sidebar-link" href="{{ route('admin.color-palette.index') }}">
-                            <i class="align-middle" data-feather="palette"></i> <span class="align-middle">Color Palette</span>
-                        </a>
-                    </li>
-
-                    <li class="sidebar-item {{ request()->routeIs('admin.custom-css.*') ? 'active' : '' }}">
-                        <a class="sidebar-link" href="{{ route('admin.custom-css.index') }}">
-                            <i class="align-middle" data-feather="code"></i> <span class="align-middle">Custom CSS</span>
-                        </a>
-                    </li>
-
-                    <li class="sidebar-item {{ request()->routeIs('admin.custom-scripts.*') ? 'active' : '' }}">
-                        <a class="sidebar-link" href="{{ route('admin.custom-scripts.index') }}">
-                            <i class="align-middle" data-feather="terminal"></i> <span class="align-middle">Custom Scripts</span>
+                    <li class="sidebar-item {{ request()->routeIs('admin.templates.*') ? 'active' : '' }}">
+                        <a class="sidebar-link" href="{{ route('admin.templates.index') }}">
+                            <i class="align-middle" data-feather="layers"></i> <span class="align-middle">Templates</span>
                         </a>
                     </li>
 
@@ -124,9 +74,15 @@
                         System
                     </li>
 
-                    <li class="sidebar-item {{ request()->routeIs('admin.languages.*') ? 'active' : '' }}">
-                        <a class="sidebar-link" href="{{ route('admin.languages.index') }}">
-                            <i class="align-middle" data-feather="globe"></i> <span class="align-middle">Languages</span>
+                    <li class="sidebar-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                        <a class="sidebar-link" href="{{ route('admin.users.index') }}">
+                            <i class="align-middle" data-feather="users"></i> <span class="align-middle">Users</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-item {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                        <a class="sidebar-link" href="{{ route('admin.settings.index') }}">
+                            <i class="align-middle" data-feather="settings"></i> <span class="align-middle">Settings</span>
                         </a>
                     </li>
                 </ul>
@@ -239,22 +195,30 @@
                             </div>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-icon dropdown-toggle d-inline-block d-sm-none" href="#" data-bs-toggle="dropdown">
+                            <a class="nav-icon dropdown-toggle d-inline-block d-sm-none" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="align-middle" data-feather="settings"></i>
                             </a>
 
-                            <a class="nav-link dropdown-toggle d-none d-sm-inline-block" href="#" data-bs-toggle="dropdown">
-                                <img src="{{ asset('img/avatars/avatar.jpg') }}" class="avatar img-fluid rounded me-1" alt="Admin User" /> <span class="text-dark">Admin User</span>
+                            <a class="nav-link dropdown-toggle d-none d-sm-inline-block" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="{{ asset('img/avatars/avatar.jpg') }}" class="avatar img-fluid rounded me-1" alt="{{ auth()->user()->name ?? 'Admin User' }}" /> 
+                                <span class="text-dark">{{ auth()->user()->name ?? 'Admin User' }}</span>
                             </a>
-                            <div class="dropdown-menu dropdown-menu-end">
-                                <a class="dropdown-item" href="#"><i class="align-middle me-1" data-feather="user"></i> Profile</a>
-                                <a class="dropdown-item" href="#"><i class="align-middle me-1" data-feather="pie-chart"></i> Analytics</a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="#"><i class="align-middle me-1" data-feather="settings"></i> Settings & Privacy</a>
-                                <a class="dropdown-item" href="#"><i class="align-middle me-1" data-feather="help-circle"></i> Help Center</a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="#">Log out</a>
-                            </div>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#"><i class="align-middle me-1" data-feather="user"></i> Profile</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="align-middle me-1" data-feather="pie-chart"></i> Analytics</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#"><i class="align-middle me-1" data-feather="settings"></i> Settings & Privacy</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="align-middle me-1" data-feather="help-circle"></i> Help Center</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="POST" action="{{ route('logout') }}" class="d-inline w-100">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item border-0 bg-transparent w-100 text-start">
+                                            <i class="align-middle me-1" data-feather="log-out"></i> Log out
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
                         </li>
                     </ul>
                 </div>
@@ -296,15 +260,30 @@
         </div>
     </div>
 
-    <script src="{{ asset('js/app.js') }}"></script>
-    <!-- Bootstrap JS -->
+    <!-- Bootstrap JS (must be loaded first) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Feather Icons -->
     <script src="https://unpkg.com/feather-icons"></script>
     <script>
-        // Initialize Feather icons
+        // Initialize everything after DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Feather icons
             feather.replace();
+            
+            // Force initialize all dropdowns
+            const dropdowns = document.querySelectorAll('[data-bs-toggle="dropdown"]');
+            dropdowns.forEach(function(dropdown) {
+                new bootstrap.Dropdown(dropdown);
+            });
+            
+            console.log('Initialized', dropdowns.length, 'dropdowns');
+        });
+        
+        // Additional click handler as fallback
+        document.addEventListener('click', function(e) {
+            if (e.target.matches('[data-bs-toggle="dropdown"]') || e.target.closest('[data-bs-toggle="dropdown"]')) {
+                console.log('Dropdown clicked');
+            }
         });
     </script>
     @yield('js')

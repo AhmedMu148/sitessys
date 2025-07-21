@@ -7,6 +7,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\TplPage;
 use App\Models\Site;
+use App\Models\ThemePage;
+use App\Models\ThemeCategory;
+use App\Models\SiteConfig;
+use Illuminate\Support\Str;
 
 class PageController extends Controller
 {
@@ -16,7 +20,7 @@ class PageController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $site = $user->sites()->where('status', true)->first();
+        $site = $user->sites()->where('status_id', true)->first();
         
         if (!$site) {
             return redirect()->route('admin.dashboard')
@@ -24,9 +28,8 @@ class PageController extends Controller
         }
         
         $pages = TplPage::where('site_id', $site->id)
-            ->with(['site', 'sections'])
-            ->orderBy('sort_order')
-            ->orderBy('name')
+            ->with(['site', 'sections', 'themePage.category'])
+            ->orderBy('created_at', 'desc')
             ->paginate(10);
             
         return view('admin.pages.index', compact('pages', 'site'));
@@ -38,14 +41,17 @@ class PageController extends Controller
     public function create()
     {
         $user = Auth::user();
-        $site = $user->sites()->where('status', true)->first();
+        $site = $user->sites()->where('status_id', true)->first();
         
         if (!$site) {
             return redirect()->route('admin.dashboard')
                 ->with('error', 'No active site found.');
         }
+
+        $themes = ThemePage::with('category')->where('status', true)->orderBy('sort_order')->get();
+        $categories = ThemeCategory::where('status', true)->orderBy('sort_order')->get();
         
-        return view('admin.pages.create', compact('site'));
+        return view('admin.pages.create', compact('site', 'themes', 'categories'));
     }
 
     /**
@@ -54,7 +60,7 @@ class PageController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
-        $site = $user->sites()->where('status', true)->first();
+        $site = $user->sites()->where('status_id', true)->first();
         
         if (!$site) {
             return redirect()->route('admin.dashboard')
@@ -63,36 +69,32 @@ class PageController extends Controller
         
         $request->validate([
             'name' => 'required|string|max:255',
-            'slug' => [
-                'required',
-                'string',
-                'max:255',
-                'regex:/^[a-z0-9-]+$/',
-                'unique:tpl_pages,slug,NULL,id,site_id,' . $site->id
-            ],
-            'description' => 'nullable|string',
-            'sort_order' => 'integer|min:0',
-            'is_active' => 'boolean',
+            'page_theme_id' => 'nullable|exists:theme_pages,id',
             'show_in_nav' => 'boolean',
-            'meta_data.title' => 'nullable|string|max:255',
-            'meta_data.description' => 'nullable|string|max:500',
-            'meta_data.keywords' => 'nullable|string|max:255',
+            'status' => 'boolean',
+            'data' => 'array',
+            'data.*.title' => 'nullable|string|max:255',
+            'data.*.meta' => 'nullable|string|max:500'
         ]);
 
-        $data = $request->only(['name', 'slug', 'description', 'sort_order']);
-        $data['site_id'] = $site->id;
-        $data['is_active'] = $request->has('is_active');
-        $data['show_in_nav'] = $request->has('show_in_nav');
+        $slug = Str::slug($request->name);
         
-        // Handle meta data
-        if ($request->has('meta_data')) {
-            $metaData = array_filter($request->input('meta_data'), function($value) {
-                return !empty($value);
-            });
-            $data['meta_data'] = !empty($metaData) ? $metaData : null;
+        // Check for unique slug within the site
+        $existingPage = TplPage::where('site_id', $site->id)->where('slug', $slug)->first();
+        if ($existingPage) {
+            $slug = $slug . '-' . time();
         }
-        
-        TplPage::create($data);
+
+        $page = TplPage::create([
+            'site_id' => $site->id,
+            'name' => $request->name,
+            'slug' => $slug,
+            'link' => '/' . $slug,
+            'page_theme_id' => $request->page_theme_id,
+            'show_in_nav' => $request->boolean('show_in_nav'),
+            'status' => $request->boolean('status', true),
+            'data' => $request->input('data', [])
+        ]);
         
         return redirect()->route('admin.pages.index')
             ->with('success', 'Page created successfully.');
@@ -122,14 +124,21 @@ class PageController extends Controller
     public function edit(TplPage $page)
     {
         $user = Auth::user();
-        $site = $user->sites()->where('status', true)->first();
+        $site = $user->sites()->where('status_id', true)->first();
         
         // Check if page belongs to user's site
         if ($page->site_id !== $site->id) {
             abort(403, 'Unauthorized access to page.');
         }
+
+        $themes = ThemePage::with('category')->where('status', true)->orderBy('sort_order')->get();
+        $categories = ThemeCategory::where('status', true)->orderBy('sort_order')->get();
         
-        return view('admin.pages.edit', compact('page', 'site'));
+        // Get supported languages from site config
+        $siteConfig = SiteConfig::where('site_id', $site->id)->first();
+        $languages = $siteConfig ? $siteConfig->getSupportedLanguages() : ['en'];
+        
+        return view('admin.pages.edit', compact('page', 'site', 'themes', 'categories', 'languages'));
     }
 
     /**
@@ -138,7 +147,7 @@ class PageController extends Controller
     public function update(Request $request, TplPage $page)
     {
         $user = Auth::user();
-        $site = $user->sites()->where('status', true)->first();
+        $site = $user->sites()->where('status_id', true)->first();
         
         // Check if page belongs to user's site
         if ($page->site_id !== $site->id) {
@@ -147,35 +156,34 @@ class PageController extends Controller
         
         $request->validate([
             'name' => 'required|string|max:255',
-            'slug' => [
-                'required',
-                'string',
-                'max:255',
-                'regex:/^[a-z0-9-]+$/',
-                'unique:tpl_pages,slug,' . $page->id . ',id,site_id,' . $site->id
-            ],
-            'description' => 'nullable|string',
-            'sort_order' => 'integer|min:0',
-            'is_active' => 'boolean',
+            'page_theme_id' => 'nullable|exists:theme_pages,id',
             'show_in_nav' => 'boolean',
-            'meta_data.title' => 'nullable|string|max:255',
-            'meta_data.description' => 'nullable|string|max:500',
-            'meta_data.keywords' => 'nullable|string|max:255',
+            'status' => 'boolean',
+            'data' => 'array',
+            'data.*.title' => 'nullable|string|max:255',
+            'data.*.meta' => 'nullable|string|max:500'
         ]);
 
-        $data = $request->only(['name', 'slug', 'description', 'sort_order']);
-        $data['is_active'] = $request->has('is_active');
-        $data['show_in_nav'] = $request->has('show_in_nav');
+        $slug = Str::slug($request->name);
         
-        // Handle meta data
-        if ($request->has('meta_data')) {
-            $metaData = array_filter($request->input('meta_data'), function($value) {
-                return !empty($value);
-            });
-            $data['meta_data'] = !empty($metaData) ? $metaData : null;
+        // Check for unique slug within the site (excluding current page)
+        $existingPage = TplPage::where('site_id', $site->id)
+            ->where('slug', $slug)
+            ->where('id', '!=', $page->id)
+            ->first();
+        if ($existingPage) {
+            $slug = $slug . '-' . time();
         }
-        
-        $page->update($data);
+
+        $page->update([
+            'name' => $request->name,
+            'slug' => $slug,
+            'link' => '/' . $slug,
+            'page_theme_id' => $request->page_theme_id,
+            'show_in_nav' => $request->boolean('show_in_nav'),
+            'status' => $request->boolean('status'),
+            'data' => $request->input('data', [])
+        ]);
         
         return redirect()->route('admin.pages.index')
             ->with('success', 'Page updated successfully.');
@@ -187,7 +195,7 @@ class PageController extends Controller
     public function destroy(TplPage $page)
     {
         $user = Auth::user();
-        $site = $user->sites()->where('status', true)->first();
+        $site = $user->sites()->where('status_id', true)->first();
         
         // Check if page belongs to user's site
         if ($page->site_id !== $site->id) {
@@ -204,5 +212,21 @@ class PageController extends Controller
         
         return redirect()->route('admin.pages.index')
             ->with('success', 'Page deleted successfully.');
+    }
+
+    /**
+     * View page in frontend
+     */
+    public function view(TplPage $page)
+    {
+        $user = Auth::user();
+        $site = $user->sites()->where('status_id', true)->first();
+        
+        // Check if page belongs to user's site
+        if ($page->site_id !== $site->id) {
+            abort(403, 'Unauthorized access to page.');
+        }
+        
+        return redirect()->to(url($page->link));
     }
 }
