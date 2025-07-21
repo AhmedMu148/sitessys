@@ -13,6 +13,8 @@ class TplSite extends Model
     
     protected $fillable = [
         'site_id',
+        'nav',
+        'footer',
         'nav_data',
         'footer_data'
     ];
@@ -28,6 +30,22 @@ class TplSite extends Model
     public function site()
     {
         return $this->belongsTo(Site::class);
+    }
+
+    /**
+     * Get the navigation layout
+     */
+    public function navLayout()
+    {
+        return $this->belongsTo(TplLayout::class, 'nav');
+    }
+
+    /**
+     * Get the footer layout
+     */
+    public function footerLayout()
+    {
+        return $this->belongsTo(TplLayout::class, 'footer');
     }
 
     /**

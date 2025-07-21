@@ -161,6 +161,8 @@ return new class extends Migration
         Schema::create('tpl_site', function (Blueprint $table) {
             $table->id();
             $table->foreignId('site_id')->constrained('sites')->onDelete('cascade');
+            $table->foreignId('nav')->nullable()->constrained('tpl_layouts')->onDelete('set null');
+            $table->foreignId('footer')->nullable()->constrained('tpl_layouts')->onDelete('set null');
             $table->json('nav_data')->nullable()->comment('{"links": [{"url": "/home", "label": "Home"}]}');
             $table->json('footer_data')->nullable()->comment('{"links": [{"url": "/about", "label": "About"}]}');
             $table->timestamps();

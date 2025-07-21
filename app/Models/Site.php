@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasConfiguration;
 
 class Site extends Model
 {
-    use HasFactory;
+    use HasFactory, HasConfiguration;
     
     protected $fillable = [
         'user_id',
@@ -84,5 +85,82 @@ class Site extends Model
     public function getDisplayName()
     {
         return $this->site_name ?: 'Untitled Site';
+    }
+
+    /**
+     * Get domain information from site configuration
+     */
+    public function getDomainData()
+    {
+        $config = $this->config;
+        if (!$config || !$config->data) {
+            return ['domains' => [], 'subdomains' => []];
+        }
+
+        $data = is_string($config->data) ? json_decode($config->data, true) : $config->data;
+        return [
+            'domains' => $data['domains'] ?? [],
+            'subdomains' => $data['subdomains'] ?? []
+        ];
+    }
+
+    /**
+     * Set domain information in site configuration
+     */
+    public function setDomainData($domains = [], $subdomains = [])
+    {
+        $config = $this->config;
+        if (!$config) {
+            $config = new SiteConfig();
+            $config->site_id = $this->id;
+        }
+
+        $data = is_string($config->data) ? json_decode($config->data, true) : ($config->data ?? []);
+        $data['domains'] = $domains;
+        $data['subdomains'] = $subdomains;
+        
+        $config->data = $data;
+        $config->save();
+
+        return $this;
+    }
+
+    /**
+     * Check if a domain belongs to this site
+     */
+    public function hasDomain($domain)
+    {
+        $domainData = $this->getDomainData();
+        return in_array($domain, $domainData['domains']);
+    }
+
+    /**
+     * Check if a subdomain belongs to this site
+     */
+    public function hasSubdomain($subdomain)
+    {
+        $domainData = $this->getDomainData();
+        return in_array($subdomain, $domainData['subdomains']);
+    }
+
+    /**
+     * Get site by domain (static method)
+     */
+    public static function findByDomain($domain)
+    {
+        return self::whereHas('config', function ($query) use ($domain) {
+            $query->whereRaw("JSON_SEARCH(data, 'one', ?) IS NOT NULL", [$domain])
+                  ->orWhereRaw("JSON_SEARCH(JSON_EXTRACT(data, '$.domains'), 'one', ?) IS NOT NULL", [$domain]);
+        })->first();
+    }
+
+    /**
+     * Get site by subdomain (static method)
+     */
+    public static function findBySubdomain($subdomain)
+    {
+        return self::whereHas('config', function ($query) use ($subdomain) {
+            $query->whereRaw("JSON_SEARCH(JSON_EXTRACT(data, '$.subdomains'), 'one', ?) IS NOT NULL", [$subdomain]);
+        })->first();
     }
 }

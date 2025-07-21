@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Frontend\PageController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LayoutController;
 use App\Http\Controllers\Admin\PageController as AdminPageController;
@@ -9,6 +10,8 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SiteController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\PageSectionController;
+use App\Http\Controllers\Admin\ConfigurationTestController;
+use App\Http\Controllers\Admin\SectionTemplateController;
 use App\Http\Controllers\Auth\AuthController;
 
 /*
@@ -33,6 +36,16 @@ Route::post('/logout', [AuthController::class, 'webLogout'])->name('logout');
 Route::get('/dashboard', function () {
     return view('welcome');
 })->middleware(['auth'])->name('user.dashboard');
+
+// User profile page
+Route::get('/profile', function () {
+    return view('frontend.profile');
+})->middleware(['auth'])->name('profile');
+
+// User settings page
+Route::get('/settings', function () {
+    return view('frontend.profile');
+})->middleware(['auth'])->name('settings');
 
 // Admin authentication routes
 Route::get('/admin/login', [AuthController::class, 'showAdminLoginForm'])->name('admin.login');
@@ -65,12 +78,69 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() 
     // Template Management
     Route::resource('templates', TemplateController::class);
     
+    // Section Template Management
+    Route::prefix('section-templates')->name('section-templates.')->group(function () {
+        Route::get('/', [SectionTemplateController::class, 'index'])->name('index');
+        Route::post('/', [SectionTemplateController::class, 'store'])->name('store');
+        Route::post('/toggle-status', [SectionTemplateController::class, 'toggleStatus'])->name('toggle-status');
+        Route::post('/update-order', [SectionTemplateController::class, 'updateOrder'])->name('update-order');
+        Route::post('/preview', [SectionTemplateController::class, 'preview'])->name('preview');
+        Route::get('/{id}', [SectionTemplateController::class, 'show'])->name('show');
+        Route::put('/{id}', [SectionTemplateController::class, 'update'])->name('update');
+        Route::delete('/{id}', [SectionTemplateController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/duplicate', [SectionTemplateController::class, 'duplicate'])->name('duplicate');
+        Route::post('/{id}/content', [SectionTemplateController::class, 'updateContent'])->name('update-content');
+    });
+    
+    // Configuration Management Routes
+    Route::prefix('configurations')->name('configurations.')->group(function () {
+        Route::get('/', [TemplateController::class, 'configuration'])->name('index');
+        Route::get('/test', [ConfigurationTestController::class, 'test'])->name('test');
+        Route::get('/{type}', [TemplateController::class, 'getConfiguration'])->name('get');
+        Route::post('/theme', [TemplateController::class, 'updateTheme'])->name('theme.update');
+        Route::post('/navigation', [TemplateController::class, 'updateNavigation'])->name('navigation.update');
+        Route::post('/colors', [TemplateController::class, 'updateColorsConfig'])->name('colors.update');
+        Route::post('/sections', [TemplateController::class, 'updateSections'])->name('sections.update');
+        Route::get('/export', [TemplateController::class, 'exportConfigurations'])->name('export');
+        Route::post('/import', [TemplateController::class, 'importConfigurations'])->name('import');
+        Route::post('/initialize-defaults', [TemplateController::class, 'initializeDefaults'])->name('initialize-defaults');
+    });
+    
     // Settings
     Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::post('settings', [SettingsController::class, 'update'])->name('settings.update');
+    
+    // Settings Configuration Routes
+    Route::prefix('settings')->name('settings.')->group(function () {
+        Route::post('/languages', [SettingsController::class, 'updateLanguages'])->name('languages.update');
+        Route::post('/media', [SettingsController::class, 'updateMedia'])->name('media.update');
+        Route::post('/tenant', [SettingsController::class, 'updateTenant'])->name('tenant.update');
+        Route::get('/languages', [SettingsController::class, 'getLanguages'])->name('languages.get');
+        Route::get('/language-config', [SettingsController::class, 'getLanguageConfig'])->name('language-config.get');
+        Route::get('/all-configurations', [SettingsController::class, 'getAllConfigurations'])->name('all-configurations.get');
+        Route::post('/reset-defaults', [SettingsController::class, 'resetToDefaults'])->name('reset-defaults');
+        Route::post('/validate', [SettingsController::class, 'validateConfiguration'])->name('validate');
+        Route::get('/schema/{type}', [SettingsController::class, 'getConfigurationSchema'])->name('schema.get');
+    });
 });
 
-// Public routes
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+// Frontend routes - simplified without tenant middleware for now
+// Root route shows the main site's home page
+Route::get('/', [PageController::class, 'show'])->defaults('slug', 'home')->name('home');
+// Other pages by slug (but exclude admin, auth, and user routes)
+Route::get('/{slug}', [PageController::class, 'show'])->where('slug', '^(?!admin|login|register|logout|dashboard|health|api).*$');
+
+// Health check endpoint
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'healthy',
+        'timestamp' => now()->toISOString(),
+        'version' => config('app.version', '1.0.0'),
+        'environment' => config('app.env'),
+        'services' => [
+            'database' => 'connected',
+            'cache' => 'available',
+            'api' => 'operational'
+        ]
+    ]);
+})->name('health');
