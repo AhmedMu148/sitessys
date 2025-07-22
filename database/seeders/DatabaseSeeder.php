@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             CleanSetupSeeder::class,
-            EnhancedDataSeeder::class,
+            // EnhancedDataSeeder::class,
         ]);
     }
 }
