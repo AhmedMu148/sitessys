@@ -199,19 +199,54 @@ class PageController extends Controller
         
         // Check if page belongs to user's site
         if ($page->site_id !== $site->id) {
+            if (request()->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized access to page.'], 403);
+            }
             abort(403, 'Unauthorized access to page.');
         }
         
         // Don't allow deletion of home page
         if ($page->slug === 'home') {
+            if (request()->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Cannot delete the home page.'], 400);
+            }
             return redirect()->route('admin.pages.index')
                 ->with('error', 'Cannot delete the home page.');
         }
-        
-        $page->delete();
-        
-        return redirect()->route('admin.pages.index')
-            ->with('success', 'Page deleted successfully.');
+
+        try {
+            // Store page name for success message
+            $pageName = $page->name;
+
+            // Delete associated sections first
+            $page->sections()->delete();
+
+            // Delete the page
+            $page->delete();
+
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Page '{$pageName}' has been deleted successfully."
+                ]);
+            }
+
+            return redirect()->route('admin.pages.index')
+                ->with('success', 'Page deleted successfully.');
+
+        } catch (\Exception $e) {
+            \Log::error('Page deletion failed: ' . $e->getMessage());
+            
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to delete page. Please try again.'
+                ], 500);
+            }
+
+            return redirect()->route('admin.pages.index')
+                ->with('error', 'Failed to delete page. Please try again.');
+        }
     }
 
     /**
@@ -228,5 +263,118 @@ class PageController extends Controller
         }
         
         return redirect()->to(url($page->link));
+    }
+
+    /**
+     * Toggle page status (Active/Inactive)
+     */
+    public function toggleStatus(Request $request, TplPage $page)
+    {
+        $user = Auth::user();
+        $site = $user->sites()->where('status_id', true)->first();
+        
+        // Check if page belongs to user's site
+        if ($page->site_id !== $site->id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized access to page.'], 403);
+        }
+        
+        $page->update(['status' => !$page->status]);
+        
+        return response()->json([
+            'success' => true, 
+            'message' => $page->status ? 'Page activated successfully.' : 'Page deactivated successfully.',
+            'status' => $page->status
+        ]);
+    }
+
+    /**
+     * Toggle page display in navigation
+     */
+    public function toggleNav(Request $request, TplPage $page)
+    {
+        $user = Auth::user();
+        $site = $user->sites()->where('status_id', true)->first();
+        
+        // Check if page belongs to user's site
+        if ($page->site_id !== $site->id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized access to page.'], 403);
+        }
+        
+        // Check navigation limit (max 5 pages)
+        if (!$page->show_in_nav) {
+            $navCount = TplPage::where('site_id', $site->id)->where('show_in_nav', true)->count();
+            if ($navCount >= 5) {
+                return response()->json(['success' => false, 'message' => 'Navigation menu is limited to 5 pages maximum.'], 400);
+            }
+        }
+        
+        $page->update(['show_in_nav' => !$page->show_in_nav]);
+        
+        return response()->json([
+            'success' => true, 
+            'message' => $page->show_in_nav ? 'Page added to navigation.' : 'Page removed from navigation.',
+            'show_in_nav' => $page->show_in_nav
+        ]);
+    }
+
+    /**
+     * Toggle page display in footer
+     */
+    public function toggleFooter(Request $request, TplPage $page)
+    {
+        $user = Auth::user();
+        $site = $user->sites()->where('status_id', true)->first();
+        
+        // Check if page belongs to user's site
+        if ($page->site_id !== $site->id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized access to page.'], 403);
+        }
+        
+        // Get current footer links from site config
+        $siteConfig = SiteConfig::where('site_id', $site->id)->first();
+        $footerLinks = $siteConfig ? ($siteConfig->footer_links ?? []) : [];
+        
+        $pageInFooter = in_array($page->id, array_column($footerLinks, 'page_id'));
+        
+        if (!$pageInFooter) {
+            // Check footer limit (max 10 links)
+            if (count($footerLinks) >= 10) {
+                return response()->json(['success' => false, 'message' => 'Footer is limited to 10 links maximum.'], 400);
+            }
+            
+            // Add to footer
+            $footerLinks[] = [
+                'page_id' => $page->id,
+                'title' => $page->name,
+                'url' => $page->link,
+                'order' => count($footerLinks) + 1
+            ];
+            
+            $message = 'Page added to footer.';
+        } else {
+            // Remove from footer
+            $footerLinks = array_filter($footerLinks, function($link) use ($page) {
+                return $link['page_id'] !== $page->id;
+            });
+            $footerLinks = array_values($footerLinks); // Reset array keys
+            
+            $message = 'Page removed from footer.';
+        }
+        
+        // Update site config
+        if (!$siteConfig) {
+            SiteConfig::create([
+                'site_id' => $site->id,
+                'footer_links' => $footerLinks
+            ]);
+        } else {
+            $siteConfig->update(['footer_links' => $footerLinks]);
+        }
+        
+        return response()->json([
+            'success' => true, 
+            'message' => $message,
+            'in_footer' => !$pageInFooter
+        ]);
     }
 }
