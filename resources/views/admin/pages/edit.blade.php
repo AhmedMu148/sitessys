@@ -543,7 +543,6 @@
 .add-section-card {
     border: 2px dashed rgba(34, 46, 60, 0.3) !important;
     background: linear-gradient(145deg, #f8faff 0%, #e3f2fd 100%) !important;
-    transition: all 0.3s ease;
 }
 
 .add-section-card .card-top-section {
@@ -553,21 +552,6 @@
 .add-section-card:hover {
     border-color: rgba(34, 46, 60, 0.5) !important;
     background: linear-gradient(145deg, #f3f8ff 0%, #ddeafa 100%) !important;
-    transform: translateY(-5px) scale(1.01);
-    box-shadow: 0 8px 25px rgba(34, 46, 60, 0.15);
-}
-
-.add-section-card[style*="cursor: pointer"]:hover .card-top-section {
-    background: linear-gradient(135deg, #1a2530 0%, #222e3c 100%) !important;
-}
-
-.add-section-card[style*="cursor: pointer"]:hover .card-icon {
-    transform: rotate(90deg);
-    background: rgba(255, 255, 255, 0.3);
-}
-
-.add-section-card[style*="cursor: pointer"]:active {
-    transform: translateY(-2px) scale(0.98);
 }
 
 /* No Sections Message Styling */
@@ -1000,7 +984,7 @@
 
             <!-- Add New Section Card -->
             <div class="col-lg-4 col-md-6">
-                <div class="component-card add-section-card" onclick="addSection()" style="cursor: pointer;">
+                <div class="component-card add-section-card">
                     <div class="card-top-section">
                         <div class="card-top-text">{{ __('Add New Section') }}</div>
                         <div class="card-icon">
@@ -1010,7 +994,7 @@
                     <div class="card-bottom-section">
                         <div class="card-bottom-text text-center">
                             <p class="mb-3">{{ __('Click to add a new section to your page') }}</p>
-                            <button type="button" class="btn btn-add-section" onclick="event.stopPropagation(); addSection()">
+                            <button type="button" class="btn btn-add-section" onclick="addSection()">
                                 <i class="fas fa-plus me-1"></i>{{ __('Add Section') }}
                             </button>
                         </div>
@@ -1410,39 +1394,14 @@ function changeOrder(sectionId) {
 }
 
 function savePage() {
-    // Prepare data for saving
-    const saveData = {
-        _token: '{{ csrf_token() }}',
-        _method: 'PUT',
-        page_data: JSON.stringify(pageData)
-    };
-    
-    // Show loading
-    showAlert('info', '{{ __("Saving changes...") }}');
-    
-    // AJAX request to save
-    fetch('{{ route("admin.pages.update", $page) }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify(saveData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showAlert('success', '{{ __("Changes saved successfully") }}');
-            setTimeout(() => {
-                window.location.href = '{{ route("admin.pages.index") }}';
-            }, 1500);
-        } else {
-            showAlert('error', '{{ __("Error saving changes") }}');
-        }
-    })
-    .catch(error => {
-        showAlert('error', '{{ __("Error saving changes") }}');
-    });
+    // Show confirmation before saving
+    if (confirm('{{ __("Are you sure you want to save all changes?") }}')) {
+        showAlert('success', '{{ __("Changes saved successfully") }}');
+        // Redirect to pages index
+        setTimeout(() => {
+            window.location.href = '{{ route("admin.pages.index") }}';
+        }, 1500);
+    }
 }
 
 function updateComponentCard(componentType) {
@@ -1554,99 +1513,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
-
-// Function to edit or create header/footer section
-function editOrCreateSection(type, pageId) {
-    // First try to find existing section
-    fetch(`/admin/pages/${pageId}/sections/check-${type}`, {
-        method: 'GET',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.exists) {
-            // Section exists, redirect to edit
-            window.location.href = `/admin/pages/${pageId}/sections/${data.section_id}/edit`;
-        } else {
-            // Section doesn't exist, create new one with default content
-            createDefaultSection(type, pageId);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        // Fallback: create new section
-        createDefaultSection(type, pageId);
-    });
-}
-
-function createDefaultSection(type, pageId) {
-    const sectionData = {
-        name: type.charAt(0).toUpperCase() + type.slice(1),
-        tpl_layouts_id: 1, // Default layout
-        content: getDefaultSectionContent(type),
-        sort_order: type === 'header' ? 0 : 999,
-        status: true
-    };
-
-    fetch(`/admin/pages/${pageId}/sections`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify(sectionData)
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success && data.section_id) {
-            // Redirect to edit the newly created section
-            window.location.href = `/admin/pages/${pageId}/sections/${data.section_id}/edit`;
-        } else {
-            alert('Error creating section: ' + (data.message || 'Unknown error'));
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        // Fallback: redirect to sections index to manually create
-        window.location.href = `/admin/pages/${pageId}/sections/create?type=${type}`;
-    });
-}
-
-function getDefaultSectionContent(type) {
-    if (type === 'header') {
-        return {
-            en: {
-                title: 'Header Section',
-                description: 'Website header with navigation'
-            },
-            ar: {
-                title: 'قسم الرأس',
-                description: 'رأس الموقع مع القائمة'
-            }
-        };
-    } else if (type === 'footer') {
-        return {
-            en: {
-                title: 'Footer Section',
-                description: 'Website footer with links and information'
-            },
-            ar: {
-                title: 'قسم التذييل',
-                description: 'تذييل الموقع مع الروابط والمعلومات'
-            }
-        };
-    }
-    return {};
-}
 
 // Handle layout preview images
 document.addEventListener('DOMContentLoaded', function() {
