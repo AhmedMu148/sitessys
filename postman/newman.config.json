@@ -1,0 +1,36 @@
+{
+  "collection": "SPS_API_Collection.postman_collection.json",
+  "environment": "SPS_Local_Environment.postman_environment.json",
+  "reporters": ["cli", "json", "htmlextra"],
+  "reporter": {
+    "htmlextra": {
+      "export": "./test-results/sps-api-test-report.html",
+      "template": "./template.hbs",
+      "title": "SPS API Test Report",
+      "titleSize": 2,
+      "logs": true,
+      "omitHeaders": false,
+      "omitRequestBodies": false,
+      "omitResponseBodies": false,
+      "hideRequestBody": [],
+      "hideResponseBody": [],
+      "showOnlyFails": false,
+      "testPaging": false,
+      "browserTitle": "SPS API Test Results",
+      "skipHeaders": "Authorization",
+      "skipSensitiveData": false,
+      "showEnvironmentData": true,
+      "skipEnvironmentVars": ["admin_password", "access_token"],
+      "skipGlobalVars": [],
+      "omitRequestHeaders": false,
+      "omitResponseHeaders": false,
+      "hideRequestHeaders": ["Authorization"],
+      "hideResponseHeaders": [],
+      "showMarkdownLinks": true,
+      "showFolderDescription": true,
+      "timezone": "UTC"
+    }
+  },
+  "bail": false,
+  "verbose": true
+}

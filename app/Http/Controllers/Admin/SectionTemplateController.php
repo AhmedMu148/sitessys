@@ -34,6 +34,12 @@ class SectionTemplateController extends Controller
         $site = $user->sites()->where('status_id', true)->first();
         
         if (!$site) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No active site found.'
+                ], 404);
+            }
             return redirect()->route('admin.dashboard')
                 ->with('error', 'No active site found.');
         }
@@ -49,6 +55,15 @@ class SectionTemplateController extends Controller
             'active_sections' => [],
             'section_content' => []
         ]);
+
+        // Return JSON for API requests
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'data' => $sectionTemplates,
+                'active_sections' => $activeSections
+            ]);
+        }
 
         return view('admin.sections.index', compact('site', 'sectionTemplates', 'activeSections'));
     }
@@ -118,13 +133,18 @@ class SectionTemplateController extends Controller
     /**
      * Display the specified section template
      */
-    public function show(TplLayout $sectionTemplate)
+    public function show($id)
     {
-        if ($sectionTemplate->layout_type !== 'section') {
-            return response()->json(['error' => 'Invalid section template.'], 404);
+        $sectionTemplate = TplLayout::find($id);
+        
+        if (!$sectionTemplate || $sectionTemplate->layout_type !== 'section') {
+            return response()->json(['error' => 'Section template not found.'], 404);
         }
 
-        return response()->json(['section' => $sectionTemplate]);
+        return response()->json([
+            'success' => true,
+            'data' => $sectionTemplate
+        ]);
     }
 
     /**

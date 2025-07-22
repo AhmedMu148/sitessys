@@ -404,9 +404,24 @@ class AuthController extends Controller
      */
     public function user(Request $request)
     {
+        $user = $request->user();
+        
         return response()->json([
             'status' => 'success',
-            'data' => $request->user()->load('roles', 'permissions', 'activeTemplate')
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'status_id' => $user->status_id,
+                'preferred_language' => $user->preferred_language,
+                'is_active' => $user->isActive(),
+                'is_admin' => $user->isAdmin(),
+                'is_super_admin' => $user->isSuperAdmin(),
+                'display_name' => $user->getDisplayName(),
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at,
+            ]
         ]);
     }
 
