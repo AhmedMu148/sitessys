@@ -130,6 +130,7 @@
     justify-content: center;
     position: relative;
     color: white;
+    overflow: hidden;
 }
 
 .card-top-text {
@@ -155,6 +156,91 @@
     color: white;
     position: relative;
     z-index: 1;
+}
+
+/* Layout Preview Image in Card */
+.card-top-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 1rem 1rem 0 0;
+    overflow: hidden;
+}
+
+.card-top-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.card-top-image:hover img {
+    transform: scale(1.05);
+}
+
+/* Image overlay for section title */
+.card-top-image::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(34, 46, 60, 0.7) 0%, rgba(43, 57, 71, 0.7) 100%);
+    z-index: 1;
+}
+
+.card-top-image .image-overlay-text {
+    position: absolute;
+    bottom: 10px;
+    left: 15px;
+    right: 15px;
+    color: white;
+    font-size: 12px;
+    font-weight: 500;
+    z-index: 2;
+    text-align: left;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    line-height: 1.3;
+}
+
+[dir="rtl"] .card-top-image .image-overlay-text {
+    text-align: right;
+}
+
+.card-top-fallback {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #222e3c 0%, #2b3947 100%);
+    border-radius: 1rem 1rem 0 0;
+}
+
+.card-top-fallback .card-top-text {
+    margin-bottom: 1rem;
+}
+
+/* Responsive image handling */
+@media (max-width: 768px) {
+    .card-top-image img {
+        object-fit: cover;
+        object-position: center;
+    }
+    
+    .card-top-image .image-overlay-text {
+        font-size: 11px;
+        bottom: 8px;
+        left: 10px;
+        right: 10px;
+    }
 }
 
 /* Card Actions Dropdown */
@@ -457,6 +543,7 @@
 .add-section-card {
     border: 2px dashed rgba(34, 46, 60, 0.3) !important;
     background: linear-gradient(145deg, #f8faff 0%, #e3f2fd 100%) !important;
+    transition: all 0.3s ease;
 }
 
 .add-section-card .card-top-section {
@@ -466,6 +553,21 @@
 .add-section-card:hover {
     border-color: rgba(34, 46, 60, 0.5) !important;
     background: linear-gradient(145deg, #f3f8ff 0%, #ddeafa 100%) !important;
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: 0 8px 25px rgba(34, 46, 60, 0.15);
+}
+
+.add-section-card[style*="cursor: pointer"]:hover .card-top-section {
+    background: linear-gradient(135deg, #1a2530 0%, #222e3c 100%) !important;
+}
+
+.add-section-card[style*="cursor: pointer"]:hover .card-icon {
+    transform: rotate(90deg);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.add-section-card[style*="cursor: pointer"]:active {
+    transform: translateY(-2px) scale(0.98);
 }
 
 /* No Sections Message Styling */
@@ -829,12 +931,33 @@
                                     </ul>
                                 </div>
                             </div>
-                            <div class="card-top-text">
-                                {{ __('Section') }} {{ $section->sort_order ?? ($index + 1) }}: {{ $section->name ?? __('Unnamed Section') }}
-                            </div>
-                            <div class="card-icon">
-                                <i class="fas fa-layer-group"></i>
-                            </div>
+                            @php
+                                $layoutImage = $section->layout->preview_image ?? null;
+                            @endphp
+                            
+                            @if($layoutImage)
+                                <div class="card-top-image">
+                                    <img src="{{ $layoutImage }}" alt="{{ $section->layout->name ?? $section->name }}" onerror="this.style.display='none'; this.parentElement.querySelector('.card-top-fallback').style.display='flex';" />
+                                    <div class="image-overlay-text">
+                                        {{ __('Section') }} {{ $section->sort_order ?? ($index + 1) }}: {{ $section->name ?? __('Unnamed Section') }}
+                                    </div>
+                                    <div class="card-top-fallback" style="display: none;">
+                                        <div class="card-top-text">
+                                            {{ __('Section') }} {{ $section->sort_order ?? ($index + 1) }}: {{ $section->name ?? __('Unnamed Section') }}
+                                        </div>
+                                        <div class="card-icon">
+                                            <i class="fas fa-layer-group"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="card-top-text">
+                                    {{ __('Section') }} {{ $section->sort_order ?? ($index + 1) }}: {{ $section->name ?? __('Unnamed Section') }}
+                                </div>
+                                <div class="card-icon">
+                                    <i class="fas fa-layer-group"></i>
+                                </div>
+                            @endif
                         </div>
                         <div class="card-bottom-section">
                             <div class="card-bottom-text">
@@ -877,7 +1000,7 @@
 
             <!-- Add New Section Card -->
             <div class="col-lg-4 col-md-6">
-                <div class="component-card add-section-card">
+                <div class="component-card add-section-card" onclick="addSection()" style="cursor: pointer;">
                     <div class="card-top-section">
                         <div class="card-top-text">{{ __('Add New Section') }}</div>
                         <div class="card-icon">
@@ -887,7 +1010,7 @@
                     <div class="card-bottom-section">
                         <div class="card-bottom-text text-center">
                             <p class="mb-3">{{ __('Click to add a new section to your page') }}</p>
-                            <button type="button" class="btn btn-add-section" onclick="addSection()">
+                            <button type="button" class="btn btn-add-section" onclick="event.stopPropagation(); addSection()">
                                 <i class="fas fa-plus me-1"></i>{{ __('Add Section') }}
                             </button>
                         </div>
@@ -1387,7 +1510,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         console.log('Dropdown elements initialized:', dropdownElements.length);
     }, 500);
-    
+
     // Enhanced dropdown positioning
     document.addEventListener('show.bs.dropdown', function(e) {
         const menu = e.target.querySelector('.dropdown-menu');
@@ -1524,5 +1647,42 @@ function getDefaultSectionContent(type) {
     }
     return {};
 }
+
+// Handle layout preview images
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle image loading errors for section cards
+    const layoutImages = document.querySelectorAll('.card-top-image img');
+    layoutImages.forEach(img => {
+        img.addEventListener('error', function() {
+            console.log('Layout image failed to load:', this.src);
+            // Hide the image
+            this.style.display = 'none';
+            // Show the fallback
+            const fallback = this.parentElement.querySelector('.card-top-fallback');
+            if (fallback) {
+                fallback.style.display = 'flex';
+            }
+        });
+        
+        // Handle successful load
+        img.addEventListener('load', function() {
+            console.log('Layout image loaded successfully:', this.src);
+            // Ensure fallback is hidden when image loads
+            const fallback = this.parentElement.querySelector('.card-top-fallback');
+            if (fallback) {
+                fallback.style.display = 'none';
+            }
+        });
+    });
+    
+    // Check for empty or invalid src attributes on page load
+    setTimeout(() => {
+        layoutImages.forEach(img => {
+            if (!img.src || img.src === '' || img.src === window.location.href) {
+                img.dispatchEvent(new Event('error'));
+            }
+        });
+    }, 100);
+});
 </script>
 @endsection

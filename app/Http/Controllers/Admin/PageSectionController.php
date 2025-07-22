@@ -511,4 +511,27 @@ class PageSectionController extends Controller
             'export_data' => $exportData
         ]);
     }
+
+    /**
+     * Preview a section
+     */
+    public function preview($pageId, $sectionId)
+    {
+        $user = Auth::user();
+        $site = $user->sites()->where('status_id', true)->first();
+        
+        if (!$site) {
+            return response()->json(['error' => 'No active site found.'], 404);
+        }
+
+        $section = TplPageSection::where('id', $sectionId)
+            ->where('page_id', $pageId)
+            ->where('site_id', $site->id)
+            ->with(['layout', 'page'])
+            ->firstOrFail();
+
+        $page = $section->page;
+
+        return view('admin.pages.sections.preview', compact('section', 'page', 'site'));
+    }
 }
