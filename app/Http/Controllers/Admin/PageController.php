@@ -17,7 +17,7 @@ class PageController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
         $site = $user->sites()->where('status_id', true)->first();
@@ -27,12 +27,40 @@ class PageController extends Controller
                 ->with('error', 'No active site found.');
         }
         
-        $pages = TplPage::where('site_id', $site->id)
-            ->with(['site', 'sections', 'themePage.category'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+        $query = TplPage::where('site_id', $site->id)
+            ->with(['site', 'sections', 'themePage.category']);
+        
+        // Filter by theme category
+        if ($request->has('theme') && $request->theme !== 'all') {
+            $query->whereHas('themePage.category', function($q) use ($request) {
+                $q->where('slug', $request->theme);
+            });
+        }
+        
+        // Filter by status
+        if ($request->has('status')) {
+            $query->where('status', $request->boolean('status'));
+        }
+        
+        // Search by name
+        if ($request->has('search')) {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+        
+        $pages = $query->orderBy('created_at', 'desc')->paginate(12);
+        
+        // Get theme categories for filter dropdown
+        $categories = ThemeCategory::where('status', true)->orderBy('sort_order')->get();
+        
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'pages' => $pages,
+                'categories' => $categories
+            ]);
+        }
             
-        return view('admin.pages.index', compact('pages', 'site'));
+        return view('admin.pages.index', compact('pages', 'site', 'categories'));
     }
 
     /**

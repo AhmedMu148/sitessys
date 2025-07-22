@@ -7,11 +7,18 @@ use App\Models\Site;
 use App\Models\TplSite;
 use App\Models\TplLayout;
 use App\Models\SiteConfig;
+use App\Services\ConfigurationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class TemplateController extends Controller
 {
+    protected ConfigurationService $configService;
+
+    public function __construct(ConfigurationService $configService)
+    {
+        $this->configService = $configService;
+    }
     /**
      * Display a listing of templates
      */
@@ -319,5 +326,233 @@ class TemplateController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Color settings updated successfully.');
+    }
+
+    /**
+     * Get site configuration dashboard
+     */
+    public function configuration()
+    {
+        $user = Auth::user();
+        $site = $user->sites()->where('status_id', true)->first();
+        
+        if (!$site) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'No active site found.');
+        }
+
+        $configurations = $site->getAllConfigurations();
+        
+        return view('admin.templates.configuration', compact('site', 'configurations'));
+    }
+
+    /**
+     * Update theme configuration
+     */
+    public function updateTheme(Request $request)
+    {
+        $request->validate([
+            'theme' => 'required|string|max:50',
+            'header_theme' => 'nullable|string|max:50',
+            'footer_theme' => 'nullable|string|max:50',
+            'page_themes' => 'nullable|array',
+        ]);
+
+        $user = Auth::user();
+        $site = $user->sites()->where('status_id', true)->first();
+
+        if (!$site) {
+            return response()->json(['error' => 'No active site found.'], 404);
+        }
+
+        $success = $site->setConfiguration('theme', $request->only([
+            'theme', 'header_theme', 'footer_theme', 'page_themes'
+        ]));
+
+        if ($success) {
+            return response()->json(['message' => 'Theme configuration updated successfully.']);
+        }
+
+        return response()->json(['error' => 'Failed to update theme configuration.'], 500);
+    }
+
+    /**
+     * Update navigation configuration
+     */
+    public function updateNavigation(Request $request)
+    {
+        $request->validate([
+            'header' => 'required|array',
+            'header.theme' => 'required|string|max:50',
+            'header.links' => 'required|array|max:5',
+            'header.links.*.url' => 'required|string|max:255',
+            'header.links.*.label' => 'required|string|max:100',
+            'footer' => 'required|array',
+            'footer.theme' => 'required|string|max:50',
+            'footer.links' => 'required|array|max:10',
+            'footer.links.*.url' => 'required|string|max:255',
+            'footer.links.*.label' => 'required|string|max:100',
+        ]);
+
+        $user = Auth::user();
+        $site = $user->sites()->where('status_id', true)->first();
+
+        if (!$site) {
+            return response()->json(['error' => 'No active site found.'], 404);
+        }
+
+        $success = $site->setConfiguration('navigation', $request->only([
+            'header', 'footer'
+        ]));
+
+        if ($success) {
+            return response()->json(['message' => 'Navigation configuration updated successfully.']);
+        }
+
+        return response()->json(['error' => 'Failed to update navigation configuration.'], 500);
+    }
+
+    /**
+     * Update colors configuration via ConfigurationService
+     */
+    public function updateColorsConfig(Request $request)
+    {
+        $request->validate([
+            'primary' => 'required|string|regex:/^#[a-fA-F0-9]{6}$/',
+            'secondary' => 'nullable|string|regex:/^#[a-fA-F0-9]{6}$/',
+            'nav' => 'nullable|array',
+            'nav.background' => 'nullable|string|regex:/^#[a-fA-F0-9]{6}$/',
+            'nav.text' => 'nullable|string|regex:/^#[a-fA-F0-9]{6}$/',
+            'footer' => 'nullable|array',
+            'footer.background' => 'nullable|string|regex:/^#[a-fA-F0-9]{6}$/',
+            'footer.text' => 'nullable|string|regex:/^#[a-fA-F0-9]{6}$/',
+        ]);
+
+        $user = Auth::user();
+        $site = $user->sites()->where('status_id', true)->first();
+
+        if (!$site) {
+            return response()->json(['error' => 'No active site found.'], 404);
+        }
+
+        $success = $site->setConfiguration('colors', $request->all());
+
+        if ($success) {
+            return response()->json(['message' => 'Colors configuration updated successfully.']);
+        }
+
+        return response()->json(['error' => 'Failed to update colors configuration.'], 500);
+    }
+
+    /**
+     * Update sections configuration
+     */
+    public function updateSections(Request $request)
+    {
+        $request->validate([
+            'active_sections' => 'required|array',
+            'active_sections.*.section_id' => 'required|string|max:50',
+            'active_sections.*.is_active' => 'required|boolean',
+            'active_sections.*.sort_order' => 'required|integer|min:0',
+            'section_content' => 'nullable|array',
+        ]);
+
+        $user = Auth::user();
+        $site = $user->sites()->where('status_id', true)->first();
+
+        if (!$site) {
+            return response()->json(['error' => 'No active site found.'], 404);
+        }
+
+        $success = $site->setConfiguration('sections', $request->only([
+            'active_sections', 'section_content'
+        ]));
+
+        if ($success) {
+            return response()->json(['message' => 'Sections configuration updated successfully.']);
+        }
+
+        return response()->json(['error' => 'Failed to update sections configuration.'], 500);
+    }
+
+    /**
+     * Get configuration by type
+     */
+    public function getConfiguration(Request $request, string $type)
+    {
+        $user = Auth::user();
+        $site = $user->sites()->where('status_id', true)->first();
+
+        if (!$site) {
+            return response()->json(['error' => 'No active site found.'], 404);
+        }
+
+        $config = $site->getConfiguration($type);
+        
+        return response()->json(['configuration' => $config]);
+    }
+
+    /**
+     * Export all configurations
+     */
+    public function exportConfigurations()
+    {
+        $user = Auth::user();
+        $site = $user->sites()->where('status_id', true)->first();
+
+        if (!$site) {
+            return response()->json(['error' => 'No active site found.'], 404);
+        }
+
+        $backup = $site->exportConfigurations();
+        
+        return response()->json($backup);
+    }
+
+    /**
+     * Import configurations from backup
+     */
+    public function importConfigurations(Request $request)
+    {
+        $request->validate([
+            'backup' => 'required|array',
+            'backup.configurations' => 'required|array',
+        ]);
+
+        $user = Auth::user();
+        $site = $user->sites()->where('status_id', true)->first();
+
+        if (!$site) {
+            return response()->json(['error' => 'No active site found.'], 404);
+        }
+
+        $success = $site->importConfigurations($request->backup);
+
+        if ($success) {
+            return response()->json(['message' => 'Configurations imported successfully.']);
+        }
+
+        return response()->json(['error' => 'Failed to import configurations.'], 500);
+    }
+
+    /**
+     * Initialize default configurations
+     */
+    public function initializeDefaults()
+    {
+        $user = Auth::user();
+        $site = $user->sites()->where('status_id', true)->first();
+
+        if (!$site) {
+            return response()->json(['error' => 'No active site found.'], 404);
+        }
+
+        $success = $site->initializeDefaultConfigurations();
+
+        if ($success) {
+            return response()->json(['message' => 'Default configurations initialized successfully.']);
+        }
+
+        return response()->json(['error' => 'Failed to initialize default configurations.'], 500);
     }
 }

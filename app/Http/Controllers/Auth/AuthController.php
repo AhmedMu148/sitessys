@@ -7,19 +7,25 @@ use App\Models\User;
 use App\Models\UserTemplate;
 use App\Models\ApiAccessLog;
 use App\Services\TemplateCloneService;
+use App\Services\DefaultTemplateAssignmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
     protected $templateCloneService;
+    protected $defaultTemplateService;
 
-    public function __construct(TemplateCloneService $templateCloneService)
-    {
+    public function __construct(
+        TemplateCloneService $templateCloneService = null,
+        DefaultTemplateAssignmentService $defaultTemplateService = null
+    ) {
         $this->templateCloneService = $templateCloneService;
+        $this->defaultTemplateService = $defaultTemplateService;
     }
     /**
      * Show registration form
@@ -199,6 +205,102 @@ class AuthController extends Controller
     }
 
     /**
+     * API Register a new admin user (Site Owner)
+     * Creates a new site with default templates and configurations
+     */
+    public function registerAdmin(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'site_name' => 'required|string|max:255',
+            'domains' => 'required|array|min:1',
+            'domains.*' => 'required|string|max:255',
+            'subdomains' => 'nullable|array',
+            'subdomains.*' => 'string|max:100',
+            'language' => 'nullable|string|size:2|in:en,ar,es,fr',
+            'business_type' => 'nullable|string|max:100',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Create the admin user
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'role' => 'admin',
+                'status_id' => true,
+                'preferred_language' => $request->language ?? 'en',
+            ]);
+
+            // Use DefaultTemplateAssignmentService to create site with templates
+            $templateService = app(\App\Services\DefaultTemplateAssignmentService::class);
+            $domains = $request->domains ?? ['localhost', '127.0.0.1:8000', 'phplaravel-1399496-5687062.cloudwaysapps.com'];
+            $subdomains = $request->subdomains ?? [];
+            
+            $site = $templateService->assignDefaultTemplates($user, $domains, $subdomains);
+
+            // Set additional site configuration data
+            $config = $site->config;
+            if ($config) {
+                $data = is_string($config->data) ? json_decode($config->data, true) : ($config->data ?? []);
+                $data['business_type'] = $request->business_type ?? 'seo';
+                $data['language'] = $request->language ?? 'en';
+                $data['site_name'] = $request->site_name;
+                $config->data = $data;
+                $config->save();
+            }
+
+            DB::commit();
+
+            $token = $user->createToken('admin-auth-token')->plainTextToken;
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Admin registered successfully with default SEO templates',
+                'data' => [
+                    'user' => $user,
+                    'site' => [
+                        'id' => $site->id,
+                        'site_name' => $site->site_name,
+                        'domains' => $site->domains,
+                        'subdomains' => $site->subdomains,
+                        'business_type' => $request->business_type ?? 'seo',
+                        'language' => $request->language ?? 'en',
+                        'templates_assigned' => true,
+                        'pages_created' => 5,
+                        'default_sections' => ['header', 'hero', 'services', 'about', 'contact', 'footer']
+                    ],
+                    'access_token' => $token,
+                    'token_type' => 'Bearer',
+                    'admin_panel_url' => url("/admin?site_id=" . $site->id),
+                    'site_url' => $site->url,
+                ]
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to create admin account',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * API Register a new user
      * In single-site architecture, API registration creates regular users
      */
@@ -223,17 +325,9 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'subdomain' => null,
-            'domain' => null,
             'role' => 'user',
-            'is_active' => true,
+            'status_id' => true,
         ]);
-
-        // Assign user role
-        $user->assignRole('user');
-
-        // No template cloning for regular users in single-site architecture
-        $this->templateCloneService->cloneDefaultTemplateForUser($user);
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
@@ -241,8 +335,8 @@ class AuthController extends Controller
             'status' => 'success',
             'message' => 'User registered successfully',
             'data' => [
-                'user' => $user->load('roles'),
-                'token' => $token,
+                'user' => $user,
+                'access_token' => $token,
                 'token_type' => 'Bearer',
             ]
         ], 201);
@@ -266,7 +360,7 @@ class AuthController extends Controller
             ]);
         }
 
-        if (!$user->is_active) {
+        if (!$user->isActive()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Account is inactive. Please contact administrator.'
@@ -282,8 +376,8 @@ class AuthController extends Controller
             'status' => 'success',
             'message' => 'Login successful',
             'data' => [
-                'user' => $user->load('roles', 'permissions'),
-                'token' => $token,
+                'user' => $user,
+                'access_token' => $token,
                 'token_type' => 'Bearer',
             ]
         ]);
@@ -310,9 +404,24 @@ class AuthController extends Controller
      */
     public function user(Request $request)
     {
+        $user = $request->user();
+        
         return response()->json([
             'status' => 'success',
-            'data' => $request->user()->load('roles', 'permissions', 'activeTemplate')
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'status_id' => $user->status_id,
+                'preferred_language' => $user->preferred_language,
+                'is_active' => $user->isActive(),
+                'is_admin' => $user->isAdmin(),
+                'is_super_admin' => $user->isSuperAdmin(),
+                'display_name' => $user->getDisplayName(),
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at,
+            ]
         ]);
     }
 

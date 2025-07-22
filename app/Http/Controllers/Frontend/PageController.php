@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Site;
 use App\Models\TplPage;
 use App\Models\SiteConfig;
-use App\Models\PageSection;
+use App\Models\TplPageSection;
 use App\Models\TplSite;
 use App\Models\TplLayout;
 use App\Models\TplLang;
@@ -19,22 +19,21 @@ class PageController extends Controller
     public function show($slug = 'home')
     {
         try {
-            // Check if we have a tenant user from the middleware
-            $tenantUser = request()->attributes->get('tenant_user');
+            $request = request();
+            $domain = $request->getHost();
             
-            if ($tenantUser) {
-                // Use tenant's site
-                $site = $tenantUser->sites()->where('status', true)->first();
-            } else {
-                // Fallback: get the first admin's site (for main domain)
-                $user = \App\Models\User::where('email', 'admin@example.com')->first();
-                if (!$user) {
-                    // If admin@example.com doesn't exist, get any admin
-                    $user = \App\Models\User::whereHas('roles', function($query) {
-                        $query->whereIn('name', ['super-admin', 'admin']);
-                    })->first();
+            // Try to find site by domain first
+            $site = Site::findByDomain($domain);
+            
+            if (!$site) {
+                // Fallback: check if we have a tenant from middleware
+                $tenant = $request->attributes->get('tenant');
+                if ($tenant) {
+                    $site = $tenant;
+                } else {
+                    // Final fallback: get the first active site (for development)
+                    $site = Site::where('status_id', true)->first();
                 }
-                $site = $user ? $user->sites()->where('status', true)->first() : null;
             }
             
             if (!$site) {
@@ -77,17 +76,73 @@ class PageController extends Controller
             $navLayout = null;
             if ($tplSite && $tplSite->nav) {
                 $navLayout = TplLayout::where('id', $tplSite->nav)->where('status', true)->first();
+                if ($navLayout) {
+                    $navConfig = json_decode($navLayout->default_config, true) ?? [];
+                    // Add site-specific data
+                    $navConfig['site_name'] = $site->site_name;
+                    
+                    // Override menu_items with nav_data if available
+                    if ($tplSite->nav_data && isset($tplSite->nav_data['links'])) {
+                        $navConfig['menu_items'] = array_map(function($link) {
+                            return [
+                                'label' => $link['name'],
+                                'url' => $link['url']
+                            ];
+                        }, $tplSite->nav_data['links']);
+                    }
+                    
+                    $navLayout->processed_content = $this->processTemplate($navLayout->content, $navConfig);
+                }
             }
             
             // Get footer layout (active only)
             $footerLayout = null;
             if ($tplSite && $tplSite->footer) {
                 $footerLayout = TplLayout::where('id', $tplSite->footer)->where('status', true)->first();
+                if ($footerLayout) {
+                    $footerConfig = json_decode($footerLayout->default_config, true) ?? [];
+                    // Add dynamic data
+                    $footerConfig['year'] = date('Y');
+                    $footerConfig['site_name'] = $site->site_name;
+                    
+                    // Add footer-specific data from TplSite
+                    if ($tplSite->footer_data) {
+                        if (isset($tplSite->footer_data['social_media'])) {
+                            $footerConfig['social_links'] = [];
+                            foreach ($tplSite->footer_data['social_media'] as $platform => $url) {
+                                $icons = [
+                                    'facebook' => 'fab fa-facebook-f',
+                                    'twitter' => 'fab fa-twitter',
+                                    'instagram' => 'fab fa-instagram',
+                                    'linkedin' => 'fab fa-linkedin-in',
+                                    'youtube' => 'fab fa-youtube'
+                                ];
+                                $footerConfig['social_links'][] = [
+                                    'url' => $url,
+                                    'icon' => $icons[$platform] ?? 'fas fa-link'
+                                ];
+                            }
+                        }
+                        if (isset($tplSite->footer_data['newsletter'])) {
+                            $footerConfig['newsletter'] = $tplSite->footer_data['newsletter'];
+                        }
+                        if (isset($tplSite->footer_data['links'])) {
+                            $footerConfig['additional_pages'] = array_map(function($link) {
+                                return [
+                                    'url' => $link['url'],
+                                    'label' => $link['name']
+                                ];
+                            }, $tplSite->footer_data['links']);
+                        }
+                    }
+                    
+                    $footerLayout->processed_content = $this->processTemplate($footerLayout->content, $footerConfig);
+                }
             }
             
             // Get page sections with their layouts
-            $sections = PageSection::where('page_id', $page->id)
-                ->where('is_active', true)
+            $sections = TplPageSection::where('page_id', $page->id)
+                ->where('status', 1)
                 ->with('layout')
                 ->orderBy('sort_order')
                 ->get()
@@ -104,6 +159,15 @@ class PageController extends Controller
                         ];
                         
                         $section->parsed_settings = $settings ?? [];
+                        
+                        // Process layout content with configurable fields
+                        if ($section->layout && $section->layout->content) {
+                            $layoutConfig = json_decode($section->layout->default_config, true) ?? [];
+                            $section->layout->processed_content = $this->processTemplate(
+                                $section->layout->content, 
+                                $layoutConfig
+                            );
+                        }
                     } catch (Exception $e) {
                         // Fallback for parsing errors
                         $section->parsed_content = [
@@ -149,5 +213,95 @@ class PageController extends Controller
     private function showSimplePage($slug, $site)
     {
         return view('frontend.simple', compact('slug', 'site'));
+    }
+    
+    /**
+     * Process template content by replacing placeholders with actual data
+     */
+    private function processTemplate($content, $data = [])
+    {
+        if (empty($content)) {
+            return $content;
+        }
+        
+        // Replace simple placeholders {{field_name}}
+        $content = preg_replace_callback('/\{\{([^}]+)\}\}/', function ($matches) use ($data) {
+            $field = trim($matches[1]);
+            
+            // Handle nested fields like contact_info.email
+            if (strpos($field, '.') !== false) {
+                $parts = explode('.', $field);
+                $value = $data;
+                foreach ($parts as $part) {
+                    if (is_array($value) && isset($value[$part])) {
+                        $value = $value[$part];
+                    } else {
+                        $value = '';
+                        break;
+                    }
+                }
+                return $value;
+            }
+            
+            return $data[$field] ?? '';
+        }, $content);
+        
+        // Handle Handlebars-style loops {{#each array}}
+        $content = preg_replace_callback('/\{\{#each\s+([^}]+)\}\}(.*?)\{\{\/each\}\}/s', function ($matches) use ($data) {
+            $arrayName = trim($matches[1]);
+            $template = $matches[2];
+            $output = '';
+            
+            if (isset($data[$arrayName]) && is_array($data[$arrayName])) {
+                foreach ($data[$arrayName] as $item) {
+                    $itemOutput = $template;
+                    // Replace {{this}} with the item value for simple arrays
+                    $itemOutput = str_replace('{{this}}', $item, $itemOutput);
+                    
+                    // Replace {{field}} with item properties for object arrays
+                    if (is_array($item)) {
+                        foreach ($item as $key => $value) {
+                            if (is_array($value)) {
+                                // Handle nested arrays (like social links)
+                                $nestedOutput = '';
+                                foreach ($value as $nestedItem) {
+                                    if (is_array($nestedItem)) {
+                                        $nestedItemOutput = $itemOutput;
+                                        foreach ($nestedItem as $nestedKey => $nestedValue) {
+                                            $nestedItemOutput = str_replace('{{' . $nestedKey . '}}', $nestedValue, $nestedItemOutput);
+                                        }
+                                        $nestedOutput .= $nestedItemOutput;
+                                    }
+                                }
+                                $itemOutput = $nestedOutput;
+                            } else {
+                                $itemOutput = str_replace('{{' . $key . '}}', $value, $itemOutput);
+                            }
+                        }
+                    }
+                    $output .= $itemOutput;
+                }
+            }
+            
+            return $output;
+        }, $content);
+        
+        // Handle conditional blocks {{#if condition}}
+        $content = preg_replace_callback('/\{\{#if\s+([^}]+)\}\}(.*?)(?:\{\{else\}\}(.*?))?\{\{\/if\}\}/s', function ($matches) use ($data) {
+            $condition = trim($matches[1]);
+            $ifContent = $matches[2];
+            $elseContent = isset($matches[3]) ? $matches[3] : '';
+            
+            $value = $data[$condition] ?? false;
+            
+            // Check if the condition is truthy
+            if ($value && $value !== 'false' && $value !== '0') {
+                return $ifContent;
+            } else {
+                return $elseContent;
+            }
+        }, $content);
+        
+        return $content;
     }
 }
