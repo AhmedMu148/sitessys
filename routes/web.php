@@ -52,6 +52,11 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() 
     Route::resource('layouts', LayoutController::class);
     Route::resource('pages', AdminPageController::class);
     
+    // Page Management AJAX Routes
+    Route::post('pages/{page}/toggle-status', [AdminPageController::class, 'toggleStatus'])->name('pages.toggle-status');
+    Route::post('pages/{page}/toggle-nav', [AdminPageController::class, 'toggleNav'])->name('pages.toggle-nav');
+    Route::post('pages/{page}/toggle-footer', [AdminPageController::class, 'toggleFooter'])->name('pages.toggle-footer');
+    
     // Page Sections Management
     Route::prefix('pages/{page_id}/sections')->name('pages.sections.')->group(function () {
         Route::get('/', [PageSectionController::class, 'index'])->name('index');
