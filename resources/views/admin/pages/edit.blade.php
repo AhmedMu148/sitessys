@@ -244,12 +244,13 @@
 /* Dropdown Menu Enhancements */
 .dropdown-menu {
     border: 1px solid rgba(34, 46, 60, 0.15);
-    box-shadow: 0 10px 30px rgba(34, 46, 60, 0.2);
-    border-radius: 0.75rem;
-    padding: 0.5rem 0;
-    min-width: 200px;
+    box-shadow: 0 8px 25px rgba(34, 46, 60, 0.15);
+    border-radius: 0.5rem;
+    padding: 0.25rem 0;
+    min-width: 140px;
     background: rgba(255, 255, 255, 0.98);
-    margin-top: 0.25rem;
+    margin-top: 0.125rem;
+    z-index: 1050;
 }
 
 [dir="rtl"] .dropdown-menu {
@@ -258,14 +259,15 @@
 }
 
 .dropdown-item {
-    padding: 0.6rem 1rem;
-    border-radius: 0.5rem;
-    margin: 0.125rem 0.5rem;
-    transition: all 0.2s ease;
+    padding: 0.4rem 0.75rem;
+    border-radius: 0.25rem;
+    margin: 0.125rem 0.25rem;
+    transition: all 0.15s ease;
     color: #222e3c;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     display: flex;
     align-items: center;
+    white-space: nowrap;
 }
 
 .dropdown-item:hover {
@@ -275,13 +277,79 @@
 }
 
 .dropdown-item i {
-    width: 16px;
-    margin-right: 8px;
+    width: 14px;
+    height: 14px;
+    margin-right: 6px;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+[dir="rtl"] .dropdown-item i {
+    margin-right: 0;
+    margin-left: 6px;
 }
 
 .dropdown-item.text-danger:hover {
     background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
     color: white;
+}
+
+/* Card Container Positioning */
+.card {
+    position: relative;
+    overflow: visible;
+}
+
+.dropdown {
+    position: relative;
+}
+
+/* Responsive Dropdown Position */
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    transform: none;
+}
+
+@media (max-width: 768px) {
+    .dropdown-menu {
+        min-width: 120px;
+        font-size: 0.75rem;
+    }
+    
+    .dropdown-item {
+        padding: 0.3rem 0.5rem;
+    }
+}
+
+/* Ensure dropdown doesn't overflow */
+.section-card .dropdown-menu {
+    max-width: calc(100vw - 40px);
+    right: 0;
+    left: auto;
+}
+
+[dir="rtl"] .section-card .dropdown-menu {
+    right: auto;
+    left: 0;
+}
+
+/* Dropdown position variations */
+.dropdown-menu-up {
+    top: auto !important;
+    bottom: 100% !important;
+    transform: translateY(-4px) !important;
+}
+
+.dropdown-menu-end {
+    right: 0 !important;
+    left: auto !important;
+}
+
+[dir="rtl"] .dropdown-menu-end {
+    right: auto !important;
+    left: 0 !important;
 }
 
 .card-bottom-section {
@@ -634,8 +702,8 @@
                                     <span class="visually-hidden">Actions</span>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="#" onclick="editTheme('header')">
-                                        <i class="fas fa-palette"></i>{{ __('Edit Theme') }}
+                                    <li><a class="dropdown-item" href="#" onclick="editOrCreateSection('header', {{ $page->id }})">
+                                        <i class="fas fa-edit"></i>{{ __('Edit Header') }}
                                     </a></li>
                                     <li><a class="dropdown-item" href="#" onclick="addLink('header')">
                                         <i class="fas fa-plus"></i>{{ __('Add Link') }}
@@ -683,8 +751,8 @@
                                     <span class="visually-hidden">Actions</span>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="#" onclick="editTheme('footer')">
-                                        <i class="fas fa-palette"></i>{{ __('Edit Theme') }}
+                                    <li><a class="dropdown-item" href="#" onclick="editOrCreateSection('footer', {{ $page->id }})">
+                                        <i class="fas fa-edit"></i>{{ __('Edit Footer') }}
                                     </a></li>
                                     <li><a class="dropdown-item" href="#" onclick="addLink('footer')">
                                         <i class="fas fa-plus"></i>{{ __('Add Link') }}
@@ -734,9 +802,13 @@
                                         <span class="visually-hidden">Actions</span>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="#" onclick="editSection({{ $section->id }})">
+                                        <li><a class="dropdown-item" href="{{ route('admin.pages.sections.edit', ['page_id' => $page->id, 'section_id' => $section->id]) }}">
                                             <i class="fas fa-edit"></i>{{ __('Edit') }}
                                         </a></li>
+                                        <li><a class="dropdown-item" href="{{ route('admin.pages.sections.preview', ['page_id' => $page->id, 'section_id' => $section->id]) }}" target="_blank">
+                                            <i class="fas fa-eye"></i>{{ __('Preview') }}
+                                        </a></li>
+                                        <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" href="#" onclick="toggleActive({{ $section->id }})">
                                             <i class="fas fa-toggle-on"></i>{{ ($section->is_active ?? true) ? __('Deactivate') : __('Activate') }}
                                         </a></li>
@@ -1298,10 +1370,15 @@ function showAlert(type, message) {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Page Edit loaded');
     
-    // Initialize Bootstrap 5 dropdowns
+    // Initialize Bootstrap 5 dropdowns with positioning
     setTimeout(() => {
         const dropdownElements = document.querySelectorAll('[data-bs-toggle="dropdown"]');
-        dropdownElements.forEach(element => new bootstrap.Dropdown(element));
+        dropdownElements.forEach(element => {
+            const dropdown = new bootstrap.Dropdown(element, {
+                boundary: 'viewport',
+                offset: [0, 2]
+            });
+        });
         
         // Replace feather icons if available
         if (typeof feather !== 'undefined') {
@@ -1316,17 +1393,33 @@ document.addEventListener('DOMContentLoaded', function() {
         const menu = e.target.querySelector('.dropdown-menu');
         if (!menu) return;
         
+        // Reset classes
+        menu.classList.remove('dropdown-menu-up', 'dropdown-menu-end');
+        
         setTimeout(() => {
-            const rect = e.target.getBoundingClientRect();
+            const dropdownBtn = e.target.querySelector('[data-bs-toggle="dropdown"]');
+            const card = dropdownBtn?.closest('.card');
+            const rect = dropdownBtn?.getBoundingClientRect();
             const menuRect = menu.getBoundingClientRect();
+            const cardRect = card?.getBoundingClientRect();
             
-            // Check if dropdown goes outside viewport
-            if (rect.bottom + menuRect.height > window.innerHeight) {
+            if (!rect || !menuRect) return;
+            
+            // Check if dropdown goes outside viewport vertically
+            if (rect.bottom + menuRect.height > window.innerHeight - 20) {
                 menu.classList.add('dropdown-menu-up');
             }
             
-            if (rect.right + menuRect.width > window.innerWidth) {
+            // Check if dropdown goes outside card horizontally
+            if (cardRect && (rect.left + menuRect.width > cardRect.right)) {
                 menu.classList.add('dropdown-menu-end');
+            }
+            
+            // For RTL, adjust positioning
+            if (document.dir === 'rtl' || document.documentElement.dir === 'rtl') {
+                if (rect.right - menuRect.width < cardRect?.left) {
+                    menu.classList.remove('dropdown-menu-end');
+                }
             }
         }, 10);
     });
@@ -1338,5 +1431,98 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Function to edit or create header/footer section
+function editOrCreateSection(type, pageId) {
+    // First try to find existing section
+    fetch(`/admin/pages/${pageId}/sections/check-${type}`, {
+        method: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.exists) {
+            // Section exists, redirect to edit
+            window.location.href = `/admin/pages/${pageId}/sections/${data.section_id}/edit`;
+        } else {
+            // Section doesn't exist, create new one with default content
+            createDefaultSection(type, pageId);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        // Fallback: create new section
+        createDefaultSection(type, pageId);
+    });
+}
+
+function createDefaultSection(type, pageId) {
+    const sectionData = {
+        name: type.charAt(0).toUpperCase() + type.slice(1),
+        tpl_layouts_id: 1, // Default layout
+        content: getDefaultSectionContent(type),
+        sort_order: type === 'header' ? 0 : 999,
+        status: true
+    };
+
+    fetch(`/admin/pages/${pageId}/sections`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(sectionData)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success && data.section_id) {
+            // Redirect to edit the newly created section
+            window.location.href = `/admin/pages/${pageId}/sections/${data.section_id}/edit`;
+        } else {
+            alert('Error creating section: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        // Fallback: redirect to sections index to manually create
+        window.location.href = `/admin/pages/${pageId}/sections/create?type=${type}`;
+    });
+}
+
+function getDefaultSectionContent(type) {
+    if (type === 'header') {
+        return {
+            en: {
+                title: 'Header Section',
+                description: 'Website header with navigation'
+            },
+            ar: {
+                title: 'قسم الرأس',
+                description: 'رأس الموقع مع القائمة'
+            }
+        };
+    } else if (type === 'footer') {
+        return {
+            en: {
+                title: 'Footer Section',
+                description: 'Website footer with links and information'
+            },
+            ar: {
+                title: 'قسم التذييل',
+                description: 'تذييل الموقع مع الروابط والمعلومات'
+            }
+        };
+    }
+    return {};
+}
 </script>
 @endsection
