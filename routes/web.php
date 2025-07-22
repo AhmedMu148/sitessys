@@ -85,12 +85,19 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() 
     Route::resource('layouts', LayoutController::class);
     Route::resource('pages', AdminPageController::class);
     
+
     // Page Theme Management
     Route::post('/pages/preview-theme', [ThemeController::class, 'previewPageTheme'])->name('pages.preview-theme');
     Route::post('/pages/apply-theme', [ThemeController::class, 'applyTheme'])->name('pages.apply-theme');
     
     // Section Template Reorder Route
     Route::post('/section-templates/reorder', [SectionTemplateController::class, 'reorder'])->name('section-templates.reorder');
+
+    // Page Management AJAX Routes
+    Route::post('pages/{page}/toggle-status', [AdminPageController::class, 'toggleStatus'])->name('pages.toggle-status');
+    Route::post('pages/{page}/toggle-nav', [AdminPageController::class, 'toggleNav'])->name('pages.toggle-nav');
+    Route::post('pages/{page}/toggle-footer', [AdminPageController::class, 'toggleFooter'])->name('pages.toggle-footer');
+
     
     // Page Sections Management
     Route::resource('page-sections', PageSectionController::class);
