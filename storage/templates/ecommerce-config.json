@@ -1,0 +1,77 @@
+{
+    "fields": {
+        "store_name": {
+            "type": "text",
+            "default": "My Store",
+            "label": "Store Name"
+        },
+        "logo_url": {
+            "type": "url",
+            "default": "",
+            "label": "Logo URL"
+        },
+        "search_placeholder": {
+            "type": "text",
+            "default": "Search products...",
+            "label": "Search Placeholder"
+        },
+        "wishlist_count": {
+            "type": "number",
+            "default": 0,
+            "label": "Wishlist Count"
+        },
+        "cart_count": {
+            "type": "number",
+            "default": 0,
+            "label": "Cart Count"
+        },
+        "categories": {
+            "type": "array",
+            "default": [
+                {
+                    "name": "Electronics",
+                    "url": "/electronics",
+                    "subcategories": [
+                        {"name": "Phones", "url": "/electronics/phones"},
+                        {"name": "Laptops", "url": "/electronics/laptops"}
+                    ]
+                },
+                {
+                    "name": "Fashion",
+                    "url": "/fashion",
+                    "subcategories": [
+                        {"name": "Men", "url": "/fashion/men"},
+                        {"name": "Women", "url": "/fashion/women"}
+                    ]
+                }
+            ],
+            "label": "Product Categories"
+        }
+    },
+    "defaults": {
+        "store_name": "My Store",
+        "search_placeholder": "Search products...",
+        "wishlist_count": 0,
+        "cart_count": 0,
+        "categories": [
+            {
+                "name": "Electronics",
+                "url": "/electronics",
+                "subcategories": [
+                    {"name": "Phones", "url": "/electronics/phones"},
+                    {"name": "Laptops", "url": "/electronics/laptops"}
+                ]
+            },
+            {
+                "name": "Fashion",
+                "url": "/fashion",
+                "subcategories": [
+                    {"name": "Men", "url": "/fashion/men"},
+                    {"name": "Women", "url": "/fashion/women"}
+                ]
+            }
+        ]
+    },
+    "css": ".ecommerce-header { border-bottom: 1px solid #eee; } .search-btn { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); } .action-item { text-decoration: none; color: #333; }",
+    "js": "// Add shopping cart functionality"
+}

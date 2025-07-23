@@ -1,0 +1,81 @@
+<nav class="ecommerce-header bg-white shadow-sm">
+    <div class="container">
+        <div class="row align-items-center py-3">
+            <!-- Logo -->
+            <div class="col-lg-2 col-md-3 col-6">
+                <a href="/" class="navbar-brand">
+                    @if(!empty($config['logo_url']))
+                        <img src="{{ $config['logo_url'] }}" alt="{{ $config['store_name'] ?? 'Store' }}" height="40">
+                    @else
+                        <h4 class="mb-0 fw-bold text-primary">{{ $config['store_name'] ?? 'Store' }}</h4>
+                    @endif
+                </a>
+            </div>
+            
+            <!-- Search Bar -->
+            <div class="col-lg-6 col-md-5 d-none d-md-block">
+                <form class="search-form position-relative">
+                    <input type="search" class="form-control form-control-lg" 
+                           placeholder="{{ $config['search_placeholder'] ?? 'Search products...' }}">
+                    <button type="submit" class="btn btn-primary search-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
+            
+            <!-- User Actions -->
+            <div class="col-lg-4 col-md-4 col-6">
+                <div class="user-actions d-flex justify-content-end align-items-center">
+                    <!-- Account -->
+                    <a href="/account" class="action-item me-3">
+                        <i class="fas fa-user-circle fs-4"></i>
+                        <span class="d-none d-lg-inline ms-2">Account</span>
+                    </a>
+                    
+                    <!-- Wishlist -->
+                    <a href="/wishlist" class="action-item me-3 position-relative">
+                        <i class="fas fa-heart fs-4"></i>
+                        <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
+                            {{ $config['wishlist_count'] ?? '0' }}
+                        </span>
+                        <span class="d-none d-lg-inline ms-2">Wishlist</span>
+                    </a>
+                    
+                    <!-- Cart -->
+                    <a href="/cart" class="action-item position-relative">
+                        <i class="fas fa-shopping-cart fs-4"></i>
+                        <span class="badge bg-primary position-absolute top-0 start-100 translate-middle">
+                            {{ $config['cart_count'] ?? '0' }}
+                        </span>
+                        <span class="d-none d-lg-inline ms-2">Cart</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <div class="row">
+            <div class="col-12">
+                <nav class="main-navigation">
+                    <ul class="nav nav-pills">
+                        @foreach($config['categories'] ?? [] as $category)
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="{{ $category['url'] }}" 
+                                   data-bs-toggle="dropdown">
+                                    {{ $category['name'] }}
+                                </a>
+                                @if(!empty($category['subcategories']))
+                                    <ul class="dropdown-menu">
+                                        @foreach($category['subcategories'] as $sub)
+                                            <li><a class="dropdown-item" href="{{ $sub['url'] }}">{{ $sub['name'] }}</a></li>
+                                        @endforeach
+                                    </ul>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</nav>
