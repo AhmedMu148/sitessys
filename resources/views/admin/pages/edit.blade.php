@@ -530,7 +530,7 @@
                                             <i class="fas fa-plus"></i>{{ __('Add Section') }}
                                         </a></li>
                                         <li><a class="dropdown-item text-danger" href="#" onclick="deleteSection({{ $section->id }})">
-                                            <i class="fas fa-trash"></i>{{ __('Delete Section') }}
+                                            <i class="fas fa-minus-circle"></i>{{ __('Remove from Page') }}
                                         </a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" href="#" onclick="duplicateCheck('section', {{ $section->id }})">
@@ -892,35 +892,45 @@ function saveEditSection(){
 }
 
 function deleteSection(id){
-    if(!confirm('{{ __("Are you sure you want to delete this section?") }}')) return;
+    if(!confirm('{{ __("Are you sure you want to remove this section from the page?") }}')) return;
     
     // Show loading state
-    showAlert('info', '{{ __("Deleting section...") }}');
+    showAlert('info', '{{ __("Removing section from page...") }}');
+    
+    const url = `/admin/pages/{{ $page->id }}/sections/${id}`;
+    console.log('Making DELETE request to:', url);
     
     // Make API call to delete section
-    fetch(`/admin/pages/{{ $page->id }}/sections/${id}`, {
+    fetch(url, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json().catch(e => {
+            console.error('Failed to parse JSON response:', e);
+            throw new Error('Invalid JSON response');
+        });
+    })
     .then(data => {
+        console.log('Response data:', data);
         if(data.success) {
             // Remove from local data
             pageData.sections = pageData.sections.filter(x=>x.id!==id);
-            showAlert('success', '{{ __("Section deleted successfully") }}');
+            showAlert('success', '{{ __("Section removed from page successfully") }}');
             
             // Reload page to reflect changes
             setTimeout(() => { location.reload(); }, 1000);
         } else {
-            showAlert('error', data.message || '{{ __("Failed to delete section") }}');
+            showAlert('error', data.message || '{{ __("Failed to remove section from page") }}');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showAlert('error', '{{ __("An error occurred while deleting section") }}');
+        showAlert('error', '{{ __("An error occurred while removing section from page") }}');
     });
 }
 

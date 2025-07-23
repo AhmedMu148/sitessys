@@ -259,32 +259,100 @@ class PageSectionController extends Controller
      */
     public function destroy(Request $request, $pageId, $sectionId)
     {
-        $user = Auth::user();
-        $site = $user->sites()->where('status_id', true)->first();
-        
-        $section = TplPageSection::where('id', $sectionId)
-            ->where('page_id', $pageId)
-            ->where('site_id', $site->id)
-            ->firstOrFail();
-
-        $section->delete();
-        
-        // Return JSON response for AJAX requests
-        if ($request->ajax() || $request->wantsJson()) {
+        try {
+            // Find the section
+            $section = TplPageSection::find($sectionId);
+            
+            if (!$section) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Section not found.'
+                ], 404);
+            }
+            
+            // Instead of setting page_id to null, we'll delete the section completely
+            // Or we can move it to a "deleted" status while keeping it in the database
+            $section->delete();
+            
             return response()->json([
                 'success' => true,
-                'message' => 'Section deleted successfully!'
+                'message' => 'Section removed from page successfully!'
             ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
         }
         
         return redirect()->route('admin.pages.sections.index', $pageId)
-            ->with('success', 'Section deleted successfully!');
+            ->with('success', 'Section removed from page successfully!');
+    }
+
+    /**
+     * Get available sections that can be added to the page
+     */
+    public function getAvailableSections(Request $request, $pageId)
+    {
+        $user = Auth::user();
+        $site = $user->sites()->where('status_id', true)->first();
+        
+        if (!$site) {
+            return response()->json(['error' => 'No active site found.'], 404);
+        }
+
+        // Get sections that belong to this site but not to this page (soft deleted from page)
+        $availableSections = TplPageSection::where('site_id', $site->id)
+            ->where(function($query) use ($pageId) {
+                $query->whereNull('page_id')
+                      ->orWhere('page_id', '!=', $pageId);
+            })
+            ->with('layout')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'sections' => $availableSections
+        ]);
+    }
+
+    /**
+     * Restore a section to the page
+     */
+    public function restoreToPage(Request $request, $pageId, $sectionId)
+    {
+        $user = Auth::user();
+        $site = $user->sites()->where('status_id', true)->first();
+        
+        if (!$site) {
+            return response()->json(['error' => 'No active site found.'], 404);
+        }
+
+        $section = TplPageSection::where('id', $sectionId)
+            ->where('site_id', $site->id)
+            ->whereNull('page_id') // Only restore sections that are not assigned to any page
+            ->firstOrFail();
+
+        // Get next sort order for this page
+        $maxSortOrder = TplPageSection::where('page_id', $pageId)->max('sort_order') ?? 0;
+
+        // Restore section to this page
+        $section->update([
+            'page_id' => $pageId,
+            'status' => true,
+            'sort_order' => $maxSortOrder + 1
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Section restored to page successfully!',
+            'section' => $section
+        ]);
     }
 
     /**
      * Upload image for section
-     */
-    public function uploadImage(Request $request, $pageId, $sectionId)
     {
         $request->validate([
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048'

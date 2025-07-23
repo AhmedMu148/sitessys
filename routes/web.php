@@ -118,6 +118,10 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() 
         Route::get('{section_id}/content/{language?}', [PageSectionController::class, 'getContent'])->name('get-content');
         Route::get('{section_id}/export', [PageSectionController::class, 'exportSection'])->name('export');
         Route::get('{section_id}/preview', [PageSectionController::class, 'preview'])->name('preview');
+        
+        // Available sections and restore functionality
+        Route::get('available', [PageSectionController::class, 'getAvailableSections'])->name('available');
+        Route::post('{section_id}/restore', [PageSectionController::class, 'restoreToPage'])->name('restore');
     });
     
     // Template Management
