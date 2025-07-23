@@ -82,6 +82,7 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() 
     Route::resource('users', UserController::class);
 
     // Content Management
+    Route::get('layouts/header-footer', [LayoutController::class, 'headerFooter'])->name('layouts.header-footer');
     Route::resource('layouts', LayoutController::class);
     Route::resource('pages', AdminPageController::class);
     

@@ -499,99 +499,6 @@
     <!-- Component Cards Grid -->
     <div class="container-fluid">
         <div class="row">
-            <!-- Header Component Card -->
-            <div class="col-lg-4 col-md-6">
-                <div class="component-card">
-                    <div class="card-top-section">
-                        <!-- Card Actions Dropdown -->
-                        <div class="card-actions">
-                            <div class="dropdown">
-                                <button class="btn actions-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Header Actions">
-                                    <i class="fas fa-ellipsis-v" style="width: 16px; height: 16px;"></i>
-                                    <span class="visually-hidden">Actions</span>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="#" onclick="editOrCreateSection('header', {{ $page->id }})">
-                                        <i class="fas fa-edit"></i>{{ __('Edit Header') }}
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="#" onclick="addLink('header')">
-                                        <i class="fas fa-plus"></i>{{ __('Add Link') }}
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="#" onclick="removeLink('header')">
-                                        <i class="fas fa-minus"></i>{{ __('Remove Link') }}
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="#" onclick="toggleDisplay('header')">
-                                        <i class="fas fa-eye"></i>{{ __('Toggle Display') }}
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="#" onclick="duplicateCheck('header')">
-                                        <i class="fas fa-search"></i>{{ __('Duplicate Check') }}
-                                    </a></li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="card-top-text">{{ __('Header') }}</div>
-                        <div class="card-icon"><i class="fas fa-window-maximize"></i></div>
-                    </div>
-                    <div class="card-bottom-section">
-                        <div class="card-bottom-text">
-                            <strong>{{ __('Theme') }}:</strong> {{ $page->header_theme ?? 'default-header' }}<br>
-                            <strong>{{ __('Links') }}:</strong> {{ $page->header_links_count ?? 0 }}/{{ $page->header_max_links ?? 5 }} links<br>
-                            <strong>{{ __('Status') }}:</strong>
-                            <span class="status-badge {{ $page->header_displayed ? 'status-displayed' : 'status-hidden' }}">
-                                {{ $page->header_displayed ? __('Displayed') : __('Hidden') }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Footer Component Card -->
-            <div class="col-lg-4 col-md-6">
-                <div class="component-card">
-                    <div class="card-top-section">
-                        <div class="card-actions">
-                            <div class="dropdown">
-                                <button class="btn actions-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Footer Actions">
-                                    <i class="fas fa-ellipsis-v" style="width: 16px; height: 16px;"></i>
-                                    <span class="visually-hidden">Actions</span>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="#" onclick="editOrCreateSection('footer', {{ $page->id }})">
-                                        <i class="fas fa-edit"></i>{{ __('Edit Footer') }}
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="#" onclick="addLink('footer')">
-                                        <i class="fas fa-plus"></i>{{ __('Add Link') }}
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="#" onclick="removeLink('footer')">
-                                        <i class="fas fa-minus"></i>{{ __('Remove Link') }}
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="#" onclick="toggleDisplay('footer')">
-                                        <i class="fas fa-eye"></i>{{ __('Toggle Display') }}
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="#" onclick="duplicateCheck('footer')">
-                                        <i class="fas fa-search"></i>{{ __('Duplicate Check') }}
-                                    </a></li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="card-top-text">{{ __('Footer') }}</div>
-                        <div class="card-icon"><i class="fas fa-window-minimize"></i></div>
-                    </div>
-                    <div class="card-bottom-section">
-                        <div class="card-bottom-text">
-                            <strong>{{ __('Theme') }}:</strong> {{ $page->footer_theme ?? 'default-footer' }}<br>
-                            <strong>{{ __('Links') }}:</strong> {{ $page->footer_links_count ?? 0 }}/{{ $page->footer_max_links ?? 10 }} links<br>
-                            <strong>{{ __('Status') }}:</strong>
-                            <span class="status-badge {{ $page->footer_displayed ? 'status-displayed' : 'status-hidden' }}">
-                                {{ $page->footer_displayed ? __('Displayed') : __('Hidden') }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Sections Cards -->
             @if($page->sections && $page->sections->count() > 0)
                 @foreach($page->sections->sortBy('sort_order') as $index => $section)
@@ -885,79 +792,12 @@ const pageData = {
     id: {{ $page->id }},
     name: '{{ $page->name }}',
     slug: '{{ $page->slug }}',
-    header: {
-        theme: '{{ $page->header_theme ?? "default-header" }}',
-        links: {{ $page->header_links_count ?? 0 }},
-        maxLinks: {{ $page->header_max_links ?? 5 }},
-        displayed: {{ $page->header_displayed ? 'true' : 'false' }}
-    },
-    footer: {
-        theme: '{{ $page->footer_theme ?? "default-footer" }}',
-        links: {{ $page->footer_links_count ?? 0 }},
-        maxLinks: {{ $page->footer_max_links ?? 10 }},
-        displayed: {{ $page->footer_displayed ? 'true' : 'false' }}
-    },
     sections: @json($page->sections ?? [])
 };
 
-const themeOptions = {
-    header: [
-        { value: 'default-header', text: '{{ __("Default Header") }}' },
-        { value: 'modern-header', text: '{{ __("Modern Header") }}' },
-        { value: 'corporate-header', text: '{{ __("Corporate Header") }}' },
-        { value: 'minimal-header', text: '{{ __("Minimal Header") }}' }
-    ],
-    footer: [
-        { value: 'default-footer', text: '{{ __("Default Footer") }}' },
-        { value: 'simple-footer', text: '{{ __("Simple Footer") }}' },
-        { value: 'seo-footer', text: '{{ __("SEO Footer") }}' },
-        { value: 'corporate-footer', text: '{{ __("Corporate Footer") }}' }
-    ]
-};
-
 // ===================== Functions =====================
-function editTheme(componentType) {
-    document.getElementById('componentType').value = componentType.charAt(0).toUpperCase() + componentType.slice(1);
-    const select = document.getElementById('themeSelect');
-    select.innerHTML = '';
-    themeOptions[componentType].forEach(o => {
-        const el = document.createElement('option');
-        el.value = o.value; el.text = o.text; select.appendChild(el);
-    });
-    select.value = pageData[componentType].theme;
-    new bootstrap.Modal(document.getElementById('editThemeModal')).show();
-}
-
-function saveTheme() {
-    const componentType = document.getElementById('componentType').value.toLowerCase();
-    const newTheme = document.getElementById('themeSelect').value;
-    pageData[componentType].theme = newTheme;
-    updateComponentCard(componentType);
-    bootstrap.Modal.getInstance(document.getElementById('editThemeModal')).hide();
-    showAlert('success', '{{ __("Theme updated successfully") }}');
-}
-
-function addLink(componentType){
-    const c = pageData[componentType];
-    if(c.links >= c.maxLinks){ showAlert('warning', `{{ __("Maximum links limit reached") }}` + ` (${c.maxLinks})`); return; }
-    c.links++; updateComponentCard(componentType); showAlert('success', '{{ __("Link added successfully") }}');
-}
-
-function removeLink(componentType){
-    const c = pageData[componentType];
-    if(c.links <= 0){ showAlert('warning', '{{ __("No links to remove") }}'); return; }
-    c.links--; updateComponentCard(componentType); showAlert('success', '{{ __("Link removed successfully") }}');
-}
-
-function toggleDisplay(componentType){
-    pageData[componentType].displayed = !pageData[componentType].displayed;
-    updateComponentCard(componentType);
-    const status = pageData[componentType].displayed ? '{{ __("displayed") }}' : '{{ __("hidden") }}';
-    showAlert('success', `{{ __("Component is now") }} ${status}`);
-}
-
 function duplicateCheck(componentType, sectionId = null){
-    const message = componentType === 'section' ? '{{ __("No duplicate sections found") }}' : `{{ __("Only one") }} ${componentType} {{ __("is allowed per page") }}`;
+    const message = '{{ __("No duplicate sections found") }}';
     showAlert('info', message);
 }
 
@@ -1029,22 +869,6 @@ function savePage(){
     if(confirm('{{ __("Are you sure you want to save all changes?") }}')){
         showAlert('success','{{ __("Changes saved successfully") }}');
         setTimeout(()=>{ window.location.href='{{ route("admin.pages.index") }}'; },1500);
-    }
-}
-
-function updateComponentCard(componentType){
-    const c = pageData[componentType];
-    const cardIndex = componentType === 'header' ? 0 : 1;
-    const card = document.querySelectorAll('.component-card')[cardIndex];
-    const text = card?.querySelector('.card-bottom-text');
-    if(text){
-        text.innerHTML = `
-            <strong>{{ __('Theme') }}:</strong> ${c.theme}<br>
-            <strong>{{ __('Links') }}:</strong> ${c.links}/${c.maxLinks} links<br>
-            <strong>{{ __('Status') }}:</strong>
-            <span class="status-badge ${c.displayed ? 'status-displayed' : 'status-hidden'}">
-                ${c.displayed ? '{{ __("Displayed") }}' : '{{ __("Hidden") }}'}
-            </span>`;
     }
 }
 
