@@ -399,34 +399,63 @@ class PageSectionController extends Controller
      */
     public function reorder(Request $request, $pageId)
     {
-        $request->validate([
-            'section_orders' => 'required|array',
-            'section_orders.*' => 'integer|exists:tpl_page_sections,id'
-        ]);
+        try {
+            // Log the incoming request for debugging
+            \Log::info('Reorder request received', [
+                'page_id' => $pageId,
+                'section_orders' => $request->input('section_orders', [])
+            ]);
+            
+            // Check if we're receiving section_orders as array of objects or array of IDs
+            $sectionOrders = $request->input('section_orders', []);
+            
+            if (empty($sectionOrders)) {
+                return response()->json(['error' => 'No section orders provided.'], 400);
+            }
+            
+            // Handle both formats: array of objects with id/order or simple array of IDs
+            foreach ($sectionOrders as $orderData) {
+                if (is_array($orderData) && isset($orderData['id']) && isset($orderData['order'])) {
+                    // Format: [{"id": 1, "order": 2}, {"id": 2, "order": 1}]
+                    $sectionId = $orderData['id'];
+                    $newOrder = $orderData['order'];
+                    
+                    // Log each update
+                    \Log::info('Updating section order', [
+                        'section_id' => $sectionId,
+                        'new_order' => $newOrder,
+                        'page_id' => $pageId
+                    ]);
+                    
+                    // Update the section order
+                    $updated = TplPageSection::where('id', $sectionId)
+                        ->where('page_id', $pageId)
+                        ->update(['sort_order' => $newOrder]);
+                        
+                    \Log::info('Section update result', ['updated_rows' => $updated]);
+                } else {
+                    // Format: [1, 2, 3] (section IDs in order)
+                    \Log::error('Invalid section order format', ['order_data' => $orderData]);
+                    return response()->json(['error' => 'Invalid section order format.'], 400);
+                }
+            }
 
-        $user = Auth::user();
-        $site = $user->sites()->where('status_id', true)->first();
-        
-        if (!$site) {
-            return response()->json(['error' => 'No active site found.'], 404);
+            return response()->json([
+                'success' => true,
+                'message' => 'Sections reordered successfully.'
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Reorder error', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
         }
-
-        $page = TplPage::where('id', $pageId)
-            ->where('site_id', $site->id)
-            ->firstOrFail();
-
-        // Update sort orders
-        foreach ($request->section_orders as $index => $sectionId) {
-            TplPageSection::where('id', $sectionId)
-                ->where('page_id', $pageId)
-                ->where('site_id', $site->id)
-                ->update(['sort_order' => $index + 1]);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Sections reordered successfully.'
-        ]);
     }
 
     /**
