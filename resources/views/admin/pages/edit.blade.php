@@ -520,7 +520,7 @@
                                         </a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item" href="#" onclick="toggleActive({{ $section->id }})">
-                                            <i class="fas fa-toggle-on"></i>{{ ($section->is_active ?? true) ? __('Deactivate') : __('Activate') }}
+                                            <i class="fas fa-toggle-on"></i>{{ ($section->status ?? true) ? __('Deactivate') : __('Activate') }}
                                         </a></li>
                                         <li><a class="dropdown-item" href="#" onclick="changeOrder({{ $section->id }})">
                                             <i class="fas fa-sort"></i>{{ __('Change Order') }}
@@ -565,8 +565,8 @@
                                 <strong>{{ __('Type') }}:</strong> {{ ucfirst($section->type ?? 'Custom') }}<br>
                                 <strong>{{ __('Order') }}:</strong> {{ $section->sort_order ?? ($index + 1) }}<br>
                                 <strong>{{ __('Status') }}:</strong>
-                                <span class="status-badge {{ ($section->is_active ?? true) ? 'status-active' : 'status-inactive' }}">
-                                    {{ ($section->is_active ?? true) ? __('Active') : __('Inactive') }}
+                                <span class="status-badge {{ ($section->status ?? true) ? 'status-active' : 'status-inactive' }}">
+                                    {{ ($section->status ?? true) ? __('Active') : __('Inactive') }}
                                 </span>
                                 @if($section->title_en || $section->title_ar)
                                     <br><strong>{{ __('Title') }}:</strong>
@@ -795,6 +795,10 @@ const pageData = {
     sections: @json($page->sections ?? [])
 };
 
+// Available section layouts
+const availableLayouts = @json($sectionLayouts ?? []);
+const defaultLayoutId = availableLayouts.length > 0 ? availableLayouts[0].id : 1;
+
 // ===================== Functions =====================
 function duplicateCheck(componentType, sectionId = null){
     const message = '{{ __("No duplicate sections found") }}';
@@ -807,11 +811,55 @@ function saveSection(){
     const type  = document.getElementById('sectionType').value;
     const name  = document.getElementById('sectionName').value;
     const order = document.getElementById('sectionOrder').value;
-    if(!type || !name){ showAlert('error', '{{ __("Please fill all required fields") }}'); return; }
-    pageData.sections.push({ id: Date.now(), name, type, sort_order: parseInt(order), is_active: true });
-    bootstrap.Modal.getInstance(document.getElementById('addSectionModal')).hide();
-    document.getElementById('sectionForm').reset();
-    location.reload();
+    
+    if(!type || !name){ 
+        showAlert('error', '{{ __("Please fill all required fields") }}'); 
+        return; 
+    }
+    
+    // Show loading state
+    showAlert('info', '{{ __("Creating section...") }}');
+    
+    // Prepare data for API call
+    const sectionData = {
+        name: name,
+        type: type,
+        sort_order: parseInt(order),
+        status: true,
+        tpl_layouts_id: defaultLayoutId, // Use default layout
+        content: {},
+        custom_styles: '',
+        custom_scripts: ''
+    };
+    
+    // Make API call to create section
+    fetch('/admin/pages/{{ $page->id }}/sections', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify(sectionData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            // Close modal and reset form
+            bootstrap.Modal.getInstance(document.getElementById('addSectionModal')).hide();
+            document.getElementById('sectionForm').reset();
+            
+            showAlert('success', '{{ __("Section created successfully") }}');
+            
+            // Reload page to show new section
+            setTimeout(() => { location.reload(); }, 1000);
+        } else {
+            showAlert('error', data.message || '{{ __("Failed to create section") }}');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('error', '{{ __("An error occurred while creating section") }}');
+    });
 }
 
 function editSection(id){
@@ -845,24 +893,129 @@ function saveEditSection(){
 
 function deleteSection(id){
     if(!confirm('{{ __("Are you sure you want to delete this section?") }}')) return;
-    pageData.sections = pageData.sections.filter(x=>x.id!==id);
-    showAlert('success', '{{ __("Section deleted successfully") }}');
-    location.reload();
+    
+    // Show loading state
+    showAlert('info', '{{ __("Deleting section...") }}');
+    
+    // Make API call to delete section
+    fetch(`/admin/pages/{{ $page->id }}/sections/${id}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            // Remove from local data
+            pageData.sections = pageData.sections.filter(x=>x.id!==id);
+            showAlert('success', '{{ __("Section deleted successfully") }}');
+            
+            // Reload page to reflect changes
+            setTimeout(() => { location.reload(); }, 1000);
+        } else {
+            showAlert('error', data.message || '{{ __("Failed to delete section") }}');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('error', '{{ __("An error occurred while deleting section") }}');
+    });
 }
 
 function toggleActive(id){
-    const s = pageData.sections.find(x=>x.id===id); if(!s) return;
-    s.is_active = !s.is_active;
-    showAlert('success', `{{ __("Section is now") }} ${s.is_active ? '{{ __("active") }}' : '{{ __("inactive") }}'}`);
-    location.reload();
+    if(!confirm('{{ __("Are you sure you want to toggle this section status?") }}')) return;
+    
+    // Show loading state
+    showAlert('info', '{{ __("Updating section status...") }}');
+    
+    // Make API call to toggle status
+    fetch(`/admin/pages/{{ $page->id }}/sections/${id}/toggle-status`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            // Update local data
+            const s = pageData.sections.find(x=>x.id===id);
+            if(s) {
+                s.status = data.status;
+                s.is_active = data.status; // Keep both for compatibility
+            }
+            
+            const statusText = data.status ? '{{ __("active") }}' : '{{ __("inactive") }}';
+            showAlert('success', `{{ __("Section is now") }} ${statusText}`);
+            
+            // Reload page to reflect changes
+            setTimeout(() => { location.reload(); }, 1000);
+        } else {
+            showAlert('error', data.message || '{{ __("Failed to update section status") }}');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('error', '{{ __("An error occurred while updating section status") }}');
+    });
 }
 
 function changeOrder(id){
     const val = prompt('{{ __("Enter new order (1-10):") }}','1');
     if(val===null) return;
     const order = parseInt(val);
-    if(isNaN(order)||order<1||order>10){ showAlert('error','{{ __("Please enter a valid order number (1-10)") }}'); return; }
-    const s = pageData.sections.find(x=>x.id===id); if(s){ s.sort_order = order; location.reload(); }
+    if(isNaN(order)||order<1||order>10){ 
+        showAlert('error','{{ __("Please enter a valid order number (1-10)") }}'); 
+        return; 
+    }
+    
+    // Find the section to get required data
+    const section = pageData.sections.find(x=>x.id===id);
+    if(!section) {
+        showAlert('error', '{{ __("Section not found") }}');
+        return;
+    }
+    
+    // Show loading state
+    showAlert('info', '{{ __("Updating section order...") }}');
+    
+    // Make API call to update section with all required fields
+    fetch(`/admin/pages/{{ $page->id }}/sections/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            name: section.name,
+            tpl_layouts_id: section.tpl_layouts_id || defaultLayoutId,
+            content: {},
+            custom_styles: '',
+            custom_scripts: '',
+            sort_order: order
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            // Update local data
+            section.sort_order = order;
+            
+            showAlert('success', '{{ __("Section order updated successfully") }}');
+            
+            // Reload page to reflect changes
+            setTimeout(() => { location.reload(); }, 1000);
+        } else {
+            showAlert('error', data.message || '{{ __("Failed to update section order") }}');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('error', '{{ __("An error occurred while updating section order") }}');
+    });
 }
 
 function savePage(){

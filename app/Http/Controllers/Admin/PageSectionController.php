@@ -100,6 +100,15 @@ class PageSectionController extends Controller
             'sort_order' => $maxSortOrder + 1,
         ]);
         
+        // Return JSON response for AJAX requests
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Section created successfully!',
+                'section' => $section
+            ]);
+        }
+        
         return redirect()->route('admin.pages.sections.index', $pageId)
             ->with('success', 'Section created successfully!');
     }
@@ -162,6 +171,15 @@ class PageSectionController extends Controller
             'custom_styles' => $request->custom_styles,
             'custom_scripts' => $request->custom_scripts,
         ]);
+        
+        // Return JSON response for AJAX requests
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Section updated successfully!',
+                'section' => $section
+            ]);
+        }
         
         return redirect()->route('admin.pages.sections.index', $pageId)
             ->with('success', 'Section updated successfully!');
@@ -239,7 +257,7 @@ class PageSectionController extends Controller
     /**
      * Delete the specified section
      */
-    public function destroy($pageId, $sectionId)
+    public function destroy(Request $request, $pageId, $sectionId)
     {
         $user = Auth::user();
         $site = $user->sites()->where('status_id', true)->first();
@@ -250,6 +268,14 @@ class PageSectionController extends Controller
             ->firstOrFail();
 
         $section->delete();
+        
+        // Return JSON response for AJAX requests
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Section deleted successfully!'
+            ]);
+        }
         
         return redirect()->route('admin.pages.sections.index', $pageId)
             ->with('success', 'Section deleted successfully!');
