@@ -265,4 +265,35 @@ class LayoutController extends Controller
         $layout->save();
         return redirect()->route('admin.layouts.index')->with('success', 'Layout activated successfully.');
     }
+
+    /**
+     * Show the header and footer management page.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function headerFooter()
+    {
+        // Get header and footer layouts from database
+        $headerLayouts = TplLayout::where('layout_type', 'header')->where('status', true)->get();
+        $footerLayouts = TplLayout::where('layout_type', 'footer')->where('status', true)->get();
+        
+        // Get active header and footer (first available or create defaults)
+        $activeHeader = $headerLayouts->first() ?? (object)[
+            'id' => null,
+            'name' => 'Default Header',
+            'preview_image' => null,
+            'status' => true,
+            'path' => 'header/default'
+        ];
+        
+        $activeFooter = $footerLayouts->first() ?? (object)[
+            'id' => null,
+            'name' => 'Default Footer', 
+            'preview_image' => null,
+            'status' => true,
+            'path' => 'footer/default'
+        ];
+        
+        return view('admin.layouts.header_footer', compact('headerLayouts', 'footerLayouts', 'activeHeader', 'activeFooter'));
+    }
 }

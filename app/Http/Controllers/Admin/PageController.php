@@ -159,6 +159,9 @@ class PageController extends Controller
             abort(403, 'Unauthorized access to page.');
         }
 
+        // Load sections with their layouts for preview images
+        $page->load(['sections.layout']);
+
         $themes = ThemePage::with('category')->where('status', true)->orderBy('sort_order')->get();
         $categories = ThemeCategory::where('status', true)->orderBy('sort_order')->get();
         

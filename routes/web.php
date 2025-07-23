@@ -82,6 +82,7 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() 
     Route::resource('users', UserController::class);
 
     // Content Management
+    Route::get('layouts/header-footer', [LayoutController::class, 'headerFooter'])->name('layouts.header-footer');
     Route::resource('layouts', LayoutController::class);
     Route::resource('pages', AdminPageController::class);
     
@@ -116,6 +117,7 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() 
         Route::post('{section_id}/content', [PageSectionController::class, 'updateContent'])->name('update-content');
         Route::get('{section_id}/content/{language?}', [PageSectionController::class, 'getContent'])->name('get-content');
         Route::get('{section_id}/export', [PageSectionController::class, 'exportSection'])->name('export');
+        Route::get('{section_id}/preview', [PageSectionController::class, 'preview'])->name('preview');
     });
     
     // Template Management
