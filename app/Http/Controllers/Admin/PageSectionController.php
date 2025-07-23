@@ -100,6 +100,15 @@ class PageSectionController extends Controller
             'sort_order' => $maxSortOrder + 1,
         ]);
         
+        // Return JSON response for AJAX requests
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Section created successfully!',
+                'section' => $section
+            ]);
+        }
+        
         return redirect()->route('admin.pages.sections.index', $pageId)
             ->with('success', 'Section created successfully!');
     }
@@ -162,6 +171,15 @@ class PageSectionController extends Controller
             'custom_styles' => $request->custom_styles,
             'custom_scripts' => $request->custom_scripts,
         ]);
+        
+        // Return JSON response for AJAX requests
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Section updated successfully!',
+                'section' => $section
+            ]);
+        }
         
         return redirect()->route('admin.pages.sections.index', $pageId)
             ->with('success', 'Section updated successfully!');
@@ -239,26 +257,102 @@ class PageSectionController extends Controller
     /**
      * Delete the specified section
      */
-    public function destroy($pageId, $sectionId)
+    public function destroy(Request $request, $pageId, $sectionId)
+    {
+        try {
+            // Find the section
+            $section = TplPageSection::find($sectionId);
+            
+            if (!$section) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Section not found.'
+                ], 404);
+            }
+            
+            // Instead of setting page_id to null, we'll delete the section completely
+            // Or we can move it to a "deleted" status while keeping it in the database
+            $section->delete();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Section removed from page successfully!'
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+        
+        return redirect()->route('admin.pages.sections.index', $pageId)
+            ->with('success', 'Section removed from page successfully!');
+    }
+
+    /**
+     * Get available sections that can be added to the page
+     */
+    public function getAvailableSections(Request $request, $pageId)
     {
         $user = Auth::user();
         $site = $user->sites()->where('status_id', true)->first();
         
+        if (!$site) {
+            return response()->json(['error' => 'No active site found.'], 404);
+        }
+
+        // Get sections that belong to this site but not to this page (soft deleted from page)
+        $availableSections = TplPageSection::where('site_id', $site->id)
+            ->where(function($query) use ($pageId) {
+                $query->whereNull('page_id')
+                      ->orWhere('page_id', '!=', $pageId);
+            })
+            ->with('layout')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'sections' => $availableSections
+        ]);
+    }
+
+    /**
+     * Restore a section to the page
+     */
+    public function restoreToPage(Request $request, $pageId, $sectionId)
+    {
+        $user = Auth::user();
+        $site = $user->sites()->where('status_id', true)->first();
+        
+        if (!$site) {
+            return response()->json(['error' => 'No active site found.'], 404);
+        }
+
         $section = TplPageSection::where('id', $sectionId)
-            ->where('page_id', $pageId)
             ->where('site_id', $site->id)
+            ->whereNull('page_id') // Only restore sections that are not assigned to any page
             ->firstOrFail();
 
-        $section->delete();
-        
-        return redirect()->route('admin.pages.sections.index', $pageId)
-            ->with('success', 'Section deleted successfully!');
+        // Get next sort order for this page
+        $maxSortOrder = TplPageSection::where('page_id', $pageId)->max('sort_order') ?? 0;
+
+        // Restore section to this page
+        $section->update([
+            'page_id' => $pageId,
+            'status' => true,
+            'sort_order' => $maxSortOrder + 1
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Section restored to page successfully!',
+            'section' => $section
+        ]);
     }
 
     /**
      * Upload image for section
-     */
-    public function uploadImage(Request $request, $pageId, $sectionId)
     {
         $request->validate([
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048'
@@ -305,34 +399,63 @@ class PageSectionController extends Controller
      */
     public function reorder(Request $request, $pageId)
     {
-        $request->validate([
-            'section_orders' => 'required|array',
-            'section_orders.*' => 'integer|exists:tpl_page_sections,id'
-        ]);
+        try {
+            // Log the incoming request for debugging
+            \Log::info('Reorder request received', [
+                'page_id' => $pageId,
+                'section_orders' => $request->input('section_orders', [])
+            ]);
+            
+            // Check if we're receiving section_orders as array of objects or array of IDs
+            $sectionOrders = $request->input('section_orders', []);
+            
+            if (empty($sectionOrders)) {
+                return response()->json(['error' => 'No section orders provided.'], 400);
+            }
+            
+            // Handle both formats: array of objects with id/order or simple array of IDs
+            foreach ($sectionOrders as $orderData) {
+                if (is_array($orderData) && isset($orderData['id']) && isset($orderData['order'])) {
+                    // Format: [{"id": 1, "order": 2}, {"id": 2, "order": 1}]
+                    $sectionId = $orderData['id'];
+                    $newOrder = $orderData['order'];
+                    
+                    // Log each update
+                    \Log::info('Updating section order', [
+                        'section_id' => $sectionId,
+                        'new_order' => $newOrder,
+                        'page_id' => $pageId
+                    ]);
+                    
+                    // Update the section order
+                    $updated = TplPageSection::where('id', $sectionId)
+                        ->where('page_id', $pageId)
+                        ->update(['sort_order' => $newOrder]);
+                        
+                    \Log::info('Section update result', ['updated_rows' => $updated]);
+                } else {
+                    // Format: [1, 2, 3] (section IDs in order)
+                    \Log::error('Invalid section order format', ['order_data' => $orderData]);
+                    return response()->json(['error' => 'Invalid section order format.'], 400);
+                }
+            }
 
-        $user = Auth::user();
-        $site = $user->sites()->where('status_id', true)->first();
-        
-        if (!$site) {
-            return response()->json(['error' => 'No active site found.'], 404);
+            return response()->json([
+                'success' => true,
+                'message' => 'Sections reordered successfully.'
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Reorder error', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
         }
-
-        $page = TplPage::where('id', $pageId)
-            ->where('site_id', $site->id)
-            ->firstOrFail();
-
-        // Update sort orders
-        foreach ($request->section_orders as $index => $sectionId) {
-            TplPageSection::where('id', $sectionId)
-                ->where('page_id', $pageId)
-                ->where('site_id', $site->id)
-                ->update(['sort_order' => $index + 1]);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Sections reordered successfully.'
-        ]);
     }
 
     /**

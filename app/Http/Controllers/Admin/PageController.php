@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\TplPage;
+use App\Models\TplLayout;
 use App\Models\Site;
 use App\Models\ThemePage;
 use App\Models\ThemeCategory;
@@ -165,11 +166,17 @@ class PageController extends Controller
         $themes = ThemePage::with('category')->where('status', true)->orderBy('sort_order')->get();
         $categories = ThemeCategory::where('status', true)->orderBy('sort_order')->get();
         
+        // Get available section layouts
+        $sectionLayouts = TplLayout::where('layout_type', 'section')
+            ->where('status', true)
+            ->orderBy('sort_order')
+            ->get();
+        
         // Get supported languages from site config
         $siteConfig = SiteConfig::where('site_id', $site->id)->first();
         $languages = $siteConfig ? $siteConfig->getSupportedLanguages() : ['en'];
         
-        return view('admin.pages.edit', compact('page', 'site', 'themes', 'categories', 'languages'));
+        return view('admin.pages.edit', compact('page', 'site', 'themes', 'categories', 'languages', 'sectionLayouts'));
     }
 
     /**
