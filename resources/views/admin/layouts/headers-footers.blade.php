@@ -507,12 +507,12 @@
                             <div class="nav-link-item" data-index="{{ $index }}">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="flex-grow-1">
-                                        <strong>{{ $link['title'] }}</strong>
-                                        <div class="text-muted small">{{ $link['url'] }}</div>
+                                        <strong>{{ $link['title'] ?? $link['name'] ?? 'Untitled' }}</strong>
+                                        <div class="text-muted small">{{ $link['url'] ?? '#' }}</div>
                                     </div>
                                     <div class="d-flex gap-2">
-                                        <button class="btn btn-sm btn-outline-secondary" onclick="toggleLinkStatus('header', {{ $index }}, {{ $link['active'] ? 'false' : 'true' }})">
-                                            @if($link['active'])
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="toggleLinkStatus('header', {{ $index }}, {{ ($link['active'] ?? true) ? 'false' : 'true' }})">
+                                            @if($link['active'] ?? true)
                                                 <i class="align-middle" data-feather="eye"></i>
                                             @else
                                                 <i class="align-middle" data-feather="eye-off"></i>
@@ -541,12 +541,12 @@
                             <div class="nav-link-item" data-index="{{ $index }}">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="flex-grow-1">
-                                        <strong>{{ $link['title'] }}</strong>
-                                        <div class="text-muted small">{{ $link['url'] }}</div>
+                                        <strong>{{ $link['title'] ?? $link['name'] ?? 'Untitled' }}</strong>
+                                        <div class="text-muted small">{{ $link['url'] ?? '#' }}</div>
                                     </div>
                                     <div class="d-flex gap-2">
-                                        <button class="btn btn-sm btn-outline-secondary" onclick="toggleLinkStatus('footer', {{ $index }}, {{ $link['active'] ? 'false' : 'true' }})">
-                                            @if($link['active'])
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="toggleLinkStatus('footer', {{ $index }}, {{ ($link['active'] ?? true) ? 'false' : 'true' }})">
+                                            @if($link['active'] ?? true)
                                                 <i class="align-middle" data-feather="eye"></i>
                                             @else
                                                 <i class="align-middle" data-feather="eye-off"></i>
