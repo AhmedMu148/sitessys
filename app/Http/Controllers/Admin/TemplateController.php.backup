@@ -689,43 +689,8 @@ class TemplateController extends Controller
      */
     public function previewHeader($templateId)
     {
-        try {
-            $user = Auth::user();
-            $site = Site::where('user_id', $user->id)->where('status_id', true)->first();
-            
-            if (!$site) {
-                return response('<div class="alert alert-danger">No active site found</div>');
-            }
-
-            $template = TplLayout::where('id', $templateId)
-                ->where('layout_type', 'header')
-                ->where('status', true)
-                ->first();
-
-            if (!$template) {
-                return response('<div class="alert alert-danger">Header template not found</div>');
-            }
-
-            return view('admin.pages.sections.preview', [
-                'section' => (object)[
-                    'id' => $template->id,
-                    'name' => $template->name,
-                    'layout' => $template,
-                    'type' => 'header',
-                    'custom_styles' => $template->custom_styles ?? '',
-                    'custom_scripts' => $template->custom_scripts ?? ''
-                ],
-                'page' => (object)[
-                    'id' => 0,
-                    'name' => 'Header Preview'
-                ],
-                'site' => $site
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Failed to generate header preview: ' . $e->getMessage());
-            return response('<div class="alert alert-danger">Failed to generate preview</div>');
-        }
+        // Return a preview view for the header template
+        return view('admin.templates.preview.header', compact('templateId'));
     }
 
     /**
@@ -733,43 +698,8 @@ class TemplateController extends Controller
      */
     public function previewFooter($templateId)
     {
-        try {
-            $user = Auth::user();
-            $site = Site::where('user_id', $user->id)->where('status_id', true)->first();
-            
-            if (!$site) {
-                return response('<div class="alert alert-danger">No active site found</div>');
-            }
-
-            $template = TplLayout::where('id', $templateId)
-                ->where('layout_type', 'footer')
-                ->where('status', true)
-                ->first();
-
-            if (!$template) {
-                return response('<div class="alert alert-danger">Footer template not found</div>');
-            }
-
-            return view('admin.pages.sections.preview', [
-                'section' => (object)[
-                    'id' => $template->id,
-                    'name' => $template->name,
-                    'layout' => $template,
-                    'type' => 'footer',
-                    'custom_styles' => $template->custom_styles ?? '',
-                    'custom_scripts' => $template->custom_scripts ?? ''
-                ],
-                'page' => (object)[
-                    'id' => 0,
-                    'name' => 'Footer Preview'
-                ],
-                'site' => $site
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Failed to generate footer preview: ' . $e->getMessage());
-            return response('<div class="alert alert-danger">Failed to generate preview</div>');
-        }
+        // Return a preview view for the footer template
+        return view('admin.templates.preview.footer', compact('templateId'));
     }
 
     /**
@@ -1193,45 +1123,6 @@ class TemplateController extends Controller
         }
     }
 
-    public function previewSectionView($sectionId)
-    {
-        try {
-            $template = TplLayout::find($sectionId);
-            if (!$template || $template->layout_type !== 'section') {
-                abort(404, 'Section template not found');
-            }
-
-            $site = SiteConfig::first();
-            if (!$site) {
-                $site = (object)[
-                    'name' => 'Site Preview',
-                    'description' => '',
-                    'language' => 'en'
-                ];
-            }
-
-            return view('admin.pages.sections.preview', [
-                'section' => (object)[
-                    'id' => $template->id,
-                    'name' => $template->name,
-                    'layout' => $template,
-                    'type' => 'section',
-                    'custom_styles' => $template->custom_styles ?? '',
-                    'custom_scripts' => $template->custom_scripts ?? ''
-                ],
-                'page' => (object)[
-                    'id' => 0,
-                    'name' => 'Section Preview'
-                ],
-                'site' => $site
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Failed to preview section: ' . $e->getMessage());
-            abort(500, 'Failed to preview section');
-        }
-    }
-
     /**
      * Duplicate section
      */
@@ -1462,20 +1353,10 @@ class TemplateController extends Controller
                 ], 404);
             }
 
-            // Try to find a page section that uses this template
-            $pageSection = \App\Models\TplPageSection::where('tpl_layouts_id', $sectionId)
-                ->where('site_id', $site->id)
-                ->first();
-
             return response()->json([
                 'success' => true,
                 'content' => $section->content ?? [],
-                'image' => $section->preview_image,
-                'section' => $pageSection ? [
-                    'id' => $pageSection->id,
-                    'page_id' => $pageSection->page_id,
-                    'name' => $pageSection->name
-                ] : null
+                'image' => $section->preview_image
             ]);
 
         } catch (\Exception $e) {

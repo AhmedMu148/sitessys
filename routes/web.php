@@ -127,6 +127,37 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() 
     // Template Management
     Route::resource('templates', TemplateController::class);
     
+    // Template Management Routes for Header, Section, Footer
+    Route::prefix('templates')->name('templates.')->group(function () {
+        // Header template routes
+        Route::post('header', [TemplateController::class, 'selectHeaderTemplate'])->name('header.select');
+        Route::get('header/{template_id}/links', [TemplateController::class, 'getHeaderLinks'])->name('header.links.get');
+        Route::post('header/{template_id}/links', [TemplateController::class, 'updateHeaderLinksNew'])->name('header.links.update');
+        Route::get('header/{template_id}/preview', [TemplateController::class, 'previewHeader'])->name('header.preview');
+        
+        // Footer template routes
+        Route::post('footer', [TemplateController::class, 'selectFooterTemplate'])->name('footer.select');
+        Route::get('footer/{template_id}/links', [TemplateController::class, 'getFooterLinks'])->name('footer.links.get');
+        Route::post('footer/{template_id}/links', [TemplateController::class, 'updateFooterLinksNew'])->name('footer.links.update');
+        Route::get('footer/{template_id}/preview', [TemplateController::class, 'previewFooter'])->name('footer.preview');
+        
+        // Section template routes
+        Route::post('section/{section_id}/add-to-page', [TemplateController::class, 'addSectionToPage'])->name('section.add-to-page');
+        Route::get('section/{section_id}/content', [TemplateController::class, 'getSectionContent'])->name('section.content.get');
+        Route::post('section/{section_id}/content', [TemplateController::class, 'updateSectionContent'])->name('section.content.update');
+        Route::get('section/{section_id}/preview', [TemplateController::class, 'previewSection'])->name('section.preview');
+        Route::get('section/{section_id}/preview-view', [TemplateController::class, 'previewSectionView'])->name('section.preview.view');
+        Route::post('section/custom', [TemplateController::class, 'createCustomSection'])->name('section.custom.create');
+        Route::post('section/{section_id}/duplicate', [TemplateController::class, 'duplicateSection'])->name('section.duplicate');
+        
+        // Helper routes
+        Route::get('pages', [TemplateController::class, 'getSitePages'])->name('pages.get');
+        Route::get('page/{page_id}/sections', [TemplateController::class, 'getPageSections'])->name('page.sections.get');
+        
+        // Template preview routes
+        Route::get('{type}/{template_id}/preview', [TemplateController::class, 'generatePreview'])->name('preview.generate');
+    });
+    
     // Section Template Management
     Route::prefix('section-templates')->name('section-templates.')->group(function () {
         Route::get('/', [SectionTemplateController::class, 'index'])->name('index');
