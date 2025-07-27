@@ -31,7 +31,18 @@
     @if($navLayout && $navLayout->processed_content)
         {!! $navLayout->processed_content !!}
     @elseif($navLayout)
-        {!! $navLayout->content !!}
+        @php
+            $navContent = $navLayout->content;
+            if (is_array($navContent) && isset($navContent['html'])) {
+                $navContent = $navContent['html'];
+            } elseif (is_string($navContent)) {
+                $decoded = json_decode($navContent, true);
+                if (is_array($decoded) && isset($decoded['html'])) {
+                    $navContent = $decoded['html'];
+                }
+            }
+        @endphp
+        {!! $navContent !!}
     @else
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
             <div class="container">
@@ -102,7 +113,18 @@
     @if($footerLayout && $footerLayout->processed_content)
         {!! $footerLayout->processed_content !!}
     @elseif($footerLayout)
-        {!! $footerLayout->content !!}
+        @php
+            $footerContent = $footerLayout->content;
+            if (is_array($footerContent) && isset($footerContent['html'])) {
+                $footerContent = $footerContent['html'];
+            } elseif (is_string($footerContent)) {
+                $decoded = json_decode($footerContent, true);
+                if (is_array($decoded) && isset($decoded['html'])) {
+                    $footerContent = $decoded['html'];
+                }
+            }
+        @endphp
+        {!! $footerContent !!}
     @else
         <footer class="bg-dark text-white py-4 mt-5">
             <div class="container">

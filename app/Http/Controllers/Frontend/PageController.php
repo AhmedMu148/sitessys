@@ -72,72 +72,110 @@ class PageController extends Controller
             // Get site template configuration
             $tplSite = TplSite::where('site_id', $site->id)->first();
             
-            // Get navigation layout (active only)
+            // Get navigation layout - prioritize active_header_id, fallback to legacy tpl_site
             $navLayout = null;
-            if ($tplSite && $tplSite->nav) {
+            if ($site->active_header_id) {
+                $navLayout = TplLayout::where('id', $site->active_header_id)->where('status', true)->first();
+            } elseif ($tplSite && $tplSite->nav) {
                 $navLayout = TplLayout::where('id', $tplSite->nav)->where('status', true)->first();
-                if ($navLayout) {
-                    $navConfig = json_decode($navLayout->default_config, true) ?? [];
-                    // Add site-specific data
-                    $navConfig['site_name'] = $site->site_name;
-                    
-                    // Override menu_items with nav_data if available
-                    if ($tplSite->nav_data && isset($tplSite->nav_data['links'])) {
-                        $navConfig['menu_items'] = array_map(function($link) {
-                            return [
-                                'label' => $link['name'],
-                                'url' => $link['url']
-                            ];
-                        }, $tplSite->nav_data['links']);
-                    }
-                    
-                    $navLayout->processed_content = $this->processTemplate($navLayout->content, $navConfig);
-                }
             }
             
-            // Get footer layout (active only)
+            if ($navLayout) {
+                $navConfig = $navLayout->default_config ?? [];
+                // Ensure it's an array
+                if (is_string($navConfig)) {
+                    $navConfig = json_decode($navConfig, true) ?? [];
+                }
+                // Add site-specific data
+                $navConfig['site_name'] = $site->site_name;
+                
+                // Override menu_items with nav_data if available
+                if ($tplSite && $tplSite->nav_data && isset($tplSite->nav_data['links'])) {
+                    $navConfig['menu_items'] = array_map(function($link) {
+                        return [
+                            'label' => $link['name'],
+                            'url' => $link['url']
+                        ];
+                    }, $tplSite->nav_data['links']);
+                }
+                
+                // Handle content - check if it's JSON array or string
+                $contentToProcess = $navLayout->content;
+                if (is_array($contentToProcess) && isset($contentToProcess['html'])) {
+                    $contentToProcess = $contentToProcess['html'];
+                } elseif (is_string($contentToProcess)) {
+                    // Try to decode JSON
+                    $decoded = json_decode($contentToProcess, true);
+                    if (is_array($decoded) && isset($decoded['html'])) {
+                        $contentToProcess = $decoded['html'];
+                    }
+                }
+                
+                $navLayout->processed_content = $this->processTemplate($contentToProcess, $navConfig);
+            }
+            
+            // Get footer layout - prioritize active_footer_id, fallback to legacy tpl_site  
             $footerLayout = null;
-            if ($tplSite && $tplSite->footer) {
+            if ($site->active_footer_id) {
+                $footerLayout = TplLayout::where('id', $site->active_footer_id)->where('status', true)->first();
+            } elseif ($tplSite && $tplSite->footer) {
                 $footerLayout = TplLayout::where('id', $tplSite->footer)->where('status', true)->first();
-                if ($footerLayout) {
-                    $footerConfig = json_decode($footerLayout->default_config, true) ?? [];
-                    // Add dynamic data
-                    $footerConfig['year'] = date('Y');
-                    $footerConfig['site_name'] = $site->site_name;
-                    
-                    // Add footer-specific data from TplSite
-                    if ($tplSite->footer_data) {
-                        if (isset($tplSite->footer_data['social_media'])) {
-                            $footerConfig['social_links'] = [];
-                            foreach ($tplSite->footer_data['social_media'] as $platform => $url) {
-                                $icons = [
-                                    'facebook' => 'fab fa-facebook-f',
-                                    'twitter' => 'fab fa-twitter',
-                                    'instagram' => 'fab fa-instagram',
-                                    'linkedin' => 'fab fa-linkedin-in',
-                                    'youtube' => 'fab fa-youtube'
-                                ];
-                                $footerConfig['social_links'][] = [
-                                    'url' => $url,
-                                    'icon' => $icons[$platform] ?? 'fas fa-link'
-                                ];
-                            }
-                        }
-                        if (isset($tplSite->footer_data['newsletter'])) {
-                            $footerConfig['newsletter'] = $tplSite->footer_data['newsletter'];
-                        }
-                        if (isset($tplSite->footer_data['links'])) {
-                            $footerConfig['additional_pages'] = array_map(function($link) {
-                                return [
-                                    'url' => $link['url'],
-                                    'label' => $link['name']
-                                ];
-                            }, $tplSite->footer_data['links']);
+            }
+            
+            if ($footerLayout) {
+                $footerConfig = $footerLayout->default_config ?? [];
+                // Ensure it's an array
+                if (is_string($footerConfig)) {
+                    $footerConfig = json_decode($footerConfig, true) ?? [];
+                }
+                // Add dynamic data
+                $footerConfig['year'] = date('Y');
+                $footerConfig['site_name'] = $site->site_name;
+                
+                // Add footer-specific data from TplSite
+                if ($tplSite && $tplSite->footer_data) {
+                    if (isset($tplSite->footer_data['social_media'])) {
+                        $footerConfig['social_links'] = [];
+                        foreach ($tplSite->footer_data['social_media'] as $platform => $url) {
+                            $icons = [
+                                'facebook' => 'fab fa-facebook-f',
+                                'twitter' => 'fab fa-twitter',
+                                'instagram' => 'fab fa-instagram',
+                                'linkedin' => 'fab fa-linkedin-in',
+                                'youtube' => 'fab fa-youtube'
+                            ];
+                            $footerConfig['social_links'][] = [
+                                'url' => $url,
+                                'icon' => $icons[$platform] ?? 'fas fa-link'
+                            ];
                         }
                     }
-                    
-                    $footerLayout->processed_content = $this->processTemplate($footerLayout->content, $footerConfig);
+                    if (isset($tplSite->footer_data['newsletter'])) {
+                        $footerConfig['newsletter'] = $tplSite->footer_data['newsletter'];
+                    }
+                    if (isset($tplSite->footer_data['links'])) {
+                        $footerConfig['additional_pages'] = array_map(function($link) {
+                            return [
+                                'url' => $link['url'],
+                                'label' => $link['name']
+                            ];
+                        }, $tplSite->footer_data['links']);
+                    }
                 }
+                
+                // Handle content - check if it's JSON array or string
+                $contentToProcess = $footerLayout->content;
+                if (is_array($contentToProcess) && isset($contentToProcess['html'])) {
+                    $contentToProcess = $contentToProcess['html'];
+                } elseif (is_string($contentToProcess)) {
+                    // Try to decode JSON
+                    $decoded = json_decode($contentToProcess, true);
+                    if (is_array($decoded) && isset($decoded['html'])) {
+                        $contentToProcess = $decoded['html'];
+                    }
+                }
+                
+                $footerLayout->processed_content = $this->processTemplate($contentToProcess, $footerConfig);
             }
             
             // Get page sections with their layouts
@@ -162,7 +200,11 @@ class PageController extends Controller
                         
                         // Process layout content with configurable fields
                         if ($section->layout && $section->layout->content) {
-                            $layoutConfig = json_decode($section->layout->default_config, true) ?? [];
+                            $layoutConfig = $section->layout->default_config ?? [];
+                            // Ensure it's an array
+                            if (is_string($layoutConfig)) {
+                                $layoutConfig = json_decode($layoutConfig, true) ?? [];
+                            }
                             $section->layout->processed_content = $this->processTemplate(
                                 $section->layout->content, 
                                 $layoutConfig

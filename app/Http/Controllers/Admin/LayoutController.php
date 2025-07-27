@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\TplLayout;
-use App\Models\TplLayoutType;
 use Illuminate\Support\Facades\Storage;
 
 class LayoutController extends Controller
@@ -35,16 +34,12 @@ class LayoutController extends Controller
         // Read optional "type" filter from the query string
         $typeFilter = $request->query('type');
 
-        // Build a base query that eager-loads the "type" relation and filters by user's site
-        $query = TplLayout::with('type')->where('site_id', $site->id);
+        // Build a base query that filters by user's site
+        $query = TplLayout::where('site_id', $site->id);
 
-        if ($typeFilter) {
-            // Find the matching layout type by its "name"
-            $type = TplLayoutType::where('name', $typeFilter)->first();
-            if ($type) {
-                // Apply a where clause to filter by type_id
-                $query->where('type_id', $type->id);
-            }
+        if ($typeFilter && in_array($typeFilter, ['header', 'section', 'footer'])) {
+            // Apply a where clause to filter by layout_type
+            $query->where('layout_type', $typeFilter);
         }
 
         // Paginate results and keep the query string (so "?type=nav" persists)
@@ -62,8 +57,12 @@ class LayoutController extends Controller
      */
     public function create()
     {
-        // Retrieve all active layout types for the select dropdown
-        $types = TplLayoutType::where('status', true)->get();
+        // Available layout types
+        $types = collect([
+            (object)['name' => 'header', 'status' => true],
+            (object)['name' => 'section', 'status' => true], 
+            (object)['name' => 'footer', 'status' => true]
+        ]);
         return view('admin.layouts.create', compact('types'));
     }
 
@@ -151,7 +150,11 @@ class LayoutController extends Controller
         }
 
         // Retrieve active types for the edit form
-        $types = TplLayoutType::where('status', true)->get();
+        $types = collect([
+            (object)['name' => 'header', 'status' => true],
+            (object)['name' => 'section', 'status' => true], 
+            (object)['name' => 'footer', 'status' => true]
+        ]);
         return view('admin.layouts.edit', compact('layout', 'types'));
     }
 
@@ -273,27 +276,23 @@ class LayoutController extends Controller
      */
     public function headerFooter()
     {
+        // Get the current user's site
+        $user = auth()->user();
+        $site = $user->sites()->where('status_id', true)->first();
+        
+        if (!$site) {
+            // Create a default site if none exists
+            $site = $user->sites()->create([
+                'site_name' => $user->name . "'s Site",
+                'url' => 'localhost',
+                'status_id' => true,
+            ]);
+        }
+        
         // Get header and footer layouts from database
-        $headerLayouts = TplLayout::where('layout_type', 'header')->where('status', true)->get();
-        $footerLayouts = TplLayout::where('layout_type', 'footer')->where('status', true)->get();
+        $headers = TplLayout::where('layout_type', 'header')->where('status', true)->get();
+        $footers = TplLayout::where('layout_type', 'footer')->where('status', true)->get();
         
-        // Get active header and footer (first available or create defaults)
-        $activeHeader = $headerLayouts->first() ?? (object)[
-            'id' => null,
-            'name' => 'Default Header',
-            'preview_image' => null,
-            'status' => true,
-            'path' => 'header/default'
-        ];
-        
-        $activeFooter = $footerLayouts->first() ?? (object)[
-            'id' => null,
-            'name' => 'Default Footer', 
-            'preview_image' => null,
-            'status' => true,
-            'path' => 'footer/default'
-        ];
-        
-        return view('admin.layouts.header_footer', compact('headerLayouts', 'footerLayouts', 'activeHeader', 'activeFooter'));
+        return view('admin.layouts.headers-footers', compact('headers', 'footers', 'site'));
     }
 }
