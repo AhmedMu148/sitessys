@@ -589,6 +589,23 @@
     background: linear-gradient(135deg, #222e3c 0%, #2b3947 100%);
     color: white;
     border-bottom: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.modal-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+}
+
+.modal-title, .modal-header .btn-close {
+    position: relative;
+    z-index: 1;
 }
 
 .modal-header .btn-close {
@@ -597,6 +614,180 @@
 
 .modal-title i {
     color: #10b981;
+}
+
+/* Custom Template Modal Styles */
+#createTemplateModal .modal-content {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 20px 60px rgba(34, 46, 60, 0.2);
+    overflow: hidden;
+}
+
+#createTemplateModal .modal-body {
+    background: linear-gradient(145deg, #ffffff 0%, #f8faff 100%);
+    padding: 2rem;
+}
+
+#createTemplateModal .alert-info {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border: 1px solid rgba(34, 46, 60, 0.1);
+    border-radius: 0.75rem;
+    color: #222e3c;
+    border-left: 4px solid #222e3c;
+}
+
+#createTemplateModal .form-label {
+    color: #222e3c;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+#createTemplateModal .form-control, #createTemplateModal .form-select {
+    border: 1px solid #e3f2fd;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+#createTemplateModal .form-control:focus, #createTemplateModal .form-select:focus {
+    border-color: #222e3c;
+    box-shadow: 0 0 0 0.2rem rgba(34, 46, 60, 0.1);
+    background: white;
+}
+
+#createTemplateModal .nav-tabs {
+    border-bottom: 2px solid #e3f2fd;
+    margin-bottom: 1.5rem;
+}
+
+#createTemplateModal .nav-tabs .nav-link {
+    border: none;
+    border-radius: 0.5rem 0.5rem 0 0;
+    color: #64748b;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+    margin-right: 0.25rem;
+}
+
+#createTemplateModal .nav-tabs .nav-link.active {
+    background: linear-gradient(135deg, #222e3c 0%, #2b3947 100%);
+    color: white;
+    border-bottom: 2px solid #222e3c;
+}
+
+#createTemplateModal .nav-tabs .nav-link:hover:not(.active) {
+    background: #f8faff;
+    color: #222e3c;
+}
+
+#createTemplateModal .card {
+    border: 1px solid #e3f2fd;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 12px rgba(34, 46, 60, 0.08);
+    background: rgba(255, 255, 255, 0.9);
+}
+
+#createTemplateModal .card-header {
+    background: linear-gradient(135deg, #f8faff 0%, #e3f2fd 100%);
+    border-bottom: 1px solid #e3f2fd;
+    font-weight: 600;
+    color: #222e3c;
+}
+
+#createTemplateModal .btn-outline-primary {
+    border-color: #222e3c;
+    color: #222e3c;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+#createTemplateModal .btn-outline-primary:hover {
+    background: linear-gradient(135deg, #222e3c 0%, #2b3947 100%);
+    border-color: #222e3c;
+    color: white;
+}
+
+#createTemplateModal .modal-footer {
+    background: linear-gradient(145deg, #f8faff 0%, #ffffff 100%);
+    border-top: 1px solid #e3f2fd;
+    padding: 1.5rem 2rem;
+}
+
+#createTemplateModal .modal-footer .btn-primary {
+    background: linear-gradient(135deg, #222e3c 0%, #2b3947 100%);
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(34, 46, 60, 0.3);
+}
+
+#createTemplateModal .modal-footer .btn-primary:hover {
+    background: linear-gradient(135deg, #2b3947 0%, #354553 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(34, 46, 60, 0.4);
+}
+
+#createTemplateModal .modal-footer .btn-secondary {
+    background: #f8faff;
+    border: 1px solid #e3f2fd;
+    color: #64748b;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+#createTemplateModal .modal-footer .btn-secondary:hover {
+    background: #e3f2fd;
+    border-color: #bbdefb;
+    color: #222e3c;
+}
+
+/* Modal Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+#createTemplateModal .modal-content {
+    animation: fadeIn 0.3s ease;
+}
+
+#createTemplateModal .card {
+    animation: slideIn 0.4s ease;
+}
+
+#createTemplateModal .nav-tabs .nav-link.active {
+    animation: fadeIn 0.2s ease;
+}
+
+/* Hover Effects */
+#createTemplateModal .form-control:hover,
+#createTemplateModal .form-select:hover {
+    border-color: #bbdefb;
+    background: rgba(255, 255, 255, 0.95);
+}
+
+#createTemplateModal .btn-outline-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(34, 46, 60, 0.2);
+}
+
+#createTemplateModal .modal-footer .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(34, 46, 60, 0.4);
 }
 
 .nav-tabs .nav-link {
@@ -1255,24 +1446,42 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
-                    {{ __('Create a custom template for headers, sections, or footers with your own content and styling.') }}
+                <div class="alert alert-info d-flex align-items-center mb-4" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 1px solid rgba(34, 46, 60, 0.1); border-radius: 0.75rem; border-left: 4px solid #222e3c;">
+                    <div class="flex-shrink-0 me-3">
+                        <i class="fas fa-info-circle fs-4" style="color: #222e3c;"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1" style="color: #222e3c; font-weight: 600;">{{ __('Create Custom Template') }}</h6>
+                        <p class="mb-0" style="color: #64748b; font-size: 0.9rem;">
+                            {{ __('Design and create custom templates for headers, sections, or footers with multi-language support, navigation links, images, and custom styling.') }}
+                        </p>
+                    </div>
                 </div>
                 
                 <!-- Template Type Selection -->
-                <div class="row mb-4">
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">{{ __('Template Type') }}</label>
-                        <select class="form-select" id="templateType" onchange="updateTemplateFields()">
-                            <option value="section">{{ __('Section Template') }}</option>
-                            <option value="header">{{ __('Header Template') }}</option>
-                            <option value="footer">{{ __('Footer Template') }}</option>
-                        </select>
+                <div class="card mb-4" style="border: 1px solid #e3f2fd; border-radius: 0.75rem; box-shadow: 0 2px 12px rgba(34, 46, 60, 0.08);">
+                    <div class="card-header" style="background: linear-gradient(135deg, #f8faff 0%, #e3f2fd 100%); border-bottom: 1px solid #e3f2fd;">
+                        <h6 class="mb-0 fw-bold" style="color: #222e3c;">
+                            <i class="fas fa-layer-group me-2"></i>{{ __('Template Configuration') }}
+                        </h6>
                     </div>
-                    <div class="col-md-8">
-                        <label class="form-label fw-bold">{{ __('Template Name') }}</label>
-                        <input type="text" class="form-control" id="templateName" placeholder="{{ __('Enter template name...') }}">
+                    <div class="card-body p-4">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">{{ __('Template Type') }}</label>
+                                <select class="form-select" id="templateType" onchange="updateTemplateFields()">
+                                    <option value="section">{{ __('Section Template') }}</option>
+                                    <option value="header">{{ __('Header Template') }}</option>
+                                    <option value="footer">{{ __('Footer Template') }}</option>
+                                </select>
+                                <small class="text-muted">{{ __('Choose the type of template you want to create') }}</small>
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">{{ __('Template Name') }}</label>
+                                <input type="text" class="form-control" id="templateName" placeholder="{{ __('Enter a unique name for your template...') }}">
+                                <small class="text-muted">{{ __('Give your template a descriptive name for easy identification') }}</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1298,28 +1507,56 @@
 
                     <!-- Header/Footer Template Fields (Hidden by default) -->
                     <div id="navigationFields" style="display: none;">
-                        <div class="card mb-3">
-                            <div class="card-header">
-                                <h6 class="mb-0"><i class="fas fa-link me-2"></i>{{ __('Navigation Links') }}</h6>
+                        <div class="card mb-4" style="border: 1px solid #e3f2fd; border-radius: 0.75rem; box-shadow: 0 2px 12px rgba(34, 46, 60, 0.08);">
+                            <div class="card-header" style="background: linear-gradient(135deg, #f8faff 0%, #e3f2fd 100%); border-bottom: 1px solid #e3f2fd;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0 fw-bold" style="color: #222e3c;">
+                                            <i class="fas fa-link me-2"></i><span id="navigationTitle">{{ __('Navigation Links Management') }}</span>
+                                        </h6>
+                                        <small class="text-muted" id="navigationDescription">{{ __('Add navigation links for your template') }}</small>
+                                    </div>
+                                    <div>
+                                        <span class="badge" id="navigationBadge" style="background: linear-gradient(135deg, #222e3c 0%, #2b3947 100%); color: white; font-size: 0.75rem;">
+                                            <i class="fas fa-info-circle me-1"></i><span id="navigationLimits">Links</span>
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="card-body">
+                            <div class="card-body p-4">
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <h6>{{ __('English Links') }}</h6>
-                                        <div id="linksContainerEn">
-                                            <!-- Links will be added dynamically -->
+                                        <div class="d-flex align-items-center justify-content-between mb-3">
+                                            <h6 class="mb-0 fw-bold" style="color: #222e3c;">
+                                                <i class="fas fa-flag-usa me-2"></i>{{ __('English Links') }}
+                                            </h6>
+                                            <span class="badge bg-secondary" id="enLinksCount">0/<span id="enMaxLinks">5</span></span>
                                         </div>
-                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addTemplateLink('en')">
-                                            <i class="fas fa-plus me-1"></i>{{ __('Add Link') }}
+                                        <div id="linksContainerEn" class="mb-3">
+                                            <div class="text-muted text-center py-3" style="border: 2px dashed #e3f2fd; border-radius: 0.5rem;">
+                                                <i class="fas fa-link fs-4 mb-2 d-block" style="color: #bbdefb;"></i>
+                                                {{ __('No links added yet') }}
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm w-100" onclick="addTemplateLink('en')" id="addEnLinkBtn">
+                                            <i class="fas fa-plus me-1"></i>{{ __('Add English Link') }}
                                         </button>
                                     </div>
                                     <div class="col-md-6">
-                                        <h6>{{ __('Arabic Links') }} العربية</h6>
-                                        <div id="linksContainerAr" dir="rtl">
-                                            <!-- Links will be added dynamically -->
+                                        <div class="d-flex align-items-center justify-content-between mb-3" dir="rtl">
+                                            <h6 class="mb-0 fw-bold" style="color: #222e3c;">
+                                                <i class="fas fa-flag me-2"></i>{{ __('Arabic Links') }} العربية
+                                            </h6>
+                                            <span class="badge bg-secondary" id="arLinksCount">0/<span id="arMaxLinks">5</span></span>
                                         </div>
-                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addTemplateLink('ar')">
-                                            <i class="fas fa-plus me-1"></i>إضافة رابط
+                                        <div id="linksContainerAr" dir="rtl" class="mb-3">
+                                            <div class="text-muted text-center py-3" style="border: 2px dashed #e3f2fd; border-radius: 0.5rem;">
+                                                <i class="fas fa-link fs-4 mb-2 d-block" style="color: #bbdefb;"></i>
+                                                لم تتم إضافة روابط بعد
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm w-100" onclick="addTemplateLink('ar')" id="addArLinkBtn">
+                                            <i class="fas fa-plus me-1"></i>إضافة رابط عربي
                                         </button>
                                     </div>
                                 </div>
@@ -1330,25 +1567,28 @@
                 </div>
 
                 <!-- Language Content Tabs -->
-                <ul class="nav nav-tabs mb-3" id="templateLangTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="template-en-tab" data-bs-toggle="tab" data-bs-target="#template-en" type="button" role="tab">
-                            <i class="fas fa-flag-usa me-1"></i>English
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="template-ar-tab" data-bs-toggle="tab" data-bs-target="#template-ar" type="button" role="tab">
-                            <i class="fas fa-flag me-1"></i>العربية
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="template-code-tab" data-bs-toggle="tab" data-bs-target="#template-code" type="button" role="tab">
-                            <i class="fas fa-code me-1"></i>{{ __('Custom Code') }}
-                        </button>
-                    </li>
-                </ul>
-
-                <div class="tab-content" id="templateLangContent">
+                <div class="card mb-4" style="border: 1px solid #e3f2fd; border-radius: 0.75rem; box-shadow: 0 2px 12px rgba(34, 46, 60, 0.08);">
+                    <div class="card-header p-0" style="background: transparent; border-bottom: none;">
+                        <ul class="nav nav-tabs card-header-tabs" id="templateLangTabs" role="tablist" style="border-bottom: 2px solid #e3f2fd; margin-bottom: 0;">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active fw-bold" id="template-en-tab" data-bs-toggle="tab" data-bs-target="#template-en" type="button" role="tab" style="border: none; border-radius: 0.5rem 0.5rem 0 0; color: #64748b; padding: 1rem 1.5rem; margin-right: 0.25rem; transition: all 0.3s ease;">
+                                    <i class="fas fa-flag-usa me-2"></i>English Content
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link fw-bold" id="template-ar-tab" data-bs-toggle="tab" data-bs-target="#template-ar" type="button" role="tab" style="border: none; border-radius: 0.5rem 0.5rem 0 0; color: #64748b; padding: 1rem 1.5rem; margin-right: 0.25rem; transition: all 0.3s ease;">
+                                    <i class="fas fa-flag me-2"></i>المحتوى العربي
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link fw-bold" id="template-code-tab" data-bs-toggle="tab" data-bs-target="#template-code" type="button" role="tab" style="border: none; border-radius: 0.5rem 0.5rem 0 0; color: #64748b; padding: 1rem 1.5rem; margin-right: 0.25rem; transition: all 0.3s ease;">
+                                    <i class="fas fa-code me-2"></i>{{ __('Custom Code') }}
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="tab-content" id="templateLangContent">
                     <!-- English Tab -->
                     <div class="tab-pane fade show active" id="template-en" role="tabpanel">
                         <div class="row">
@@ -1366,7 +1606,13 @@
                                 <div class="mb-3">
                                     <label class="form-label">{{ __('Image') }} ({{ __('Optional') }})</label>
                                     <input type="file" class="form-control" id="templateImageEn" accept="image/*" onchange="previewTemplateImage('En')">
-                                    <div class="mt-2" id="templateImagePreviewEn"></div>
+                                    <div class="mt-3 p-3 border rounded" id="templateImagePreviewEn" style="min-height: 120px; background: linear-gradient(145deg, #f8faff 0%, #ffffff 100%); border: 2px dashed #e3f2fd !important; border-radius: 0.75rem;">
+                                        <div class="text-center text-muted">
+                                            <i class="fas fa-image fs-1 mb-2 d-block" style="color: #bbdefb;"></i>
+                                            <p class="mb-0">{{ __('Select an image to preview here') }}</p>
+                                            <small>{{ __('Recommended: 800x600px, JPG/PNG, Max 2MB') }}</small>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1389,7 +1635,13 @@
                                 <div class="mb-3">
                                     <label class="form-label">الصورة (اختياري)</label>
                                     <input type="file" class="form-control" id="templateImageAr" accept="image/*" onchange="previewTemplateImage('Ar')">
-                                    <div class="mt-2" id="templateImagePreviewAr"></div>
+                                    <div class="mt-3 p-3 border rounded" id="templateImagePreviewAr" style="min-height: 120px; background: linear-gradient(145deg, #f8faff 0%, #ffffff 100%); border: 2px dashed #e3f2fd !important; border-radius: 0.75rem;">
+                                        <div class="text-center text-muted">
+                                            <i class="fas fa-image fs-1 mb-2 d-block" style="color: #bbdefb;"></i>
+                                            <p class="mb-0">اختر صورة لمعاينتها هنا</p>
+                                            <small>مُستحسن: 800x600px, JPG/PNG, حد أقصى 2MB</small>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1414,15 +1666,24 @@
                             </div>
                         </div>
                     </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-1"></i>{{ __('Cancel') }}
-                </button>
-                <button type="button" class="btn btn-primary" onclick="saveCustomTemplate()">
-                    <i class="fas fa-save me-1"></i>{{ __('Create Template') }}
-                </button>
+            <div class="modal-footer" style="background: linear-gradient(145deg, #f8faff 0%, #ffffff 100%); border-top: 1px solid #e3f2fd; padding: 1.5rem 2rem;">
+                <div class="d-flex w-100 justify-content-between align-items-center">
+                    <div class="text-muted">
+                        <small><i class="fas fa-info-circle me-1"></i>{{ __('All fields are optional except template name and type') }}</small>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal" style="background: #f8faff; border: 1px solid #e3f2fd; color: #64748b; border-radius: 0.5rem; font-weight: 600; padding: 0.75rem 1.5rem;">
+                            <i class="fas fa-times me-1"></i>{{ __('Cancel') }}
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="saveCustomTemplate()" style="background: linear-gradient(135deg, #222e3c 0%, #2b3947 100%); border: none; border-radius: 0.5rem; font-weight: 600; padding: 0.75rem 2rem; box-shadow: 0 2px 8px rgba(34, 46, 60, 0.3);">
+                            <i class="fas fa-magic me-1"></i>{{ __('Create Template') }}
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -2618,20 +2879,18 @@ function resetCreateTemplateForm() {
     // Reset section type
     document.getElementById('sectionType').value = 'hero';
     
-    // Clear image previews
-    document.getElementById('templateImagePreviewEn').innerHTML = '';
-    document.getElementById('templateImagePreviewAr').innerHTML = '';
+    // Clear image previews and reset to placeholders
+    clearTemplateImage('En');
+    clearTemplateImage('Ar');
     
     // Reset file inputs
     document.getElementById('templateImageEn').value = '';
     document.getElementById('templateImageAr').value = '';
     
-    // Clear navigation links
-    document.getElementById('linksContainerEn').innerHTML = '';
-    document.getElementById('linksContainerAr').innerHTML = '';
-    
-    // Initialize template links data
+    // Clear navigation links and reset data
     templateLinksData = { en: [], ar: [] };
+    renderTemplateLinks('en');
+    renderTemplateLinks('ar');
     
     // Update template fields visibility
     updateTemplateFields();
@@ -2653,9 +2912,45 @@ function updateTemplateFields() {
         sectionFields.style.display = 'none';
         navigationFields.style.display = 'block';
         
-        // Update max links based on type
-        const maxLinks = templateType === 'header' ? 5 : 10;
+        // Update navigation content based on template type
+        const isHeader = templateType === 'header';
+        const maxLinks = isHeader ? 5 : 10;
+        
+        // Update navigation title and description
+        const titleElement = document.getElementById('navigationTitle');
+        const descElement = document.getElementById('navigationDescription');
+        const badgeElement = document.getElementById('navigationLimits');
+        const enMaxElement = document.getElementById('enMaxLinks');
+        const arMaxElement = document.getElementById('arMaxLinks');
+        
+        if (isHeader) {
+            titleElement.textContent = 'Header Navigation Links';
+            descElement.textContent = 'Add navigation links for your header template (max 5 links per language)';
+            badgeElement.innerHTML = '<i class="fas fa-header me-1"></i>Header: Max 5 Links';
+            document.getElementById('navigationBadge').style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+        } else {
+            titleElement.textContent = 'Footer Navigation Links';
+            descElement.textContent = 'Add navigation links for your footer template (max 10 links per language)';
+            badgeElement.innerHTML = '<i class="fas fa-grip-lines me-1"></i>Footer: Max 10 Links';
+            document.getElementById('navigationBadge').style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+        }
+        
+        // Update max links display
+        enMaxElement.textContent = maxLinks;
+        arMaxElement.textContent = maxLinks;
+        
+        // Update counts (reset to current counts)
+        document.getElementById('enLinksCount').innerHTML = `${templateLinksData.en.length}/<span id="enMaxLinks">${maxLinks}</span>`;
+        document.getElementById('arLinksCount').innerHTML = `${templateLinksData.ar.length}/<span id="arMaxLinks">${maxLinks}</span>`;
+        
+        // Update button states
         updateAddButtonStates(maxLinks);
+        
+        // Clear existing links when switching template types
+        templateLinksData.en = [];
+        templateLinksData.ar = [];
+        renderTemplateLinks('en');
+        renderTemplateLinks('ar');
     }
 }
 
@@ -2665,17 +2960,18 @@ function addTemplateLink(lang) {
     const maxLinks = templateType === 'header' ? 5 : 10;
     
     if (templateLinksData[lang].length >= maxLinks) {
-        showAlert('warning', `Maximum ${maxLinks} links allowed for ${templateType}`);
+        const templateTypeName = templateType === 'header' ? 'Header' : 'Footer';
+        showAlert('warning', `Maximum ${maxLinks} links allowed for ${templateTypeName} templates`);
         return;
     }
     
     const index = templateLinksData[lang].length;
     templateLinksData[lang].push({ label: '', url: '' });
     
-    const container = document.getElementById(`linksContainer${lang.charAt(0).toUpperCase() + lang.slice(1)}`);
-    const linkElement = createTemplateLinkElement(lang, index);
-    container.appendChild(linkElement);
+    // Re-render all links
+    renderTemplateLinks(lang);
     
+    // Update button states and counters
     updateAddButtonStates(maxLinks);
 }
 
@@ -2725,38 +3021,73 @@ function updateTemplateLinkData(lang, index, field, value) {
 // Remove Template Link
 function removeTemplateLink(lang, index) {
     templateLinksData[lang].splice(index, 1);
+    
+    // Re-render all links with updated indices
     renderTemplateLinks(lang);
     
+    // Update button states and counters
     const templateType = document.getElementById('templateType').value;
     const maxLinks = templateType === 'header' ? 5 : 10;
     updateAddButtonStates(maxLinks);
 }
 
-// Render Template Links
-function renderTemplateLinks(lang) {
-    const container = document.getElementById(`linksContainer${lang.charAt(0).toUpperCase() + lang.slice(1)}`);
-    container.innerHTML = '';
-    
-    templateLinksData[lang].forEach((link, index) => {
-        const linkElement = createTemplateLinkElement(lang, index);
-        const inputs = linkElement.querySelectorAll('input');
-        inputs[0].value = link.label;
-        inputs[1].value = link.url;
-        container.appendChild(linkElement);
-    });
-}
-
 // Update Add Button States
 function updateAddButtonStates(maxLinks) {
     ['en', 'ar'].forEach(lang => {
-        const button = document.querySelector(`button[onclick="addTemplateLink('${lang}')"]`);
+        const currentCount = templateLinksData[lang].length;
+        const countElement = document.getElementById(`${lang}LinksCount`);
+        const button = document.getElementById(`add${lang.charAt(0).toUpperCase() + lang.slice(1)}LinkBtn`);
+        
+        // Update counter display
+        if (countElement) {
+            countElement.innerHTML = `${currentCount}/<span id="${lang}MaxLinks">${maxLinks}</span>`;
+        }
+        
+        // Update button state
         if (button) {
-            button.disabled = templateLinksData[lang].length >= maxLinks;
-            button.innerHTML = templateLinksData[lang].length >= maxLinks ? 
-                `<i class="fas fa-lock me-1"></i>Max ${maxLinks} links` :
-                `<i class="fas fa-plus me-1"></i>${lang === 'ar' ? 'إضافة رابط' : 'Add Link'}`;
+            const isMaxReached = currentCount >= maxLinks;
+            button.disabled = isMaxReached;
+            
+            if (isMaxReached) {
+                button.innerHTML = `<i class="fas fa-lock me-1"></i>Max ${maxLinks} links reached`;
+                button.className = 'btn btn-outline-secondary btn-sm w-100';
+            } else {
+                button.innerHTML = `<i class="fas fa-plus me-1"></i>${lang === 'ar' ? 'إضافة رابط عربي' : 'Add English Link'}`;
+                button.className = 'btn btn-outline-primary btn-sm w-100';
+            }
         }
     });
+}
+
+// Render Template Links (Clear and show placeholder or links)
+function renderTemplateLinks(lang) {
+    const container = document.getElementById(`linksContainer${lang.charAt(0).toUpperCase() + lang.slice(1)}`);
+    const isArabic = lang === 'ar';
+    
+    if (templateLinksData[lang].length === 0) {
+        // Show placeholder
+        container.innerHTML = `
+            <div class="text-muted text-center py-3" style="border: 2px dashed #e3f2fd; border-radius: 0.5rem;">
+                <i class="fas fa-link fs-4 mb-2 d-block" style="color: #bbdefb;"></i>
+                ${isArabic ? 'لم تتم إضافة روابط بعد' : '{{ __("No links added yet") }}'}
+            </div>
+        `;
+    } else {
+        // Clear container and re-render all links
+        container.innerHTML = '';
+        templateLinksData[lang].forEach((link, index) => {
+            const linkElement = createTemplateLinkElement(lang, index);
+            
+            // Fill existing data
+            const inputs = linkElement.querySelectorAll('input');
+            if (inputs.length >= 2) {
+                inputs[0].value = link.label || '';
+                inputs[1].value = link.url || '';
+            }
+            
+            container.appendChild(linkElement);
+        });
+    }
 }
 
 // Preview Template Image
@@ -2765,26 +3096,62 @@ function previewTemplateImage(suffix) {
     const preview = document.getElementById(`templateImagePreview${suffix}`);
     
     if (input.files && input.files[0]) {
+        const file = input.files[0];
+        
+        // Validate file size (2MB max)
+        if (file.size > 2 * 1024 * 1024) {
+            showAlert('error', 'File size must be less than 2MB');
+            input.value = '';
+            return;
+        }
+        
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            showAlert('error', 'Please select a valid image file');
+            input.value = '';
+            return;
+        }
+        
         const reader = new FileReader();
         reader.onload = function(e) {
             preview.innerHTML = `
-                <div class="position-relative">
-                    <img src="${e.target.result}" alt="Preview" class="img-fluid rounded border" style="max-height: 150px;">
-                    <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" 
-                            onclick="clearTemplateImage('${suffix}')">
+                <div class="position-relative text-center" style="animation: fadeIn 0.3s ease;">
+                    <img src="${e.target.result}" alt="Preview" class="img-fluid rounded-3 border border-2" 
+                         style="max-height: 180px; box-shadow: 0 4px 12px rgba(34, 46, 60, 0.15);">
+                    <button type="button" class="btn btn-sm btn-danger position-absolute" 
+                            style="top: -8px; right: -8px; border-radius: 50%; width: 32px; height: 32px; box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);"
+                            onclick="clearTemplateImage('${suffix}')" title="Remove image">
                         <i class="fas fa-times"></i>
                     </button>
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            ${Math.round(file.size / 1024)}KB • ${file.name}
+                        </small>
+                    </div>
                 </div>
             `;
         };
-        reader.readAsDataURL(input.files[0]);
+        reader.readAsDataURL(file);
     }
 }
 
 // Clear Template Image
 function clearTemplateImage(suffix) {
-    document.getElementById(`templateImage${suffix}`).value = '';
-    document.getElementById(`templateImagePreview${suffix}`).innerHTML = '';
+    const input = document.getElementById(`templateImage${suffix}`);
+    const preview = document.getElementById(`templateImagePreview${suffix}`);
+    
+    input.value = '';
+    
+    // Reset to original placeholder
+    const isArabic = suffix === 'Ar';
+    preview.innerHTML = `
+        <div class="text-center text-muted">
+            <i class="fas fa-image fs-1 mb-2 d-block" style="color: #bbdefb;"></i>
+            <p class="mb-0">${isArabic ? 'اختر صورة لمعاينتها هنا' : '{{ __("Select an image to preview here") }}'}</p>
+            <small>${isArabic ? 'مُستحسن: 800x600px, JPG/PNG, حد أقصى 2MB' : '{{ __("Recommended: 800x600px, JPG/PNG, Max 2MB") }}'}</small>
+        </div>
+    `;
 }
 
 // Save Custom Template
