@@ -1306,70 +1306,287 @@ class TemplateController extends Controller
     public function createCustomSection(Request $request)
     {
         try {
+            // Validate the request
             $request->validate([
-                'name' => 'required|string|max:255',
-                'description' => 'nullable|string|max:500',
-                'content.en.title' => 'nullable|string|max:255',
-                'content.en.subtitle' => 'nullable|string',
-                'content.ar.title' => 'nullable|string|max:255',
-                'content.ar.subtitle' => 'nullable|string',
-                'custom_styles' => 'nullable|string',
-                'custom_scripts' => 'nullable|string',
-                'preview_image' => 'nullable|image|max:2048'
+                'template_data' => 'required|string',
+                'image_en' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+                'image_ar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048'
             ]);
 
+            $templateData = json_decode($request->template_data, true);
+            
+            // Validate template data
+            if (!$templateData || !isset($templateData['name'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid template data'
+                ]);
+            }
+
+            // Handle image uploads
+            $imagePaths = [];
+            if ($request->hasFile('image_en')) {
+                $imagePaths['en'] = $request->file('image_en')->store('templates/sections', 'public');
+            }
+            if ($request->hasFile('image_ar')) {
+                $imagePaths['ar'] = $request->file('image_ar')->store('templates/sections', 'public');
+            }
+
+            // Get the current user's site
             $user = Auth::user();
             $site = Site::where('user_id', $user->id)->where('status_id', true)->first();
-            
             if (!$site) {
                 return response()->json([
                     'success' => false,
                     'message' => 'No active site found'
-                ], 404);
+                ]);
             }
 
-            $previewImagePath = null;
-            if ($request->hasFile('preview_image')) {
-                $previewImagePath = $request->file('preview_image')->store('sections', 'public');
-            }
-
-            // Create custom section
-            $customSection = TplLayout::create([
-                'tpl_id' => 'custom_' . strtolower(str_replace(' ', '_', $request->name)) . '_' . time(),
+            // Create the custom section template
+            $template = TplLayout::create([
+                'tpl_id' => 'custom_section_' . strtolower(str_replace(' ', '_', $templateData['name'])) . '_' . time(),
                 'layout_type' => 'section',
-                'name' => $request->name,
-                'description' => $request->description,
-                'preview_image' => $previewImagePath ? '/storage/' . $previewImagePath : null,
-                'path' => 'custom.section',
-                'default_config' => [],
-                'content' => [
-                    'en' => [
-                        'title' => $request->input('content.en.title'),
-                        'subtitle' => $request->input('content.en.subtitle')
-                    ],
-                    'ar' => [
-                        'title' => $request->input('content.ar.title'),
-                        'subtitle' => $request->input('content.ar.subtitle')
-                    ],
-                    'styles' => $request->custom_styles,
-                    'scripts' => $request->custom_scripts
-                ],
-                'configurable_fields' => ['title', 'subtitle', 'styles', 'scripts'],
+                'name' => $templateData['name'],
+                'description' => 'Custom section template created by admin',
+                'content' => json_encode($templateData['content']),
+                'default_config' => json_encode([
+                    'type' => $templateData['sectionType'] ?? 'custom',
+                    'section_type' => $templateData['sectionType'] ?? 'custom',
+                    'styles' => $templateData['styles'] ?? '',
+                    'scripts' => $templateData['scripts'] ?? '',
+                    'images' => $imagePaths
+                ]),
+                'configurable_fields' => json_encode(['title', 'content']),
                 'status' => true,
                 'sort_order' => TplLayout::where('layout_type', 'section')->count() + 1
             ]);
 
+            // Set preview image if available
+            $previewImage = null;
+            if (!empty($imagePaths)) {
+                $previewImage = asset('storage/' . reset($imagePaths));
+                $template->update(['preview_image' => $previewImage]);
+            }
+
             return response()->json([
                 'success' => true,
-                'message' => __('Custom section created successfully'),
-                'section' => $customSection
+                'message' => 'Custom section template created successfully',
+                'template' => [
+                    'id' => $template->id,
+                    'name' => $template->name,
+                    'type' => 'section',
+                    'preview_image' => $previewImage
+                ]
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Failed to create custom section: ' . $e->getMessage());
+            Log::error('Custom section template creation failed: ' . $e->getMessage());
+            
             return response()->json([
                 'success' => false,
-                'message' => __('Failed to create custom section')
+                'message' => 'Error creating section template: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Create custom header template
+     */
+    public function createCustomHeader(Request $request)
+    {
+        try {
+            // Validate the request
+            $request->validate([
+                'template_data' => 'required|string',
+                'image_en' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+                'image_ar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048'
+            ]);
+
+            $templateData = json_decode($request->template_data, true);
+            
+            // Validate template data
+            if (!$templateData || !isset($templateData['name'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid template data'
+                ]);
+            }
+
+            // Validate links (max 5 for header)
+            if (isset($templateData['links'])) {
+                foreach (['en', 'ar'] as $lang) {
+                    if (isset($templateData['links'][$lang]) && count($templateData['links'][$lang]) > 5) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Maximum 5 links allowed for header template'
+                        ]);
+                    }
+                }
+            }
+
+            // Handle image uploads
+            $imagePaths = [];
+            if ($request->hasFile('image_en')) {
+                $imagePaths['en'] = $request->file('image_en')->store('templates/headers', 'public');
+            }
+            if ($request->hasFile('image_ar')) {
+                $imagePaths['ar'] = $request->file('image_ar')->store('templates/headers', 'public');
+            }
+
+            // Get the current user's site
+            $user = Auth::user();
+            $site = Site::where('user_id', $user->id)->where('status_id', true)->first();
+            if (!$site) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No active site found'
+                ]);
+            }
+
+            // Create the custom header template
+            $template = TplLayout::create([
+                'tpl_id' => 'custom_header_' . strtolower(str_replace(' ', '_', $templateData['name'])) . '_' . time(),
+                'layout_type' => 'header',
+                'name' => $templateData['name'],
+                'description' => 'Custom header template created by admin',
+                'content' => json_encode($templateData['content']),
+                'default_config' => json_encode([
+                    'type' => 'header',
+                    'links' => $templateData['links'] ?? ['en' => [], 'ar' => []],
+                    'styles' => $templateData['styles'] ?? '',
+                    'scripts' => $templateData['scripts'] ?? '',
+                    'images' => $imagePaths
+                ]),
+                'configurable_fields' => json_encode(['title', 'content', 'links']),
+                'status' => true,
+                'sort_order' => TplLayout::where('layout_type', 'header')->count() + 1
+            ]);
+
+            // Set preview image if available
+            $previewImage = null;
+            if (!empty($imagePaths)) {
+                $previewImage = asset('storage/' . reset($imagePaths));
+                $template->update(['preview_image' => $previewImage]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Custom header template created successfully',
+                'template' => [
+                    'id' => $template->id,
+                    'name' => $template->name,
+                    'type' => 'header',
+                    'preview_image' => $previewImage
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Custom header template creation failed: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error creating header template: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Create custom footer template
+     */
+    public function createCustomFooter(Request $request)
+    {
+        try {
+            // Validate the request
+            $request->validate([
+                'template_data' => 'required|string',
+                'image_en' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+                'image_ar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048'
+            ]);
+
+            $templateData = json_decode($request->template_data, true);
+            
+            // Validate template data
+            if (!$templateData || !isset($templateData['name'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid template data'
+                ]);
+            }
+
+            // Validate links (max 10 for footer)
+            if (isset($templateData['links'])) {
+                foreach (['en', 'ar'] as $lang) {
+                    if (isset($templateData['links'][$lang]) && count($templateData['links'][$lang]) > 10) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Maximum 10 links allowed for footer template'
+                        ]);
+                    }
+                }
+            }
+
+            // Handle image uploads
+            $imagePaths = [];
+            if ($request->hasFile('image_en')) {
+                $imagePaths['en'] = $request->file('image_en')->store('templates/footers', 'public');
+            }
+            if ($request->hasFile('image_ar')) {
+                $imagePaths['ar'] = $request->file('image_ar')->store('templates/footers', 'public');
+            }
+
+            // Get the current user's site
+            $user = Auth::user();
+            $site = Site::where('user_id', $user->id)->where('status_id', true)->first();
+            if (!$site) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No active site found'
+                ]);
+            }
+
+            // Create the custom footer template
+            $template = TplLayout::create([
+                'tpl_id' => 'custom_footer_' . strtolower(str_replace(' ', '_', $templateData['name'])) . '_' . time(),
+                'layout_type' => 'footer',
+                'name' => $templateData['name'],
+                'description' => 'Custom footer template created by admin',
+                'content' => json_encode($templateData['content']),
+                'default_config' => json_encode([
+                    'type' => 'footer',
+                    'links' => $templateData['links'] ?? ['en' => [], 'ar' => []],
+                    'styles' => $templateData['styles'] ?? '',
+                    'scripts' => $templateData['scripts'] ?? '',
+                    'images' => $imagePaths
+                ]),
+                'configurable_fields' => json_encode(['title', 'content', 'links']),
+                'status' => true,
+                'sort_order' => TplLayout::where('layout_type', 'footer')->count() + 1
+            ]);
+
+            // Set preview image if available
+            $previewImage = null;
+            if (!empty($imagePaths)) {
+                $previewImage = asset('storage/' . reset($imagePaths));
+                $template->update(['preview_image' => $previewImage]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Custom footer template created successfully',
+                'template' => [
+                    'id' => $template->id,
+                    'name' => $template->name,
+                    'type' => 'footer',
+                    'preview_image' => $previewImage
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Custom footer template creation failed: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error creating footer template: ' . $e->getMessage()
             ], 500);
         }
     }

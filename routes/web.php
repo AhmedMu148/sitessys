@@ -152,6 +152,10 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() 
         Route::post('section/custom', [TemplateController::class, 'createCustomSection'])->name('section.custom.create');
         Route::post('section/{section_id}/duplicate', [TemplateController::class, 'duplicateSection'])->name('section.duplicate');
         
+        // Custom template creation routes
+        Route::post('header/custom', [TemplateController::class, 'createCustomHeader'])->name('header.custom.create');
+        Route::post('footer/custom', [TemplateController::class, 'createCustomFooter'])->name('footer.custom.create');
+        
         // Helper routes
         Route::get('pages', [TemplateController::class, 'getSitePages'])->name('pages.get');
         Route::get('page/{page_id}/sections', [TemplateController::class, 'getPageSections'])->name('page.sections.get');

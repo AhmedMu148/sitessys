@@ -836,7 +836,7 @@
                 <div class="col-md-6">
                     <div class="d-flex align-items-center gap-3">
                         <button class="btn btn-primary" onclick="showCreateTemplateModal()">
-                            <i class="fas fa-plus me-2"></i>{{ __('Add Custom Section') }}
+                            <i class="fas fa-plus me-2"></i>{{ __('Add Custom Template') }}
                         </button>
                         <div class="search-box">
                             <input type="text" class="form-control" placeholder="{{ __('Search templates...') }}" id="globalTemplateSearch" title="Use Ctrl+K to focus, Esc to clear">
@@ -1244,125 +1244,172 @@
     </div>
 </div>
 
-<!-- Custom Section Creation Modal -->
-<div class="modal fade" id="customSectionModal" tabindex="-1" aria-labelledby="customSectionModalLabel" aria-hidden="true">
+<!-- Create Custom Template Modal -->
+<div class="modal fade" id="createTemplateModal" tabindex="-1" aria-labelledby="createTemplateModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="customSectionModalLabel">
-                    <i class="fas fa-plus me-2"></i>{{ __('Create Custom Section') }}
+            <div class="modal-header bg-gradient" style="background: linear-gradient(135deg, #222e3c 0%, #2b3947 100%);">
+                <h5 class="modal-title text-white" id="createTemplateModalLabel">
+                    <i class="fas fa-plus me-2"></i>{{ __('Create Custom Template') }}
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="alert alert-info">
                     <i class="fas fa-info-circle me-2"></i>
-                    {{ __('Create a custom section with your own content, styling, and functionality.') }}
+                    {{ __('Create a custom template for headers, sections, or footers with your own content and styling.') }}
                 </div>
                 
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label">{{ __('Section Name') }}</label>
-                            <input type="text" class="form-control" id="customSectionName" placeholder="e.g., Custom Hero Section">
-                        </div>
+                <!-- Template Type Selection -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">{{ __('Template Type') }}</label>
+                        <select class="form-select" id="templateType" onchange="updateTemplateFields()">
+                            <option value="section">{{ __('Section Template') }}</option>
+                            <option value="header">{{ __('Header Template') }}</option>
+                            <option value="footer">{{ __('Footer Template') }}</option>
+                        </select>
                     </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label">{{ __('Section Type') }}</label>
-                            <select class="form-control" id="customSectionType">
-                                <option value="hero">{{ __('Hero Section') }}</option>
-                                <option value="content">{{ __('Content Section') }}</option>
-                                <option value="gallery">{{ __('Gallery Section') }}</option>
-                                <option value="testimonial">{{ __('Testimonial Section') }}</option>
-                                <option value="call-to-action">{{ __('Call to Action') }}</option>
-                                <option value="other">{{ __('Other') }}</option>
-                            </select>
-                        </div>
+                    <div class="col-md-8">
+                        <label class="form-label fw-bold">{{ __('Template Name') }}</label>
+                        <input type="text" class="form-control" id="templateName" placeholder="{{ __('Enter template name...') }}">
                     </div>
                 </div>
-                
-                <!-- Language Tabs for Custom Content -->
-                <ul class="nav nav-tabs mb-3" id="customLangTabs" role="tablist">
+
+                <!-- Dynamic Template Fields Container -->
+                <div id="templateFields">
+                    
+                    <!-- Section Template Fields (Default) -->
+                    <div id="sectionFields">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ __('Section Type') }}</label>
+                                <select class="form-select" id="sectionType">
+                                    <option value="hero">{{ __('Hero Section') }}</option>
+                                    <option value="content">{{ __('Content Section') }}</option>
+                                    <option value="gallery">{{ __('Gallery Section') }}</option>
+                                    <option value="testimonial">{{ __('Testimonial Section') }}</option>
+                                    <option value="call-to-action">{{ __('Call to Action') }}</option>
+                                    <option value="other">{{ __('Other') }}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Header/Footer Template Fields (Hidden by default) -->
+                    <div id="navigationFields" style="display: none;">
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-link me-2"></i>{{ __('Navigation Links') }}</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>{{ __('English Links') }}</h6>
+                                        <div id="linksContainerEn">
+                                            <!-- Links will be added dynamically -->
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addTemplateLink('en')">
+                                            <i class="fas fa-plus me-1"></i>{{ __('Add Link') }}
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>{{ __('Arabic Links') }} العربية</h6>
+                                        <div id="linksContainerAr" dir="rtl">
+                                            <!-- Links will be added dynamically -->
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addTemplateLink('ar')">
+                                            <i class="fas fa-plus me-1"></i>إضافة رابط
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Language Content Tabs -->
+                <ul class="nav nav-tabs mb-3" id="templateLangTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="custom-en-tab" data-bs-toggle="tab" data-bs-target="#custom-en" type="button" role="tab">
+                        <button class="nav-link active" id="template-en-tab" data-bs-toggle="tab" data-bs-target="#template-en" type="button" role="tab">
                             <i class="fas fa-flag-usa me-1"></i>English
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="custom-ar-tab" data-bs-toggle="tab" data-bs-target="#custom-ar" type="button" role="tab">
+                        <button class="nav-link" id="template-ar-tab" data-bs-toggle="tab" data-bs-target="#template-ar" type="button" role="tab">
                             <i class="fas fa-flag me-1"></i>العربية
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="custom-code-tab" data-bs-toggle="tab" data-bs-target="#custom-code" type="button" role="tab">
+                        <button class="nav-link" id="template-code-tab" data-bs-toggle="tab" data-bs-target="#template-code" type="button" role="tab">
                             <i class="fas fa-code me-1"></i>{{ __('Custom Code') }}
                         </button>
                     </li>
                 </ul>
 
-                <div class="tab-content" id="customLangContent">
+                <div class="tab-content" id="templateLangContent">
                     <!-- English Tab -->
-                    <div class="tab-pane fade show active" id="custom-en" role="tabpanel">
+                    <div class="tab-pane fade show active" id="template-en" role="tabpanel">
                         <div class="row">
                             <div class="col-md-8">
                                 <div class="mb-3">
                                     <label class="form-label">{{ __('Title') }}</label>
-                                    <input type="text" class="form-control" id="customTitleEn" placeholder="Enter title...">
+                                    <input type="text" class="form-control" id="templateTitleEn" placeholder="{{ __('Enter title...') }}">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">{{ __('Content') }}</label>
-                                    <textarea class="form-control" id="customContentEn" rows="5" placeholder="Enter content..."></textarea>
+                                    <textarea class="form-control" id="templateContentEn" rows="5" placeholder="{{ __('Enter content...') }}"></textarea>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label">{{ __('Image') }} ({{ __('Optional') }})</label>
-                                    <input type="file" class="form-control" id="customImageEn" accept="image/*">
-                                    <div class="mt-2" id="customImagePreviewEn"></div>
+                                    <input type="file" class="form-control" id="templateImageEn" accept="image/*" onchange="previewTemplateImage('En')">
+                                    <div class="mt-2" id="templateImagePreviewEn"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Arabic Tab -->
-                    <div class="tab-pane fade" id="custom-ar" role="tabpanel" dir="rtl">
-                        <div class="row">
+                    <div class="tab-pane fade" id="template-ar" role="tabpanel">
+                        <div class="row rtl" dir="rtl">
                             <div class="col-md-8">
                                 <div class="mb-3">
                                     <label class="form-label">العنوان</label>
-                                    <input type="text" class="form-control" id="customTitleAr" placeholder="أدخل العنوان...">
+                                    <input type="text" class="form-control" id="templateTitleAr" placeholder="أدخل العنوان...">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">المحتوى</label>
-                                    <textarea class="form-control" id="customContentAr" rows="5" placeholder="أدخل المحتوى..."></textarea>
+                                    <textarea class="form-control" id="templateContentAr" rows="5" placeholder="أدخل المحتوى..."></textarea>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label">الصورة (اختياري)</label>
-                                    <input type="file" class="form-control" id="customImageAr" accept="image/*">
-                                    <div class="mt-2" id="customImagePreviewAr"></div>
+                                    <input type="file" class="form-control" id="templateImageAr" accept="image/*" onchange="previewTemplateImage('Ar')">
+                                    <div class="mt-2" id="templateImagePreviewAr"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Custom Code Tab -->
-                    <div class="tab-pane fade" id="custom-code" role="tabpanel">
+                    <div class="tab-pane fade" id="template-code" role="tabpanel">
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">{{ __('Custom CSS') }} ({{ __('Optional') }})</label>
-                                    <textarea class="form-control font-monospace" id="customCSS" rows="6" placeholder=".custom-section { background: #f0f0f0; }"></textarea>
-                                    <small class="text-muted">{{ __('Add custom styling for this section') }}</small>
+                                    <textarea class="form-control font-monospace" id="templateCSS" rows="8" placeholder=".custom-template { background: #f0f0f0; }"></textarea>
+                                    <small class="text-muted">{{ __('Add custom styling for this template') }}</small>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">{{ __('Custom JavaScript') }} ({{ __('Optional') }})</label>
-                                    <textarea class="form-control font-monospace" id="customJS" rows="6" placeholder="// Add custom functionality"></textarea>
-                                    <small class="text-muted">{{ __('Add custom functionality for this section') }}</small>
+                                    <textarea class="form-control font-monospace" id="templateJS" rows="8" placeholder="// Add custom functionality"></textarea>
+                                    <small class="text-muted">{{ __('Add custom functionality for this template') }}</small>
                                 </div>
                             </div>
                         </div>
@@ -1373,8 +1420,8 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     <i class="fas fa-times me-1"></i>{{ __('Cancel') }}
                 </button>
-                <button type="button" class="btn btn-primary" onclick="saveCustomSection()">
-                    <i class="fas fa-save me-1"></i>{{ __('Create Section') }}
+                <button type="button" class="btn btn-primary" onclick="saveCustomTemplate()">
+                    <i class="fas fa-save me-1"></i>{{ __('Create Template') }}
                 </button>
             </div>
         </div>
@@ -2530,7 +2577,315 @@ function showAlert(type, message, duration = 3000) {
 
 // Create Template Modal Function
 function showCreateTemplateModal() {
-    $('#createTemplateModal').modal('show');
+    console.log('showCreateTemplateModal called'); // Debug log
+    resetCreateTemplateForm();
+    
+    // Use Bootstrap 5 syntax
+    const modalElement = document.getElementById('createTemplateModal');
+    console.log('Modal element:', modalElement); // Debug log
+    
+    if (modalElement) {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    } else {
+        console.error('Create template modal not found!');
+        alert('Modal not found! Please refresh the page.');
+    }
+}
+
+// Custom Section Modal Function (Legacy - keep for compatibility)
+function showCustomSectionModal() {
+    console.log('Legacy function - redirecting to new template modal');
+    showCreateTemplateModal();
+}
+
+// ===================== New Template Creation Functions =====================
+
+// Reset Create Template Form
+function resetCreateTemplateForm() {
+    // Reset main fields
+    document.getElementById('templateType').value = 'section';
+    document.getElementById('templateName').value = '';
+    
+    // Reset content fields
+    document.getElementById('templateTitleEn').value = '';
+    document.getElementById('templateContentEn').value = '';
+    document.getElementById('templateTitleAr').value = '';
+    document.getElementById('templateContentAr').value = '';
+    document.getElementById('templateCSS').value = '';
+    document.getElementById('templateJS').value = '';
+    
+    // Reset section type
+    document.getElementById('sectionType').value = 'hero';
+    
+    // Clear image previews
+    document.getElementById('templateImagePreviewEn').innerHTML = '';
+    document.getElementById('templateImagePreviewAr').innerHTML = '';
+    
+    // Reset file inputs
+    document.getElementById('templateImageEn').value = '';
+    document.getElementById('templateImageAr').value = '';
+    
+    // Clear navigation links
+    document.getElementById('linksContainerEn').innerHTML = '';
+    document.getElementById('linksContainerAr').innerHTML = '';
+    
+    // Initialize template links data
+    templateLinksData = { en: [], ar: [] };
+    
+    // Update template fields visibility
+    updateTemplateFields();
+}
+
+// Template Links Data Storage
+let templateLinksData = { en: [], ar: [] };
+
+// Update Template Fields Based on Type
+function updateTemplateFields() {
+    const templateType = document.getElementById('templateType').value;
+    const sectionFields = document.getElementById('sectionFields');
+    const navigationFields = document.getElementById('navigationFields');
+    
+    if (templateType === 'section') {
+        sectionFields.style.display = 'block';
+        navigationFields.style.display = 'none';
+    } else if (templateType === 'header' || templateType === 'footer') {
+        sectionFields.style.display = 'none';
+        navigationFields.style.display = 'block';
+        
+        // Update max links based on type
+        const maxLinks = templateType === 'header' ? 5 : 10;
+        updateAddButtonStates(maxLinks);
+    }
+}
+
+// Add Template Link
+function addTemplateLink(lang) {
+    const templateType = document.getElementById('templateType').value;
+    const maxLinks = templateType === 'header' ? 5 : 10;
+    
+    if (templateLinksData[lang].length >= maxLinks) {
+        showAlert('warning', `Maximum ${maxLinks} links allowed for ${templateType}`);
+        return;
+    }
+    
+    const index = templateLinksData[lang].length;
+    templateLinksData[lang].push({ label: '', url: '' });
+    
+    const container = document.getElementById(`linksContainer${lang.charAt(0).toUpperCase() + lang.slice(1)}`);
+    const linkElement = createTemplateLinkElement(lang, index);
+    container.appendChild(linkElement);
+    
+    updateAddButtonStates(maxLinks);
+}
+
+// Create Template Link Element
+function createTemplateLinkElement(lang, index) {
+    const div = document.createElement('div');
+    div.className = 'mb-3 p-3 border rounded';
+    div.setAttribute('data-link-index', index);
+    
+    const isRtl = lang === 'ar';
+    if (isRtl) {
+        div.setAttribute('dir', 'rtl');
+    }
+    
+    div.innerHTML = `
+        <div class="row">
+            <div class="col-md-5">
+                <label class="form-label">${isRtl ? 'النص' : 'Label'}</label>
+                <input type="text" class="form-control" placeholder="${isRtl ? 'أدخل النص...' : 'Enter label...'}" 
+                       onchange="updateTemplateLinkData('${lang}', ${index}, 'label', this.value)">
+            </div>
+            <div class="col-md-5">
+                <label class="form-label">${isRtl ? 'الرابط' : 'URL'}</label>
+                <input type="url" class="form-control" placeholder="${isRtl ? 'أدخل الرابط...' : 'Enter URL...'}" 
+                       onchange="updateTemplateLinkData('${lang}', ${index}, 'url', this.value)">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button type="button" class="btn btn-outline-danger btn-sm d-block" 
+                        onclick="removeTemplateLink('${lang}', ${index})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    return div;
+}
+
+// Update Template Link Data
+function updateTemplateLinkData(lang, index, field, value) {
+    if (templateLinksData[lang][index]) {
+        templateLinksData[lang][index][field] = value;
+    }
+}
+
+// Remove Template Link
+function removeTemplateLink(lang, index) {
+    templateLinksData[lang].splice(index, 1);
+    renderTemplateLinks(lang);
+    
+    const templateType = document.getElementById('templateType').value;
+    const maxLinks = templateType === 'header' ? 5 : 10;
+    updateAddButtonStates(maxLinks);
+}
+
+// Render Template Links
+function renderTemplateLinks(lang) {
+    const container = document.getElementById(`linksContainer${lang.charAt(0).toUpperCase() + lang.slice(1)}`);
+    container.innerHTML = '';
+    
+    templateLinksData[lang].forEach((link, index) => {
+        const linkElement = createTemplateLinkElement(lang, index);
+        const inputs = linkElement.querySelectorAll('input');
+        inputs[0].value = link.label;
+        inputs[1].value = link.url;
+        container.appendChild(linkElement);
+    });
+}
+
+// Update Add Button States
+function updateAddButtonStates(maxLinks) {
+    ['en', 'ar'].forEach(lang => {
+        const button = document.querySelector(`button[onclick="addTemplateLink('${lang}')"]`);
+        if (button) {
+            button.disabled = templateLinksData[lang].length >= maxLinks;
+            button.innerHTML = templateLinksData[lang].length >= maxLinks ? 
+                `<i class="fas fa-lock me-1"></i>Max ${maxLinks} links` :
+                `<i class="fas fa-plus me-1"></i>${lang === 'ar' ? 'إضافة رابط' : 'Add Link'}`;
+        }
+    });
+}
+
+// Preview Template Image
+function previewTemplateImage(suffix) {
+    const input = document.getElementById(`templateImage${suffix}`);
+    const preview = document.getElementById(`templateImagePreview${suffix}`);
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = `
+                <div class="position-relative">
+                    <img src="${e.target.result}" alt="Preview" class="img-fluid rounded border" style="max-height: 150px;">
+                    <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" 
+                            onclick="clearTemplateImage('${suffix}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Clear Template Image
+function clearTemplateImage(suffix) {
+    document.getElementById(`templateImage${suffix}`).value = '';
+    document.getElementById(`templateImagePreview${suffix}`).innerHTML = '';
+}
+
+// Save Custom Template
+function saveCustomTemplate() {
+    const templateType = document.getElementById('templateType').value;
+    const templateName = document.getElementById('templateName').value.trim();
+    
+    // Validation
+    if (!templateName) {
+        showAlert('warning', '{{ __("Please enter a template name") }}');
+        return;
+    }
+    
+    // Prepare data based on template type
+    let templateData = {
+        name: templateName,
+        type: templateType,
+        content: {
+            en: {
+                title: document.getElementById('templateTitleEn').value,
+                content: document.getElementById('templateContentEn').value
+            },
+            ar: {
+                title: document.getElementById('templateTitleAr').value,
+                content: document.getElementById('templateContentAr').value
+            }
+        },
+        styles: document.getElementById('templateCSS').value,
+        scripts: document.getElementById('templateJS').value
+    };
+    
+    // Add type-specific data
+    if (templateType === 'section') {
+        templateData.sectionType = document.getElementById('sectionType').value;
+    } else if (templateType === 'header' || templateType === 'footer') {
+        // Validate links
+        for (const lang of ['en', 'ar']) {
+            for (const link of templateLinksData[lang]) {
+                if (link.label && !link.url) {
+                    showAlert('warning', `Please provide URL for "${link.label}" in ${lang === 'en' ? 'English' : 'Arabic'}`);
+                    return;
+                }
+                if (link.url && !link.label) {
+                    showAlert('warning', `Please provide label for URL "${link.url}" in ${lang === 'en' ? 'English' : 'Arabic'}`);
+                    return;
+                }
+            }
+        }
+        templateData.links = templateLinksData;
+    }
+    
+    // Prepare form data
+    const formData = new FormData();
+    formData.append('template_data', JSON.stringify(templateData));
+    
+    // Add images
+    const imageEn = document.getElementById('templateImageEn').files[0];
+    const imageAr = document.getElementById('templateImageAr').files[0];
+    if (imageEn) formData.append('image_en', imageEn);
+    if (imageAr) formData.append('image_ar', imageAr);
+    
+    // Determine endpoint
+    let endpoint;
+    switch (templateType) {
+        case 'header':
+            endpoint = '/admin/templates/header/custom';
+            break;
+        case 'footer':
+            endpoint = '/admin/templates/footer/custom';
+            break;
+        case 'section':
+        default:
+            endpoint = '/admin/templates/section/custom';
+            break;
+    }
+    
+    showAlert('info', '{{ __("Creating template...") }}');
+    
+    // Send AJAX request
+    fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('success', data.message || '{{ __("Template created successfully") }}');
+            $('#createTemplateModal').modal('hide');
+            // Reload page to show new template
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showAlert('error', data.message || '{{ __("Failed to create template") }}');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('error', '{{ __("An error occurred while creating template") }}');
+    });
 }
 
 // Search and Filter Functionality
@@ -2872,122 +3227,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Handle template creation form
-function createNewTemplate() {
-    const form = document.getElementById('createTemplateForm');
-    const formData = new FormData(form);
-    
-    // Show loading state
-    const submitBtn = document.getElementById('createTemplateBtn');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
-    submitBtn.disabled = true;
-    
-    fetch('/admin/templates', {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            $('#createTemplateModal').modal('hide');
-            showAlert('success', data.message);
-            location.reload(); // Refresh to show new template
-        } else {
-            showAlert('error', data.message || 'Error creating template');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showAlert('error', 'Error creating template');
-    })
-    .finally(() => {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-    });
-}
+
 </script>
 
-<!-- Create Template Modal -->
-<div class="modal fade" id="createTemplateModal" tabindex="-1" aria-labelledby="createTemplateModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="createTemplateModalLabel">
-                    <i class="fas fa-plus me-2"></i>{{ __('Add Custom Section') }}
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="createTemplateForm">
-                    @csrf
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="templateName" class="form-label">{{ __('Template Name') }}</label>
-                                <input type="text" class="form-control" id="templateName" name="name" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="templateType" class="form-label">{{ __('Template Type') }}</label>
-                                <select class="form-control" id="templateType" name="type" required>
-                                    <option value="">{{ __('Select Type') }}</option>
-                                    <option value="header">{{ __('Header') }}</option>
-                                    <option value="section">{{ __('Section') }}</option>
-                                    <option value="footer">{{ __('Footer') }}</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="templateDescription" class="form-label">{{ __('Description') }}</label>
-                        <textarea class="form-control" id="templateDescription" name="description" rows="3"></textarea>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="templateLanguage" class="form-label">{{ __('Language') }}</label>
-                                <select class="form-control" id="templateLanguage" name="language">
-                                    <option value="en">{{ __('English') }}</option>
-                                    <option value="ar">{{ __('Arabic') }}</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="templateDirection" class="form-label">{{ __('Direction') }}</label>
-                                <select class="form-control" id="templateDirection" name="direction">
-                                    <option value="ltr">{{ __('LTR') }}</option>
-                                    <option value="rtl">{{ __('RTL') }}</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="templateActive" name="is_active" value="1" checked>
-                            <label class="form-check-label" for="templateActive">
-                                {{ __('Set as Active') }}
-                            </label>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
-                <button type="button" class="btn btn-primary" id="createTemplateBtn" onclick="createNewTemplate()">
-                    <i class="fas fa-plus me-2"></i>{{ __('Create Template') }}
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 @endsection
