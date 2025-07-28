@@ -11,7 +11,6 @@ use App\Http\Controllers\Admin\SiteController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\PageSectionController;
 use App\Http\Controllers\Admin\HeaderFooterController;
-use App\Http\Controllers\Admin\ConfigurationTestController;
 use App\Http\Controllers\Admin\SectionTemplateController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\ThemeController;
@@ -164,7 +163,6 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() 
     // Configuration Management Routes
     Route::prefix('configurations')->name('configurations.')->group(function () {
         Route::get('/', [TemplateController::class, 'configuration'])->name('index');
-        Route::get('/test', [ConfigurationTestController::class, 'test'])->name('test');
         Route::get('/{type}', [TemplateController::class, 'getConfiguration'])->name('get');
         Route::post('/theme', [TemplateController::class, 'updateTheme'])->name('theme.update');
         Route::post('/navigation', [TemplateController::class, 'updateNavigation'])->name('navigation.update');

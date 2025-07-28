@@ -188,7 +188,11 @@ tpl_layouts (id, tpl_id, layout_type, name, path, default_config, content)
 ### **Services**
 - `app/Services/ConfigurationService.php`: Core configuration logic
 - `app/Services/ContentRenderingService.php`: Template rendering
-- `app/Services/TenantConfigService.php`: Multi-tenant support
+- `app/Services/BladeRenderingService.php`: Dynamic Blade template rendering
+- `app/Services/GlobalTemplateService.php`: Global template management
+- `app/Services/NavigationService.php`: Navigation and menu management
+- `app/Services/DefaultTemplateAssignmentService.php`: User template assignment
+- `app/Services/TemplateCloneService.php`: Template cloning for new users
 
 ### **Views**
 - `resources/views/admin/`: AdminLTE dashboard views
