@@ -72,72 +72,128 @@ class PageController extends Controller
             // Get site template configuration
             $tplSite = TplSite::where('site_id', $site->id)->first();
             
-            // Get navigation layout (active only)
+            // Get navigation layout - prioritize active_header_id, fallback to legacy tpl_site
             $navLayout = null;
-            if ($tplSite && $tplSite->nav) {
+            if ($site->active_header_id) {
+                $navLayout = TplLayout::where('id', $site->active_header_id)->where('status', true)->first();
+            } elseif ($tplSite && $tplSite->nav) {
                 $navLayout = TplLayout::where('id', $tplSite->nav)->where('status', true)->first();
-                if ($navLayout) {
-                    $navConfig = json_decode($navLayout->default_config, true) ?? [];
-                    // Add site-specific data
-                    $navConfig['site_name'] = $site->site_name;
-                    
-                    // Override menu_items with nav_data if available
-                    if ($tplSite->nav_data && isset($tplSite->nav_data['links'])) {
-                        $navConfig['menu_items'] = array_map(function($link) {
-                            return [
-                                'label' => $link['name'],
-                                'url' => $link['url']
-                            ];
-                        }, $tplSite->nav_data['links']);
-                    }
-                    
-                    $navLayout->processed_content = $this->processTemplate($navLayout->content, $navConfig);
-                }
             }
             
-            // Get footer layout (active only)
+            if ($navLayout) {
+                $navConfig = $navLayout->default_config ?? [];
+                // Ensure it's an array
+                if (is_string($navConfig)) {
+                    $navConfig = json_decode($navConfig, true) ?? [];
+                }
+                // Add site-specific data
+                $navConfig['site_name'] = $site->site_name;
+                
+                // Override menu_items with nav_data if available
+                if ($tplSite && $tplSite->nav_data && isset($tplSite->nav_data['links'])) {
+                    $navConfig['menu_items'] = array_map(function($link) {
+                        return [
+                            'label' => $link['title'] ?? $link['name'] ?? 'Untitled', // Support both title and name
+                            'url' => $link['url'],
+                            'active' => $link['active'] ?? true,
+                            'external' => $link['external'] ?? false
+                        ];
+                    }, array_filter($tplSite->nav_data['links'], function($link) {
+                        return ($link['active'] ?? true); // Only include active links
+                    }));
+                }
+                
+                // Handle content - check if it's JSON array or string
+                $contentToProcess = $navLayout->content;
+                if (is_array($contentToProcess) && isset($contentToProcess['html'])) {
+                    $contentToProcess = $contentToProcess['html'];
+                } elseif (is_string($contentToProcess)) {
+                    // Try to decode JSON
+                    $decoded = json_decode($contentToProcess, true);
+                    if (is_array($decoded) && isset($decoded['html'])) {
+                        $contentToProcess = $decoded['html'];
+                    }
+                }
+                
+                $navLayout->processed_content = $this->processTemplate($contentToProcess, $navConfig);
+            }
+            
+            // Get footer layout - prioritize active_footer_id, fallback to legacy tpl_site  
             $footerLayout = null;
-            if ($tplSite && $tplSite->footer) {
+            if ($site->active_footer_id) {
+                $footerLayout = TplLayout::where('id', $site->active_footer_id)->where('status', true)->first();
+            } elseif ($tplSite && $tplSite->footer) {
                 $footerLayout = TplLayout::where('id', $tplSite->footer)->where('status', true)->first();
-                if ($footerLayout) {
-                    $footerConfig = json_decode($footerLayout->default_config, true) ?? [];
-                    // Add dynamic data
-                    $footerConfig['year'] = date('Y');
-                    $footerConfig['site_name'] = $site->site_name;
-                    
-                    // Add footer-specific data from TplSite
-                    if ($tplSite->footer_data) {
-                        if (isset($tplSite->footer_data['social_media'])) {
-                            $footerConfig['social_links'] = [];
-                            foreach ($tplSite->footer_data['social_media'] as $platform => $url) {
+            }
+            
+            if ($footerLayout) {
+                $footerConfig = $footerLayout->default_config ?? [];
+                // Ensure it's an array
+                if (is_string($footerConfig)) {
+                    $footerConfig = json_decode($footerConfig, true) ?? [];
+                }
+                // Add dynamic data
+                $footerConfig['year'] = date('Y');
+                $footerConfig['site_name'] = $site->site_name;
+                
+                // Add footer-specific data from TplSite
+                if ($tplSite && $tplSite->footer_data) {
+                    if (isset($tplSite->footer_data['social_media'])) {
+                        $footerConfig['social_links'] = [];
+                        foreach ($tplSite->footer_data['social_media'] as $platform => $url) {
+                            if (!empty(trim($url))) { // Only include non-empty URLs
                                 $icons = [
                                     'facebook' => 'fab fa-facebook-f',
                                     'twitter' => 'fab fa-twitter',
-                                    'instagram' => 'fab fa-instagram',
+                                    'instagram' => 'fab fa-instagram', 
                                     'linkedin' => 'fab fa-linkedin-in',
-                                    'youtube' => 'fab fa-youtube'
+                                    'youtube' => 'fab fa-youtube',
+                                    'github' => 'fab fa-github',
+                                    'discord' => 'fab fa-discord',
+                                    'tiktok' => 'fab fa-tiktok',
+                                    'pinterest' => 'fab fa-pinterest'
                                 ];
                                 $footerConfig['social_links'][] = [
                                     'url' => $url,
-                                    'icon' => $icons[$platform] ?? 'fas fa-link'
+                                    'icon' => $icons[$platform] ?? 'fas fa-link',
+                                    'platform' => $platform
                                 ];
                             }
                         }
-                        if (isset($tplSite->footer_data['newsletter'])) {
-                            $footerConfig['newsletter'] = $tplSite->footer_data['newsletter'];
-                        }
-                        if (isset($tplSite->footer_data['links'])) {
-                            $footerConfig['additional_pages'] = array_map(function($link) {
-                                return [
-                                    'url' => $link['url'],
-                                    'label' => $link['name']
-                                ];
-                            }, $tplSite->footer_data['links']);
-                        }
                     }
-                    
-                    $footerLayout->processed_content = $this->processTemplate($footerLayout->content, $footerConfig);
+                    if (isset($tplSite->footer_data['newsletter'])) {
+                        $footerConfig['newsletter'] = $tplSite->footer_data['newsletter'];
+                    }
+                    if (isset($tplSite->footer_data['links'])) {
+                        $footerConfig['footer_links'] = array_map(function($link) {
+                            return [
+                                'url' => $link['url'],
+                                'label' => $link['title'] ?? $link['name'] ?? 'Untitled', // Support both title and name
+                                'active' => $link['active'] ?? true,
+                                'external' => $link['external'] ?? false
+                            ];
+                        }, array_filter($tplSite->footer_data['links'], function($link) {
+                            return ($link['active'] ?? true); // Only include active links
+                        }));
+                        
+                        // Also set as additional_pages for backward compatibility
+                        $footerConfig['additional_pages'] = $footerConfig['footer_links'];
+                    }
                 }
+                
+                // Handle content - check if it's JSON array or string
+                $contentToProcess = $footerLayout->content;
+                if (is_array($contentToProcess) && isset($contentToProcess['html'])) {
+                    $contentToProcess = $contentToProcess['html'];
+                } elseif (is_string($contentToProcess)) {
+                    // Try to decode JSON
+                    $decoded = json_decode($contentToProcess, true);
+                    if (is_array($decoded) && isset($decoded['html'])) {
+                        $contentToProcess = $decoded['html'];
+                    }
+                }
+                
+                $footerLayout->processed_content = $this->processTemplate($contentToProcess, $footerConfig);
             }
             
             // Get page sections with their layouts
@@ -162,9 +218,26 @@ class PageController extends Controller
                         
                         // Process layout content with configurable fields
                         if ($section->layout && $section->layout->content) {
-                            $layoutConfig = json_decode($section->layout->default_config, true) ?? [];
+                            $layoutConfig = $section->layout->default_config ?? [];
+                            // Ensure it's an array
+                            if (is_string($layoutConfig)) {
+                                $layoutConfig = json_decode($layoutConfig, true) ?? [];
+                            }
+                            
+                            // Extract content properly
+                            $contentToProcess = $section->layout->content;
+                            if (is_array($contentToProcess) && isset($contentToProcess['html'])) {
+                                $contentToProcess = $contentToProcess['html'];
+                            } elseif (is_string($contentToProcess)) {
+                                // Try to decode JSON
+                                $decoded = json_decode($contentToProcess, true);
+                                if (is_array($decoded) && isset($decoded['html'])) {
+                                    $contentToProcess = $decoded['html'];
+                                }
+                            }
+                            
                             $section->layout->processed_content = $this->processTemplate(
-                                $section->layout->content, 
+                                $contentToProcess, 
                                 $layoutConfig
                             );
                         }
@@ -224,7 +297,25 @@ class PageController extends Controller
             return $content;
         }
         
-        // Replace simple placeholders {{field_name}}
+        // Handle array content - extract HTML if it's a structured array
+        if (is_array($content)) {
+            if (isset($content['html'])) {
+                $content = $content['html'];
+            } else {
+                // If it's an array but no 'html' key, convert to JSON or return empty
+                return '<!-- Template content is array without html key: ' . json_encode(array_keys($content)) . ' -->';
+            }
+        }
+        
+        // Ensure content is a string
+        if (!is_string($content)) {
+            return '<!-- Template content is not a string: ' . gettype($content) . ' -->';
+        }
+
+        // If content contains PHP/Blade syntax, process it as Blade template
+        if (strpos($content, '@') !== false || strpos($content, '$config') !== false) {
+            return $this->processBladeLikeTemplate($content, $data);
+        }        // Replace simple placeholders {{field_name}}
         $content = preg_replace_callback('/\{\{([^}]+)\}\}/', function ($matches) use ($data) {
             $field = trim($matches[1]);
             
@@ -301,6 +392,95 @@ class PageController extends Controller
                 return $elseContent;
             }
         }, $content);
+        
+        return $content;
+    }
+    
+    /**
+     * Process Blade-like template syntax
+     */
+    private function processBladeLikeTemplate($content, $data = [])
+    {
+        try {
+            // Create a unique temporary view name
+            $viewName = 'temp_' . md5($content . serialize($data));
+            $viewPath = resource_path('views/temp');
+            
+            // Ensure directory exists
+            if (!is_dir($viewPath)) {
+                mkdir($viewPath, 0755, true);
+            }
+            
+            $fullPath = $viewPath . '/' . $viewName . '.blade.php';
+            
+            // Write the blade content to a temporary file
+            file_put_contents($fullPath, $content);
+            
+            // Render the view with data
+            $rendered = view('temp.' . $viewName, ['config' => $data])->render();
+            
+            // Clean up the temporary file
+            if (file_exists($fullPath)) {
+                unlink($fullPath);
+            }
+            
+            return $rendered;
+            
+        } catch (Exception $e) {
+            // Fallback to manual replacement if Blade processing fails
+            Log::warning('Blade template processing failed, using fallback: ' . $e->getMessage());
+            return $this->manualTemplateReplacement($content, $data);
+        }
+    }
+    
+    /**
+     * Manual template replacement as fallback
+     */
+    private function manualTemplateReplacement($content, $data = [])
+    {
+        // Replace basic variable access
+        $content = preg_replace_callback('/\$config\[\'([^\']+)\'\]/', function($matches) use ($data) {
+            return $data[$matches[1]] ?? '';
+        }, $content);
+        
+        // Handle @foreach loops for menu_items
+        $content = preg_replace_callback('/@foreach\(\$config\[\'menu_items\'\][^)]*\).*?@endforeach/s', function($matches) use ($data) {
+            $output = '';
+            $menuItems = $data['menu_items'] ?? [];
+            foreach ($menuItems as $item) {
+                $itemHtml = '<li class="nav-item"><a class="nav-link" href="' . ($item['url'] ?? '#') . '">' . ($item['label'] ?? 'Link') . '</a></li>';
+                $output .= $itemHtml;
+            }
+            return $output;
+        }, $content);
+        
+        // Handle @foreach loops for social_links
+        $content = preg_replace_callback('/@foreach\(\$config\[\'social_links\'\][^)]*\).*?@endforeach/s', function($matches) use ($data) {
+            $output = '';
+            $socialLinks = $data['social_links'] ?? [];
+            foreach ($socialLinks as $social) {
+                if (!empty($social['url']) && $social['url'] !== '#') {
+                    $itemHtml = '<a href="' . $social['url'] . '" class="text-light me-3"><i class="' . $social['icon'] . '"></i></a>';
+                    $output .= $itemHtml;
+                }
+            }
+            return $output;
+        }, $content);
+        
+        // Handle @foreach loops for footer_links/additional_pages
+        $content = preg_replace_callback('/@foreach\(\$config\[\'footer_links\'\][^)]*\).*?@endforeach/s', function($matches) use ($data) {
+            $output = '';
+            $footerLinks = $data['footer_links'] ?? $data['additional_pages'] ?? [];
+            foreach ($footerLinks as $link) {
+                $itemHtml = '<li><a href="' . ($link['url'] ?? '#') . '" class="text-light">' . ($link['label'] ?? 'Link') . '</a></li>';
+                $output .= $itemHtml;
+            }
+            return $output;
+        }, $content);
+        
+        // Remove remaining Blade directives that couldn't be processed
+        $content = preg_replace('/@[a-zA-Z]+.*?@end[a-zA-Z]+/s', '', $content);
+        $content = preg_replace('/@[a-zA-Z]+\([^)]*\)/', '', $content);
         
         return $content;
     }

@@ -10,10 +10,9 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SiteController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\PageSectionController;
-use App\Http\Controllers\Admin\ConfigurationTestController;
+use App\Http\Controllers\Admin\HeaderFooterController;
 use App\Http\Controllers\Admin\SectionTemplateController;
 use App\Http\Controllers\Admin\MediaController;
-use App\Http\Controllers\Admin\NavigationController;
 use App\Http\Controllers\Admin\ThemeController;
 use App\Http\Controllers\Admin\LanguageController;
 use App\Http\Controllers\Admin\ColorController;
@@ -82,12 +81,27 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() 
     Route::resource('users', UserController::class);
 
     // Content Management
-    Route::get('layouts/header-footer', [LayoutController::class, 'headerFooter'])->name('layouts.header-footer');
     Route::resource('layouts', LayoutController::class);
     
     // Pages List API for dropdowns (must be before resource route)
     Route::get('pages/list', [AdminPageController::class, 'listPages'])->name('pages.list');
     Route::resource('pages', AdminPageController::class);
+    // Headers & Footers Management
+    Route::prefix('headers-footers')->name('headers-footers.')->group(function () {
+        Route::get('/', [HeaderFooterController::class, 'index'])->name('index');
+        
+        // Enhanced features for global templates and navigation (before wildcard routes)
+        Route::post('/create-user-copy', [HeaderFooterController::class, 'createUserCopy'])->name('create-user-copy');
+        Route::post('/update-navigation', [HeaderFooterController::class, 'updateNavigation'])->name('update-navigation');
+        Route::post('/add-navigation-link', [HeaderFooterController::class, 'addNavigationLink'])->name('add-navigation-link');
+        Route::delete('/remove-navigation-link', [HeaderFooterController::class, 'removeNavigationLink'])->name('remove-navigation-link');
+        Route::patch('/toggle-navigation-link', [HeaderFooterController::class, 'toggleNavigationLink'])->name('toggle-navigation-link');
+        Route::post('/update-social-media', [HeaderFooterController::class, 'updateSocialMedia'])->name('update-social-media');
+        
+        // Wildcard routes (must be last)
+        Route::post('/{layout}/activate', [HeaderFooterController::class, 'activate'])->name('activate');
+        Route::delete('/{layout}', [HeaderFooterController::class, 'destroy'])->name('destroy');
+    });
 
     // Page Theme Management
     Route::post('/pages/preview-theme', [ThemeController::class, 'previewPageTheme'])->name('pages.preview-theme');
@@ -189,7 +203,6 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() 
     // Configuration Management Routes
     Route::prefix('configurations')->name('configurations.')->group(function () {
         Route::get('/', [TemplateController::class, 'configuration'])->name('index');
-        Route::get('/test', [ConfigurationTestController::class, 'test'])->name('test');
         Route::get('/{type}', [TemplateController::class, 'getConfiguration'])->name('get');
         Route::post('/theme', [TemplateController::class, 'updateTheme'])->name('theme.update');
         Route::post('/navigation', [TemplateController::class, 'updateNavigation'])->name('navigation.update');
@@ -231,18 +244,6 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() 
     Route::get('/media-library', [MediaController::class, 'index'])->name('media-library');
     Route::get('/media-file/{id}', [MediaController::class, 'show'])->name('media-file');
     
-    // Navigation & Template Management Routes
-    Route::prefix('templates')->name('templates.')->group(function () {
-        Route::get('/nav', [NavigationController::class, 'index'])->name('nav.index');
-        Route::post('/nav', [NavigationController::class, 'updateNavigation'])->name('nav.update');
-        Route::get('/footer', [NavigationController::class, 'index'])->name('footer.index');
-        Route::post('/footer', [NavigationController::class, 'updateFooter'])->name('footer.update');
-        Route::get('/header-templates', [NavigationController::class, 'getHeaderTemplates'])->name('header-templates');
-        Route::get('/footer-templates', [NavigationController::class, 'getFooterTemplates'])->name('footer-templates');
-        Route::post('/preview', [NavigationController::class, 'previewTemplate'])->name('preview');
-        Route::post('/reset-navigation', [NavigationController::class, 'resetToDefaults'])->name('reset-navigation');
-    });
-    
     // Theme Management Routes
     Route::prefix('themes')->name('themes.')->group(function () {
         Route::get('/categories', [ThemeController::class, 'getCategories'])->name('categories');
@@ -253,10 +254,6 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() 
         Route::get('/stats', [ThemeController::class, 'getThemeStats'])->name('stats');
         Route::post('/bulk-update', [ThemeController::class, 'bulkUpdateThemes'])->name('bulk-update');
     });
-    
-    // Add missing template routes that tests expect
-    Route::get('/templates/header-templates', [NavigationController::class, 'getHeaderTemplates'])->name('templates.header');
-    Route::get('/templates/footer-templates', [NavigationController::class, 'getFooterTemplates'])->name('templates.footer');
     
     // Language Management Routes
     Route::prefix('languages')->name('languages.')->group(function () {
