@@ -58,16 +58,21 @@
                         </a>
                     </li>
 
-                    <li class="sidebar-item {{ request()->routeIs('admin.layouts.*') ? 'active' : '' }}">
-                        <a class="sidebar-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#layouts-collapse" aria-expanded="{{ request()->routeIs('admin.layouts.*') ? 'true' : 'false' }}">
+                    <li class="sidebar-item {{ request()->routeIs('admin.layouts.*') || request()->routeIs('admin.headers-footers.*') ? 'active' : '' }}">
+                        <a class="sidebar-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#layouts-collapse" aria-expanded="{{ request()->routeIs('admin.layouts.*') || request()->routeIs('admin.headers-footers.*') ? 'true' : 'false' }}">
                             <i class="align-middle" data-feather="layout"></i> <span class="align-middle">Layouts</span>
                             <i class="align-middle ms-auto" data-feather="chevron-down"></i>
                         </a>
-                        <div class="collapse {{ request()->routeIs('admin.layouts.*') ? 'show' : '' }}" id="layouts-collapse">
+                        <div class="collapse {{ request()->routeIs('admin.layouts.*') || request()->routeIs('admin.headers-footers.*') ? 'show' : '' }}" id="layouts-collapse">
                             <ul class="sidebar-nav-sub">
-                                <li class="sidebar-item {{ request()->routeIs('admin.layouts.header-footer') ? 'active' : '' }}">
-                                    <a class="sidebar-link" href="{{ route('admin.layouts.header-footer') }}">
-                                        <i class="align-middle" data-feather="columns"></i> Header & Footer
+                                <li class="sidebar-item {{ request()->routeIs('admin.headers-footers.*') ? 'active' : '' }}">
+                                    <a class="sidebar-link" href="{{ route('admin.headers-footers.index') }}">
+                                        <i class="align-middle" data-feather="columns"></i> Headers & Footers
+                                    </a>
+                                </li>
+                                <li class="sidebar-item {{ request()->routeIs('admin.layouts.index') || request()->routeIs('admin.layouts.create') || request()->routeIs('admin.layouts.edit') ? 'active' : '' }}">
+                                    <a class="sidebar-link" href="{{ route('admin.layouts.index') }}">
+                                        <i class="align-middle" data-feather="grid"></i> All Layouts
                                     </a>
                                 </li>
                             </ul>

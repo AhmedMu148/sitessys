@@ -8,7 +8,7 @@ use App\Http\Controllers\Admin\ThemeController;
 use App\Http\Controllers\Admin\ColorController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\SectionTemplateController;
-use App\Http\Controllers\Admin\NavigationController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -89,12 +89,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('media')->name('api.media.')->group(function () {
         Route::get('/', [MediaController::class, 'index'])->name('index');
         Route::get('/{id}', [MediaController::class, 'show'])->name('show');
-    });
-    
-    // Templates API routes
-    Route::prefix('templates')->name('api.templates.')->group(function () {
-        Route::get('/headers', [NavigationController::class, 'getHeaderTemplates'])->name('headers');
-        Route::get('/footers', [NavigationController::class, 'getFooterTemplates'])->name('footers');
     });
     
     // Legacy route for compatibility

@@ -15,6 +15,8 @@ class TplPageSection extends Model
         'site_id',
         'name',
         'content',
+        'content_data',
+        'settings',
         'custom_styles',
         'custom_scripts',
         'status',
@@ -23,6 +25,8 @@ class TplPageSection extends Model
 
     protected $casts = [
         'content' => 'array',
+        'content_data' => 'array',
+        'settings' => 'array',
         'status' => 'boolean'
     ];
 
