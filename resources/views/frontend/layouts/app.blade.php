@@ -23,14 +23,48 @@
     <!-- AOS (Animate On Scroll) -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     
+    <!-- Dynamic Section CSS -->
+    @if(isset($sections) && $sections)
+        @foreach($sections as $section)
+            @if($section->layout && $section->layout->content && is_array($section->layout->content) && isset($section->layout->content['css']))
+                <style>
+                    {!! $section->layout->content['css'] !!}
+                </style>
+            @endif
+        @endforeach
+    @endif
+    
+    <!-- Dynamic Navigation CSS -->
+    @if($navLayout && $navLayout->content && is_array($navLayout->content) && isset($navLayout->content['css']))
+        <style>
+            {!! $navLayout->content['css'] !!}
+        </style>
+    @endif
+    
+    <!-- Dynamic Footer CSS -->
+    @if($footerLayout && $footerLayout->content && is_array($footerLayout->content) && isset($footerLayout->content['css']))
+        <style>
+            {!! $footerLayout->content['css'] !!}
+        </style>
+    @endif
+    
+    <!-- Dynamic Section CSS -->
+    @if(isset($sections) && $sections)
+        @foreach($sections as $section)
+            @if($section->layout && $section->layout->content && is_array($section->layout->content) && isset($section->layout->content['css']))
+                <style>
+                    {!! $section->layout->content['css'] !!}
+                </style>
+            @endif
+        @endforeach
+    @endif
+    
     @stack('head')
 </head>
 
 <body>
     <!-- Navigation -->
-    @if($navLayout && $navLayout->processed_content)
-        {!! $navLayout->processed_content !!}
-    @elseif($navLayout)
+    @if($navLayout)
         @php
             $navContent = $navLayout->content;
             if (is_array($navContent) && isset($navContent['html'])) {
@@ -41,8 +75,33 @@
                     $navContent = $decoded['html'];
                 }
             }
+            
+            // Final validation - if still array, convert to string or use fallback
+            if (is_array($navContent)) {
+                $navContent = '<!-- Navigation content is array, cannot display -->';
+            } elseif (!is_string($navContent)) {
+                $navContent = '<!-- Navigation content invalid -->';
+            }
+            
+            // Get navigation configuration
+            $navConfig = $navLayout->default_config ?? [];
+            if (is_string($navConfig)) {
+                $navConfig = json_decode($navConfig, true) ?: [];
+            }
+            
+            // Merge with nav_data if available
+            if (isset($navData) && is_array($navData)) {
+                $navConfig = array_merge($navConfig, $navData);
+            }
+            
+            // Use Blade rendering service
+            $bladeService = new \App\Services\BladeRenderingService();
+            $renderedNav = $bladeService->render($navContent, [
+                'config' => $navConfig,
+                'navData' => $navData ?? []
+            ]);
         @endphp
-        {!! $navContent !!}
+        {!! $renderedNav !!}
     @else
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
             <div class="container">
@@ -65,13 +124,51 @@
     <main>
         @if($sections && $sections->count() > 0)
             @foreach($sections as $section)
-                @if($section->layout && $section->layout->processed_content)
+                @if($section->layout && $section->layout->content)
                     <div class="section" id="section-{{ $section->id }}">
-                        {!! $section->layout->processed_content !!}
-                    </div>
-                @elseif($section->layout && $section->layout->content)
-                    <div class="section" id="section-{{ $section->id }}">
-                        {!! $section->layout->content !!}
+                        @php
+                            // Get section configuration
+                            $sectionConfig = [];
+                            if (is_string($section->content)) {
+                                $sectionConfig = json_decode($section->content, true) ?: [];
+                            } elseif (is_array($section->content)) {
+                                $sectionConfig = $section->content;
+                            }
+                            
+                            // Get layout content
+                            $layoutContent = $section->layout->content;
+                            if (is_array($layoutContent) && isset($layoutContent['html'])) {
+                                $htmlContent = $layoutContent['html'];
+                            } elseif (is_string($layoutContent)) {
+                                $decoded = json_decode($layoutContent, true);
+                                if (is_array($decoded) && isset($decoded['html'])) {
+                                    $htmlContent = $decoded['html'];
+                                } else {
+                                    $htmlContent = $layoutContent;
+                                }
+                            } else {
+                                $htmlContent = '<!-- Layout content invalid -->';
+                            }
+                            
+                            // Make config available for template
+                            $defaultConfig = $section->layout->default_config;
+                            if (is_string($defaultConfig)) {
+                                $defaultConfig = json_decode($defaultConfig, true) ?: [];
+                            } elseif (!is_array($defaultConfig)) {
+                                $defaultConfig = [];
+                            }
+                            $config = array_merge($defaultConfig, $sectionConfig);
+                            $variant = 1; // Default variant
+                            
+                            // Use Blade rendering service for dynamic templates
+                            $bladeService = new \App\Services\BladeRenderingService();
+                            $renderedContent = $bladeService->render($htmlContent, [
+                                'config' => $config,
+                                'variant' => $variant,
+                                'section' => $section
+                            ]);
+                        @endphp
+                        {!! $renderedContent !!}
                     </div>
                 @else
                     <div class="section py-5" id="section-{{ $section->id }}">
@@ -110,9 +207,7 @@
     </main>
 
     <!-- Footer -->
-    @if($footerLayout && $footerLayout->processed_content)
-        {!! $footerLayout->processed_content !!}
-    @elseif($footerLayout)
+    @if($footerLayout)
         @php
             $footerContent = $footerLayout->content;
             if (is_array($footerContent) && isset($footerContent['html'])) {
@@ -123,8 +218,33 @@
                     $footerContent = $decoded['html'];
                 }
             }
+            
+            // Final validation - if still array, convert to string or use fallback
+            if (is_array($footerContent)) {
+                $footerContent = '<!-- Footer content is array, cannot display -->';
+            } elseif (!is_string($footerContent)) {
+                $footerContent = '<!-- Footer content invalid -->';
+            }
+            
+            // Get footer configuration
+            $footerConfig = $footerLayout->default_config ?? [];
+            if (is_string($footerConfig)) {
+                $footerConfig = json_decode($footerConfig, true) ?: [];
+            }
+            
+            // Merge with footer_data if available
+            if (isset($footerData) && is_array($footerData)) {
+                $footerConfig = array_merge($footerConfig, $footerData);
+            }
+            
+            // Use Blade rendering service
+            $bladeService = new \App\Services\BladeRenderingService();
+            $renderedFooter = $bladeService->render($footerContent, [
+                'config' => $footerConfig,
+                'footerData' => $footerData ?? []
+            ]);
         @endphp
-        {!! $footerContent !!}
+        {!! $renderedFooter !!}
     @else
         <footer class="bg-dark text-white py-4 mt-5">
             <div class="container">
@@ -153,6 +273,42 @@
             offset: 100
         });
     </script>
+    
+    <!-- Dynamic Section JavaScript -->
+    @if(isset($sections) && $sections)
+        @foreach($sections as $section)
+            @if($section->layout && $section->layout->content && is_array($section->layout->content) && isset($section->layout->content['js']))
+                <script>
+                    {!! $section->layout->content['js'] !!}
+                </script>
+            @endif
+        @endforeach
+    @endif
+    
+    <!-- Dynamic Navigation JavaScript -->
+    @if($navLayout && $navLayout->content && is_array($navLayout->content) && isset($navLayout->content['js']))
+        <script>
+            {!! $navLayout->content['js'] !!}
+        </script>
+    @endif
+    
+    <!-- Dynamic Footer JavaScript -->
+    @if($footerLayout && $footerLayout->content && is_array($footerLayout->content) && isset($footerLayout->content['js']))
+        <script>
+            {!! $footerLayout->content['js'] !!}
+        </script>
+    @endif
+    
+    <!-- Dynamic Section JavaScript -->
+    @if(isset($sections) && $sections)
+        @foreach($sections as $section)
+            @if($section->layout && $section->layout->content && is_array($section->layout->content) && isset($section->layout->content['js']))
+                <script>
+                    {!! $section->layout->content['js'] !!}
+                </script>
+            @endif
+        @endforeach
+    @endif
     
     @stack('scripts')
 </body>
