@@ -65,43 +65,43 @@
 <body>
     <!-- Navigation -->
     @if($navLayout)
-        @php
-            $navContent = $navLayout->content;
-            if (is_array($navContent) && isset($navContent['html'])) {
-                $navContent = $navContent['html'];
-            } elseif (is_string($navContent)) {
-                $decoded = json_decode($navContent, true);
-                if (is_array($decoded) && isset($decoded['html'])) {
-                    $navContent = $decoded['html'];
+        @if(isset($navLayout->processed_content))
+            {{-- Use the already processed content from PageController --}}
+            {!! $navLayout->processed_content !!}
+        @else
+            {{-- Fallback processing --}}
+            @php
+                $navContent = $navLayout->content;
+                if (is_array($navContent) && isset($navContent['html'])) {
+                    $navContent = $navContent['html'];
+                } elseif (is_string($navContent)) {
+                    $decoded = json_decode($navContent, true);
+                    if (is_array($decoded) && isset($decoded['html'])) {
+                        $navContent = $decoded['html'];
+                    }
                 }
-            }
-            
-            // Final validation - if still array, convert to string or use fallback
-            if (is_array($navContent)) {
-                $navContent = '<!-- Navigation content is array, cannot display -->';
-            } elseif (!is_string($navContent)) {
-                $navContent = '<!-- Navigation content invalid -->';
-            }
-            
-            // Get navigation configuration
-            $navConfig = $navLayout->default_config ?? [];
-            if (is_string($navConfig)) {
-                $navConfig = json_decode($navConfig, true) ?: [];
-            }
-            
-            // Merge with nav_data if available
-            if (isset($navData) && is_array($navData)) {
-                $navConfig = array_merge($navConfig, $navData);
-            }
-            
-            // Use Blade rendering service
-            $bladeService = new \App\Services\BladeRenderingService();
-            $renderedNav = $bladeService->render($navContent, [
-                'config' => $navConfig,
-                'navData' => $navData ?? []
-            ]);
-        @endphp
-        {!! $renderedNav !!}
+                
+                // Final validation - if still array, convert to string or use fallback
+                if (is_array($navContent)) {
+                    $navContent = '<!-- Navigation content is array, cannot display -->';
+                } elseif (!is_string($navContent)) {
+                    $navContent = '<!-- Navigation content invalid -->';
+                }
+                
+                // Get navigation configuration
+                $navConfig = $navLayout->default_config ?? [];
+                if (is_string($navConfig)) {
+                    $navConfig = json_decode($navConfig, true) ?: [];
+                }
+                
+                // Use Blade rendering service as fallback
+                $bladeService = new \App\Services\BladeRenderingService();
+                $renderedNav = $bladeService->render($navContent, [
+                    'config' => $navConfig
+                ]);
+            @endphp
+            {!! $renderedNav !!}
+        @endif
     @else
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
             <div class="container">
@@ -208,43 +208,43 @@
 
     <!-- Footer -->
     @if($footerLayout)
-        @php
-            $footerContent = $footerLayout->content;
-            if (is_array($footerContent) && isset($footerContent['html'])) {
-                $footerContent = $footerContent['html'];
-            } elseif (is_string($footerContent)) {
-                $decoded = json_decode($footerContent, true);
-                if (is_array($decoded) && isset($decoded['html'])) {
-                    $footerContent = $decoded['html'];
+        @if(isset($footerLayout->processed_content))
+            {{-- Use the already processed content from PageController --}}
+            {!! $footerLayout->processed_content !!}
+        @else
+            {{-- Fallback processing --}}
+            @php
+                $footerContent = $footerLayout->content;
+                if (is_array($footerContent) && isset($footerContent['html'])) {
+                    $footerContent = $footerContent['html'];
+                } elseif (is_string($footerContent)) {
+                    $decoded = json_decode($footerContent, true);
+                    if (is_array($decoded) && isset($decoded['html'])) {
+                        $footerContent = $decoded['html'];
+                    }
                 }
-            }
-            
-            // Final validation - if still array, convert to string or use fallback
-            if (is_array($footerContent)) {
-                $footerContent = '<!-- Footer content is array, cannot display -->';
-            } elseif (!is_string($footerContent)) {
-                $footerContent = '<!-- Footer content invalid -->';
-            }
-            
-            // Get footer configuration
-            $footerConfig = $footerLayout->default_config ?? [];
-            if (is_string($footerConfig)) {
-                $footerConfig = json_decode($footerConfig, true) ?: [];
-            }
-            
-            // Merge with footer_data if available
-            if (isset($footerData) && is_array($footerData)) {
-                $footerConfig = array_merge($footerConfig, $footerData);
-            }
-            
-            // Use Blade rendering service
-            $bladeService = new \App\Services\BladeRenderingService();
-            $renderedFooter = $bladeService->render($footerContent, [
-                'config' => $footerConfig,
-                'footerData' => $footerData ?? []
-            ]);
-        @endphp
-        {!! $renderedFooter !!}
+                
+                // Final validation - if still array, convert to string or use fallback
+                if (is_array($footerContent)) {
+                    $footerContent = '<!-- Footer content is array, cannot display -->';
+                } elseif (!is_string($footerContent)) {
+                    $footerContent = '<!-- Footer content invalid -->';
+                }
+                
+                // Get footer configuration
+                $footerConfig = $footerLayout->default_config ?? [];
+                if (is_string($footerConfig)) {
+                    $footerConfig = json_decode($footerConfig, true) ?: [];
+                }
+                
+                // Use Blade rendering service as fallback
+                $bladeService = new \App\Services\BladeRenderingService();
+                $renderedFooter = $bladeService->render($footerContent, [
+                    'config' => $footerConfig
+                ]);
+            @endphp
+            {!! $renderedFooter !!}
+        @endif
     @else
         <footer class="bg-dark text-white py-4 mt-5">
             <div class="container">

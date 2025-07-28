@@ -97,11 +97,11 @@ class HeaderFooterController extends Controller
     /**
      * Delete a user template
      */
-    public function destroy(Request $request, $templateId): RedirectResponse
+    public function destroy(Request $request, $layout): RedirectResponse
     {
         try {
             $site = $this->getCurrentSite($request);
-            $template = TplLayout::findOrFail($templateId);
+            $template = TplLayout::findOrFail($layout);
             
             // Don't allow deletion of global templates
             if (str_starts_with($template->tpl_id, 'global-')) {
@@ -172,18 +172,43 @@ class HeaderFooterController extends Controller
     {
         try {
             $request->validate([
-                'links' => 'required|array|max:15',
-                'links.*.name' => 'required|string|max:100',
-                'links.*.url' => 'required|string|max:255',
-                'links.*.active' => 'boolean'
+                'header_links' => 'array|max:5',
+                'footer_links' => 'array|max:10',
+                'show_auth_in_header' => 'boolean',
+                'show_auth_in_footer' => 'boolean'
             ]);
 
             $site = $this->getCurrentSite($request);
-            $this->navigationService->updateNavigation($site->id, $request->links);
+            $tplSite = TplSite::firstOrCreate(['site_id' => $site->id]);
+            
+            // Update navigation data
+            $navData = $tplSite->nav_data ?? [];
+            $footerData = $tplSite->footer_data ?? [];
+            
+            if ($request->has('header_links')) {
+                $navData['links'] = array_slice($request->header_links, 0, 5);
+            }
+            
+            if ($request->has('footer_links')) {
+                $footerData['links'] = array_slice($request->footer_links, 0, 10);
+            }
+            
+            if ($request->has('show_auth_in_header')) {
+                $navData['show_auth'] = $request->boolean('show_auth_in_header');
+            }
+            
+            if ($request->has('show_auth_in_footer')) {
+                $footerData['show_auth'] = $request->boolean('show_auth_in_footer');
+            }
+            
+            $tplSite->update([
+                'nav_data' => $navData,
+                'footer_data' => $footerData
+            ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Navigation updated successfully'
+                'message' => 'Navigation settings updated successfully'
             ]);
 
         } catch (\Exception $e) {

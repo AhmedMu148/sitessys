@@ -509,6 +509,12 @@
                                     <div class="flex-grow-1">
                                         <strong>{{ $link['title'] ?? $link['name'] ?? 'Untitled' }}</strong>
                                         <div class="text-muted small">{{ $link['url'] ?? '#' }}</div>
+                                        @if($link['external'] ?? false)
+                                            <span class="badge bg-info badge-sm">External</span>
+                                        @endif
+                                        @if(!($link['active'] ?? true))
+                                            <span class="badge bg-secondary badge-sm">Inactive</span>
+                                        @endif
                                     </div>
                                     <div class="d-flex gap-2">
                                         <button class="btn btn-sm btn-outline-secondary" onclick="toggleLinkStatus('header', {{ $index }}, {{ ($link['active'] ?? true) ? 'false' : 'true' }})">
@@ -543,6 +549,12 @@
                                     <div class="flex-grow-1">
                                         <strong>{{ $link['title'] ?? $link['name'] ?? 'Untitled' }}</strong>
                                         <div class="text-muted small">{{ $link['url'] ?? '#' }}</div>
+                                        @if($link['external'] ?? false)
+                                            <span class="badge bg-info badge-sm">External</span>
+                                        @endif
+                                        @if(!($link['active'] ?? true))
+                                            <span class="badge bg-secondary badge-sm">Inactive</span>
+                                        @endif
                                     </div>
                                     <div class="d-flex gap-2">
                                         <button class="btn btn-sm btn-outline-secondary" onclick="toggleLinkStatus('footer', {{ $index }}, {{ ($link['active'] ?? true) ? 'false' : 'true' }})">
@@ -719,5 +731,11 @@
 @endsection
 
 @push('scripts')
+<script>
+// Pass navigation configuration to JavaScript
+window.navigationConfig = @json($navigationConfig);
+window.socialMediaConfig = @json($socialMediaConfig);
+window.availablePages = @json($availablePages);
+</script>
 <script src="{{ asset('js/admin/headers-footers.js') }}"></script>
 @endpush

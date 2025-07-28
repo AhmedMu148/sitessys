@@ -412,7 +412,7 @@ function getCSRFToken() {
 function getRoute(routeName) {
     const routes = {
         'admin.headers-footers.create-user-copy': '/admin/headers-footers/create-user-copy',
-        'admin.headers-footers.add-navigation-link': '/admin/headers-footers/add-navigation-link',
+        'admin.headers-footers.add-navigation-link': '/admin/headers-footers/add-navigation-link', 
         'admin.headers-footers.remove-navigation-link': '/admin/headers-footers/remove-navigation-link',
         'admin.headers-footers.toggle-navigation-link': '/admin/headers-footers/toggle-navigation-link',
         'admin.headers-footers.update-social-media': '/admin/headers-footers/update-social-media',

@@ -88,16 +88,18 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() 
     // Headers & Footers Management
     Route::prefix('headers-footers')->name('headers-footers.')->group(function () {
         Route::get('/', [HeaderFooterController::class, 'index'])->name('index');
-        Route::post('/{layout}/activate', [HeaderFooterController::class, 'activate'])->name('activate');
-        Route::delete('/{layout}', [HeaderFooterController::class, 'destroy'])->name('destroy');
         
-        // Enhanced features for global templates and navigation
+        // Enhanced features for global templates and navigation (before wildcard routes)
         Route::post('/create-user-copy', [HeaderFooterController::class, 'createUserCopy'])->name('create-user-copy');
         Route::post('/update-navigation', [HeaderFooterController::class, 'updateNavigation'])->name('update-navigation');
         Route::post('/add-navigation-link', [HeaderFooterController::class, 'addNavigationLink'])->name('add-navigation-link');
         Route::delete('/remove-navigation-link', [HeaderFooterController::class, 'removeNavigationLink'])->name('remove-navigation-link');
         Route::patch('/toggle-navigation-link', [HeaderFooterController::class, 'toggleNavigationLink'])->name('toggle-navigation-link');
         Route::post('/update-social-media', [HeaderFooterController::class, 'updateSocialMedia'])->name('update-social-media');
+        
+        // Wildcard routes (must be last)
+        Route::post('/{layout}/activate', [HeaderFooterController::class, 'activate'])->name('activate');
+        Route::delete('/{layout}', [HeaderFooterController::class, 'destroy'])->name('destroy');
     });
     
 
