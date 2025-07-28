@@ -85,19 +85,33 @@ class TemplateController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'layout_type' => 'required|in:header,footer,section',
-            'content' => 'required|string',
+            'type' => 'required|in:header,footer,section',
+            'description' => 'nullable|string',
+            'language' => 'nullable|string|in:en,ar',
+            'direction' => 'nullable|string|in:ltr,rtl',
         ]);
 
-        TplLayout::create([
-            'tpl_id' => strtolower(str_replace(' ', '_', $request->name)),
-            'layout_type' => $request->layout_type,
+        $template = TplLayout::create([
+            'tpl_id' => strtolower(str_replace(' ', '_', $request->name)) . '_' . time(),
+            'layout_type' => $request->type,
             'name' => $request->name,
             'description' => $request->description,
-            'content' => ['html' => $request->input('content', '')],
-            'status' => true,
-            'sort_order' => TplLayout::where('layout_type', $request->layout_type)->count() + 1,
+            'content' => [
+                'html' => '<div class="template-content"><!-- Template content goes here --></div>',
+                'language' => $request->language ?? 'en',
+                'direction' => $request->direction ?? 'ltr'
+            ],
+            'status' => $request->has('is_active') ? true : false,
+            'sort_order' => TplLayout::where('layout_type', $request->type)->count() + 1,
         ]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Template created successfully.',
+                'template' => $template
+            ]);
+        }
 
         return redirect()->route('admin.templates.index')
             ->with('success', 'Template created successfully.');

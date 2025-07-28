@@ -91,14 +91,15 @@
 .template-card {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1px solid #e3f2fd;
-    border-radius: 0.75rem;
+    border-radius: 1rem; /* Fixed: unified border radius for perfect curves */
     box-shadow: 0 2px 12px rgba(34, 46, 60, 0.08);
     height: 280px;
     position: relative;
-    overflow: visible !important; /* <<< FIX: allow dropdown to be fully visible */
+    overflow: visible; /* Allow dropdown to show outside card boundaries */
     background: linear-gradient(145deg, #ffffff 0%, #f8faff 100%);
     transform: translateY(0);
     margin-bottom: 1.5rem;
+    backdrop-filter: blur(10px);
 }
 
 .template-card:hover {
@@ -138,15 +139,15 @@
     justify-content: center;
     position: relative;
     color: white;
-    overflow: visible !important; /* <<< FIX */
-    border-radius: 0.75rem 0.75rem 0 0;
+    overflow: hidden; /* Hide content overflow while allowing positioned elements */
+    border-radius: 1rem 1rem 0 0; /* Fixed: match parent border radius */
 }
 
 /* Layout Preview Image in Card */
 .card-top-image {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    border-radius: 0.75rem 0.75rem 0 0;
+    border-radius: 1rem 1rem 0 0; /* Fixed: match parent border radius */
     overflow: hidden;
 }
 
@@ -226,6 +227,7 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    border-radius: 0 0 1rem 1rem; /* Fixed: match parent border radius for bottom corners */
 }
 
 .card-bottom-text { 
@@ -233,6 +235,247 @@
     color: #475569; 
     line-height: 1.6; 
     margin-bottom: 1rem;
+}
+
+/* Template Card Transitions for Filtering */
+.col-lg-4, .col-md-6 {
+    transition: all 0.3s ease;
+}
+
+.template-card {
+    transition: all 0.3s ease;
+}
+
+/* Search and Filter Styling */
+.page-actions {
+    background: linear-gradient(135deg, #f8faff 0%, #e3f2fd 100%);
+    border: 1px solid rgba(34, 46, 60, 0.1);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(34, 46, 60, 0.08);
+    transition: all 0.3s ease;
+}
+
+.page-actions:hover {
+    box-shadow: 0 6px 20px rgba(34, 46, 60, 0.12);
+    transform: translateY(-1px);
+}
+
+.page-actions .btn-primary {
+    background: linear-gradient(135deg, #222e3c 0%, #2b3947 100%);
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(34, 46, 60, 0.3);
+}
+
+.page-actions .btn-primary:hover {
+    background: linear-gradient(135deg, #2b3947 0%, #354553 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(34, 46, 60, 0.4);
+}
+
+/* Enhanced Filter Dropdowns */
+.filter-dropdown-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 140px;
+}
+
+.filter-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #222e3c;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-dropdown {
+    border: 2px solid rgba(34, 46, 60, 0.15);
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.95);
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(34, 46, 60, 0.1);
+    cursor: pointer;
+    position: relative;
+}
+
+.filter-dropdown:hover {
+    border-color: rgba(34, 46, 60, 0.3);
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 4px 12px rgba(34, 46, 60, 0.15);
+    transform: translateY(-1px);
+}
+
+.filter-dropdown:focus {
+    border-color: #222e3c;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 0 0 0.2rem rgba(34, 46, 60, 0.25), 0 4px 12px rgba(34, 46, 60, 0.15);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.filter-dropdown option {
+    padding: 0.5rem;
+    background: white;
+    color: #222e3c;
+    font-weight: 500;
+}
+
+.filter-dropdown option:hover {
+    background: linear-gradient(135deg, #222e3c 0%, #2b3947 100%);
+    color: white;
+}
+
+/* Clear Filters Button */
+.btn-outline-secondary {
+    border: 2px solid rgba(34, 46, 60, 0.2);
+    border-radius: 0.5rem;
+    color: #222e3c;
+    padding: 0.5rem 0.75rem;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+.btn-outline-secondary:hover {
+    background: linear-gradient(135deg, #222e3c 0%, #2b3947 100%);
+    border-color: #222e3c;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(34, 46, 60, 0.2);
+}
+
+/* Search Box Enhancements */
+.search-box {
+    position: relative;
+    flex: 1;
+    max-width: 300px;
+}
+
+.search-box input {
+    border: 2px solid rgba(34, 46, 60, 0.15);
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(34, 46, 60, 0.1);
+}
+
+.search-box input:focus {
+    border-color: #222e3c;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 0 0 0.2rem rgba(34, 46, 60, 0.25), 0 4px 12px rgba(34, 46, 60, 0.15);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.search-box::before {
+    content: '\f002';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(34, 46, 60, 0.5);
+    z-index: 1;
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+.search-box:focus-within::before {
+    color: #222e3c;
+}
+
+.page-actions .form-control, .page-actions .form-select {
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    padding: 8px 12px;
+    transition: all 0.3s ease;
+}
+
+.page-actions .form-control:focus, .page-actions .form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Section Header Transitions */
+.section-header {
+    transition: all 0.3s ease;
+}
+
+/* Active Template Badge */
+.badge.bg-success {
+    background: linear-gradient(45deg, #10b981, #059669) !important;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+    border: none;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3); }
+    50% { box-shadow: 0 2px 8px rgba(16, 185, 129, 0.5); }
+    100% { box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3); }
+}
+
+.badge.bg-success i {
+    margin-right: 4px;
+}
+
+/* Template Card States */
+.template-card.active {
+    border: 2px solid #10b981;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+    transform: translateY(-2px);
+}
+
+.template-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+/* Dropdown Menu Improvements */
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 8px 0;
+}
+
+.dropdown-item {
+    padding: 8px 16px;
+    font-size: 0.875rem;
+    color: #374151;
+    transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background: #f3f4f6;
+    color: #111827;
+}
+
+.dropdown-item.text-danger:hover {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.dropdown-item i {
+    width: 16px;
+    margin-right: 8px;
 }
 
 /* ===================== Dropdown ===================== */
@@ -337,72 +580,6 @@
 .dropdown-menu-end { right: 0 !important; left: auto !important; }
 [dir="rtl"] .dropdown-menu-end { right: auto !important; left: 0 !important; }
 
-/* Toolbar */
-.template-toolbar {
-    background: linear-gradient(135deg, #f8faff 0%, #e3f2fd 100%);
-    border: 1px solid rgba(34, 46, 60, 0.1);
-    border-radius: 0.75rem;
-    padding: 1rem 1.5rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 1rem;
-}
-
-.search-box {
-    flex: 1;
-    min-width: 250px;
-}
-
-.search-box input {
-    border: 1px solid rgba(34, 46, 60, 0.2);
-    border-radius: 0.5rem;
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-}
-
-.search-box input:focus {
-    border-color: #222e3c;
-    box-shadow: 0 0 0 3px rgba(34, 46, 60, 0.1);
-}
-
-.filter-select {
-    min-width: 150px;
-}
-
-.filter-select select {
-    border: 1px solid rgba(34, 46, 60, 0.2);
-    border-radius: 0.5rem;
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-}
-
-.filter-select select:focus {
-    border-color: #222e3c;
-    box-shadow: 0 0 0 3px rgba(34, 46, 60, 0.1);
-}
-
-.btn-add-custom {
-    background: linear-gradient(135deg, #222e3c 0%, #2b3947 100%);
-    color: white;
-    border: 1px solid rgba(34, 46, 60, 0.3);
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(34, 46, 60, 0.15);
-}
-
-.btn-add-custom:hover {
-    background: linear-gradient(135deg, #1a2530 0%, #222e3c 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(34, 46, 60, 0.25);
-    color: white;
-}
-
 /* RTL Support */
 [dir="rtl"] .card-actions { right: auto; left: 12px; }
 [dir="rtl"] .dropdown-item:hover { transform: translateX(-4px); }
@@ -499,18 +676,129 @@
     margin-right: 0;
 }
 
+/* RTL Support for Filter Dropdowns */
+[dir="rtl"] .page-actions .d-flex {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .filter-dropdown-container {
+    align-items: flex-end;
+}
+
+[dir="rtl"] .filter-label {
+    text-align: right;
+}
+
+[dir="rtl"] .search-box::before {
+    left: auto;
+    right: 0.75rem;
+}
+
+[dir="rtl"] .search-box input {
+    padding: 0.75rem 2.5rem 0.75rem 1rem;
+}
+
+[dir="rtl"] .btn-outline-secondary {
+    order: -1;
+}
+
+@media (max-width: 768px) {
+    [dir="rtl"] .page-actions .col-md-6:last-child .d-flex {
+        flex-direction: row-reverse;
+    }
+    
+    [dir="rtl"] .search-box {
+        order: 1;
+    }
+    
+    [dir="rtl"] .btn-outline-secondary {
+        order: -1;
+        margin-top: 1.5rem;
+    }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
-    .template-card { height: 260px; margin-bottom: 1rem; }
-    .card-top-section { height: 100px; }
-    .card-bottom-section { height: 160px; padding: 12px; }
+    .template-card { 
+        height: 260px; 
+        margin-bottom: 1rem; 
+        border-radius: 0.875rem; /* Slightly smaller radius for mobile */
+    }
+    .card-top-section { 
+        height: 100px; 
+        border-radius: 0.875rem 0.875rem 0 0; /* Match mobile card radius */
+    }
+    .card-bottom-section { 
+        height: 160px; 
+        padding: 12px; 
+        border-radius: 0 0 0.875rem 0.875rem; /* Match mobile card radius */
+    }
+    .card-top-image {
+        border-radius: 0.875rem 0.875rem 0 0; /* Match mobile card radius */
+    }
     .card-actions { top: 8px; right: 8px; }
     [dir="rtl"] .card-actions { right: auto; left: 8px; }
-    .template-toolbar { flex-direction: column; align-items: stretch; }
-    .search-box { min-width: auto; }
-    .filter-select { min-width: auto; }
     .card-top-image img { object-fit: cover; object-position: center; }
     .card-top-image .image-overlay-text { font-size: 11px; bottom: 8px; left: 10px; right: 10px; }
+    
+    /* Mobile Filter Enhancements */
+    .page-actions {
+        padding: 1rem;
+        border-radius: 0.75rem;
+    }
+    
+    .page-actions .row {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .page-actions .col-md-6 {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .page-actions .d-flex {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 0.75rem;
+    }
+    
+    .page-actions .col-md-6:last-child .d-flex {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    
+    .filter-dropdown-container {
+        min-width: 120px;
+        flex: 1;
+    }
+    
+    .filter-dropdown {
+        font-size: 0.85rem;
+        padding: 0.6rem;
+    }
+    
+    .filter-label {
+        font-size: 0.7rem;
+    }
+    
+    .search-box {
+        max-width: 100%;
+        order: -1;
+    }
+    
+    .search-box input {
+        padding: 0.7rem 1rem 0.7rem 2.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .btn-outline-secondary {
+        padding: 0.6rem;
+        min-width: 45px;
+        align-self: flex-end;
+        margin-top: 1.5rem;
+    }
     
     .modal-dialog {
         margin: 0.5rem;
@@ -534,27 +822,66 @@
                             <i class="fas fa-palette mr-2"></i>
                             {{ __('Template Management') }}
                         </h1>
-                        <p class="mb-0">{{ __('Manage your website header, sections, and footer templates with ease') }}</p>
+
                     </div>
                 </div>
             </div>
         </div>
-    </div>    <div class="container-fluid">
+    </div>    
+    
+    <div class="container-fluid">
+        <!-- Page Actions -->
+        <div class="page-actions mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center gap-3">
+                        <button class="btn btn-primary" onclick="showCreateTemplateModal()">
+                            <i class="fas fa-plus me-2"></i>{{ __('Add Custom Section') }}
+                        </button>
+                        <div class="search-box">
+                            <input type="text" class="form-control" placeholder="{{ __('Search templates...') }}" id="globalTemplateSearch" title="Use Ctrl+K to focus, Esc to clear">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-end align-items-center gap-3">
+                        <div class="filter-dropdown-container">
+                            <label class="filter-label">{{ __('Type') }}</label>
+                            <select class="form-select filter-dropdown" id="globalTemplateFilter">
+                                <option value="" data-icon="fas fa-th-large">{{ __('All Templates') }}</option>
+                                <option value="header" data-icon="fas fa-heading">{{ __('Headers') }}</option>
+                                <option value="section" data-icon="fas fa-layer-group">{{ __('Sections') }}</option>
+                                <option value="footer" data-icon="fas fa-shoe-prints">{{ __('Footers') }}</option>
+                            </select>
+                        </div>
+                        <div class="filter-dropdown-container">
+                            <label class="filter-label">{{ __('Status') }}</label>
+                            <select class="form-select filter-dropdown" id="globalStatusFilter">
+                                <option value="" data-icon="fas fa-list">{{ __('All Status') }}</option>
+                                <option value="active" data-icon="fas fa-check-circle">{{ __('Active') }}</option>
+                                <option value="inactive" data-icon="fas fa-circle">{{ __('Inactive') }}</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="clearAllFilters()" title="{{ __('Clear all filters') }}">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- Header Templates Section -->
-        <div class="section-header">
+        <div class="section-header" id="header-templates">
             <h3 class="section-title">
                 <i class="fas fa-heading"></i>
                 {{ __('Header Templates') }}
             </h3>
-            <p class="section-description">
-                {{ __('Choose and customize your website header. You can select one template and configure up to 5 navigation links.') }}
-            </p>
         </div>
 
-        <div class="row">
+        <div class="row" id="header-templates-row">
             @foreach($headerTemplates as $template)
                 <div class="col-lg-4 col-md-6">
-                    <div class="template-card {{ $template->status ? 'active' : '' }}">
+                    <div class="template-card {{ (isset($site->active_header_id) && $site->active_header_id == $template->id) ? 'active' : '' }}">
                         <div class="card-top-section">
                             <div class="card-actions">
                                 <div class="dropdown">
@@ -563,9 +890,17 @@
                                         <span class="visually-hidden">Actions</span>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="#" onclick="selectHeaderTemplate({{ $template->id }})">
-                                            <i class="fas fa-check"></i>{{ __('Select Template') }}
-                                        </a></li>
+                                        <li>
+                                            @if(isset($site->active_header_id) && $site->active_header_id == $template->id)
+                                                <a class="dropdown-item text-muted disabled" href="#">
+                                                    <i class="fas fa-star"></i>{{ __('Currently Active') }}
+                                                </a>
+                                            @else
+                                                <a class="dropdown-item" href="#" onclick="selectHeaderTemplate({{ $template->id }})">
+                                                    <i class="fas fa-check"></i>{{ __('Set as Active') }}
+                                                </a>
+                                            @endif
+                                        </li>
                                         <li><a class="dropdown-item" href="#" onclick="editHeaderLinks({{ $template->id }})">
                                             <i class="fas fa-link"></i>{{ __('Edit Links') }}
                                         </a></li>
@@ -593,57 +928,29 @@
                             @endif
                         </div>
                         <div class="card-bottom-section">
+                            @if($template->status && isset($site->active_header_id) && $site->active_header_id == $template->id)
+                                <div class="mb-2">
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check me-1"></i>{{ __('Active Template') }}
+                                    </span>
+                                </div>
+                            @endif
                             <div class="card-bottom-text">
                                 {{ $template->description ?? __('No description available') }}
-                            </div>
-                            <div class="text-center">
-                                <button class="btn btn-sm btn-outline-primary" onclick="selectHeaderTemplate({{ $template->id }})">
-                                    <i class="fas fa-check me-1"></i>{{ $template->status ? __('Active') : __('Select') }}
-                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
             @endforeach
         </div>        <!-- Sections Templates Section -->
-        <div class="section-header mt-5">
+        <div class="section-header mt-5" id="section-templates">
             <h3 class="section-title">
                 <i class="fas fa-layer-group"></i>
                 {{ __('Section Templates') }}
             </h3>
-            <p class="section-description">
-                {{ __('Choose from 20 pre-built section templates or create custom sections. Add sections to any page and customize content for multiple languages.') }}
-            </p>
         </div>
 
-        <!-- Toolbar -->
-        <div class="template-toolbar">
-            <div class="search-box">
-                <input type="text" class="form-control" placeholder="{{ __('Search templates...') }}" id="sectionSearch">
-            </div>
-            <div class="filter-select">
-                <select class="form-control" id="categoryFilter">
-                    <option value="">{{ __('All Categories') }}</option>
-                    <option value="landing">{{ __('Landing') }}</option>
-                    <option value="marketing">{{ __('Marketing') }}</option>
-                    <option value="media">{{ __('Media') }}</option>
-                    <option value="social">{{ __('Social') }}</option>
-                    <option value="form">{{ __('Forms') }}</option>
-                    <option value="business">{{ __('Business') }}</option>
-                    <option value="content">{{ __('Content') }}</option>
-                    <option value="about">{{ __('About') }}</option>
-                    <option value="showcase">{{ __('Showcase') }}</option>
-                    <option value="ecommerce">{{ __('E-commerce') }}</option>
-                    <option value="data">{{ __('Data') }}</option>
-                    <option value="conversion">{{ __('Conversion') }}</option>
-                </select>
-            </div>
-            <button class="btn btn-add-custom" onclick="createCustomSection()">
-                <i class="fas fa-plus me-1"></i>{{ __('Add Custom Section') }}
-            </button>
-        </div>
-
-        <div class="row" id="sectionsGrid">
+        <div class="row" id="section-templates-row">
             @foreach($sectionTemplates as $template)
                 <div class="col-lg-4 col-md-6 section-template-card" data-category="{{ $template->layout_type }}" data-name="{{ strtolower($template->name) }}">
                     <div class="template-card">
@@ -657,9 +964,6 @@
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li><a class="dropdown-item" href="#" onclick="addSectionToPage({{ $template->id }})">
                                             <i class="fas fa-plus"></i>{{ __('Add to Page') }}
-                                        </a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="editSectionContent({{ $template->id }})">
-                                            <i class="fas fa-edit"></i>{{ __('Edit Content') }}
                                         </a></li>
                                         <li><a class="dropdown-item" href="#" onclick="previewSection({{ $template->id }})">
                                             <i class="fas fa-eye"></i>{{ __('Preview') }}
@@ -689,11 +993,6 @@
                                 <strong>{{ __('Type') }}:</strong> {{ ucfirst($template->layout_type) }}<br>
                                 {{ $template->description ?? __('No description available') }}
                             </div>
-                            <div class="text-center">
-                                <button class="btn btn-sm btn-outline-primary" onclick="addSectionToPage({{ $template->id }})">
-                                    <i class="fas fa-plus me-1"></i>{{ __('Add Section') }}
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -701,20 +1000,18 @@
         </div>
 
         <!-- Footer Templates Section -->
-        <div class="section-header mt-5">
+        <div class="section-header mt-5" id="footer-templates">
             <h3 class="section-title">
                 <i class="fas fa-grip-lines"></i>
                 {{ __('Footer Templates') }}
             </h3>
-            <p class="section-description">
-                {{ __('Choose and customize your website footer. You can select one template and configure up to 10 footer links.') }}
-            </p>
+           
         </div>
 
-        <div class="row">
+        <div class="row" id="footer-templates-row">
             @foreach($footerTemplates as $template)
                 <div class="col-lg-4 col-md-6">
-                    <div class="template-card {{ $template->status ? 'active' : '' }}">
+                    <div class="template-card {{ (isset($site->active_footer_id) && $site->active_footer_id == $template->id) ? 'active' : '' }}">
                         <div class="card-top-section">
                             <div class="card-actions">
                                 <div class="dropdown">
@@ -723,9 +1020,17 @@
                                         <span class="visually-hidden">Actions</span>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="#" onclick="selectFooterTemplate({{ $template->id }})">
-                                            <i class="fas fa-check"></i>{{ __('Select Template') }}
-                                        </a></li>
+                                        <li>
+                                            @if(isset($site->active_footer_id) && $site->active_footer_id == $template->id)
+                                                <a class="dropdown-item text-muted disabled" href="#">
+                                                    <i class="fas fa-star"></i>{{ __('Currently Active') }}
+                                                </a>
+                                            @else
+                                                <a class="dropdown-item" href="#" onclick="selectFooterTemplate({{ $template->id }})">
+                                                    <i class="fas fa-check"></i>{{ __('Set as Active') }}
+                                                </a>
+                                            @endif
+                                        </li>
                                         <li><a class="dropdown-item" href="#" onclick="editFooterLinks({{ $template->id }})">
                                             <i class="fas fa-link"></i>{{ __('Edit Links') }}
                                         </a></li>
@@ -753,13 +1058,15 @@
                             @endif
                         </div>
                         <div class="card-bottom-section">
+                            @if($template->status && isset($site->active_footer_id) && $site->active_footer_id == $template->id)
+                                <div class="mb-2">
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check me-1"></i>{{ __('Active Template') }}
+                                    </span>
+                                </div>
+                            @endif
                             <div class="card-bottom-text">
                                 {{ $template->description ?? __('No description available') }}
-                            </div>
-                            <div class="text-center">
-                                <button class="btn btn-sm btn-outline-primary" onclick="selectFooterTemplate({{ $template->id }})">
-                                    <i class="fas fa-check me-1"></i>{{ $template->status ? __('Active') : __('Select') }}
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -901,12 +1208,9 @@
                 <div class="mb-3">
                     <label class="form-label">{{ __('Select Page') }}</label>
                     <select class="form-control" id="targetPage">
-                        <option value="">{{ __('Choose a page...') }}</option>
-                        <option value="home">{{ __('Home Page') }}</option>
-                        <option value="about">{{ __('About Page') }}</option>
-                        <option value="services">{{ __('Services Page') }}</option>
-                        <option value="contact">{{ __('Contact Page') }}</option>
+                        <option value="">{{ __('Loading pages...') }}</option>
                     </select>
+                    <small class="form-text text-muted">{{ __('Select the page where you want to add this section') }}</small>
                 </div>
                 
                 <div class="mb-3">
@@ -1230,32 +1534,6 @@
 
 // Search and Filter Functions
 document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('sectionSearch');
-    const categoryFilter = document.getElementById('categoryFilter');
-    const sectionCards = document.querySelectorAll('.section-template-card');
-
-    function filterSections() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const selectedCategory = categoryFilter.value;
-
-        sectionCards.forEach(card => {
-            const cardName = card.getAttribute('data-name');
-            const cardCategory = card.getAttribute('data-category');
-            
-            const matchesSearch = cardName.includes(searchTerm);
-            const matchesCategory = !selectedCategory || cardCategory === selectedCategory;
-            
-            if (matchesSearch && matchesCategory) {
-                card.style.display = 'block';
-            } else {
-                card.style.display = 'none';
-            }
-        });
-    }
-
-    searchInput.addEventListener('input', filterSections);
-    categoryFilter.addEventListener('change', filterSections);
-
     // Initialize dropdowns with better positioning
     setTimeout(() => {
         document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(el => {
@@ -1296,7 +1574,127 @@ document.addEventListener('DOMContentLoaded', function() {
         img.addEventListener('load',  function(){ const fb=this.parentElement.querySelector('.card-top-fallback'); if(fb) fb.style.display='none'; });
     });
     setTimeout(()=>{ imgs.forEach(img=>{ if(!img.src || img.src==='' || img.src===window.location.href){ img.dispatchEvent(new Event('error')); } }); },100);
+
+    // Initialize search and filter functionality
+    initializeSearchAndFilter();
 });
+
+// Initialize search and filter functions
+function initializeSearchAndFilter() {
+    const searchInput = document.getElementById('globalTemplateSearch');
+    const typeFilter = document.getElementById('globalTemplateFilter');
+    const statusFilter = document.getElementById('globalStatusFilter');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', filterTemplates);
+    }
+    if (typeFilter) {
+        typeFilter.addEventListener('change', filterTemplates);
+    }
+    if (statusFilter) {
+        statusFilter.addEventListener('change', filterTemplates);
+    }
+}
+
+// Filter templates based on search and filter criteria
+function filterTemplates() {
+    const searchTerm = document.getElementById('globalTemplateSearch').value.toLowerCase();
+    const selectedType = document.getElementById('globalTemplateFilter').value;
+    const selectedStatus = document.getElementById('globalStatusFilter').value;
+
+    // Filter header templates
+    filterTemplateSection('header-templates-row', searchTerm, selectedType, selectedStatus);
+    
+    // Filter section templates
+    filterTemplateSection('section-templates-row', searchTerm, selectedType, selectedStatus);
+    
+    // Filter footer templates
+    filterTemplateSection('footer-templates-row', searchTerm, selectedType, selectedStatus);
+}
+
+function filterTemplateSection(sectionId, searchTerm, selectedType, selectedStatus) {
+    const section = document.getElementById(sectionId);
+    if (!section) return;
+
+    const cards = section.querySelectorAll('.col-lg-4, .col-md-6');
+    
+    cards.forEach(card => {
+        const templateCard = card.querySelector('.template-card');
+        const templateName = card.querySelector('.card-top-text')?.textContent.toLowerCase() || '';
+        const templateDescription = card.querySelector('.card-bottom-text')?.textContent.toLowerCase() || '';
+        const isActive = templateCard.classList.contains('active');
+        
+        let shouldShow = true;
+
+        // Search filter
+        if (searchTerm && !templateName.includes(searchTerm) && !templateDescription.includes(searchTerm)) {
+            shouldShow = false;
+        }
+
+        // Type filter
+        if (selectedType) {
+            const sectionType = sectionId.includes('header') ? 'header' : 
+                               sectionId.includes('footer') ? 'footer' : 'section';
+            if (selectedType !== sectionType) {
+                shouldShow = false;
+            }
+        }
+
+        // Status filter
+        if (selectedStatus) {
+            if (selectedStatus === 'active' && !isActive) {
+                shouldShow = false;
+            } else if (selectedStatus === 'inactive' && isActive) {
+                shouldShow = false;
+            }
+        }
+
+        // Show/hide card with animation
+        if (shouldShow) {
+            card.style.display = 'block';
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 10);
+        } else {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(-20px)';
+            setTimeout(() => {
+                card.style.display = 'none';
+            }, 300);
+        }
+    });
+}
+
+// Clear all filters
+function clearAllFilters() {
+    document.getElementById('globalTemplateSearch').value = '';
+    document.getElementById('globalTemplateFilter').value = '';
+    document.getElementById('globalStatusFilter').value = '';
+    filterTemplates();
+}
+
+// Show alert function
+function showAlert(type, message) {
+    // Create alert element
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // Add to page
+    const container = document.querySelector('.container-fluid');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // Auto dismiss after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
 
 // Header Template Functions
 function selectHeaderTemplate(templateId) {
@@ -1598,6 +1996,9 @@ function addSectionToPage(sectionId) {
     // Store current section ID
     window.currentSectionId = sectionId;
     
+    // Load available pages from database
+    loadAvailablePages();
+    
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('addSectionModal'));
     modal.show();
@@ -1719,6 +2120,78 @@ function saveSectionContent() {
 }
 
 // ===================== Add Section to Page =====================
+function loadAvailablePages() {
+    const pageSelect = document.getElementById('targetPage');
+    
+    // Show loading state
+    pageSelect.innerHTML = '<option value="">{{ __("Loading pages...") }}</option>';
+    pageSelect.disabled = true;
+    
+    console.log('Loading pages from API...');
+    
+    // Fetch pages from server
+    fetch('/admin/pages/list', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => {
+        console.log('API Response Status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('API Response Data:', data);
+        if (data.success && data.pages) {
+            // Clear loading option
+            pageSelect.innerHTML = '<option value="">{{ __("Choose a page...") }}</option>';
+            
+            // Add pages to dropdown
+            data.pages.forEach(page => {
+                const option = document.createElement('option');
+                option.value = page.id;
+                option.textContent = page.title || page.name;
+                option.setAttribute('data-slug', page.slug);
+                pageSelect.appendChild(option);
+            });
+            
+            pageSelect.disabled = false;
+            console.log(`Loaded ${data.pages.length} pages successfully`);
+        } else {
+            console.warn('API response success was false or no pages:', data);
+            // Fallback to default pages if API fails
+            pageSelect.innerHTML = `
+                <option value="">{{ __("Choose a page...") }}</option>
+                <option value="home">{{ __("Home Page") }}</option>
+                <option value="about">{{ __("About Page") }}</option>
+                <option value="services">{{ __("Services Page") }}</option>
+                <option value="contact">{{ __("Contact Page") }}</option>
+            `;
+            pageSelect.disabled = false;
+            console.warn('Using fallback pages. API response:', data);
+        }
+    })
+    .catch(error => {
+        console.error('Error loading pages:', error);
+        
+        // Fallback to default pages on error
+        pageSelect.innerHTML = `
+            <option value="">{{ __("Choose a page...") }}</option>
+            <option value="home">{{ __("Home Page") }}</option>
+            <option value="about">{{ __("About Page") }}</option>
+            <option value="services">{{ __("Services Page") }}</option>
+            <option value="contact">{{ __("Contact Page") }}</option>
+        `;
+        pageSelect.disabled = false;
+        
+        showAlert('warning', '{{ __("Could not load pages from database. Using default pages.") }}');
+    });
+}
+
 function loadCurrentSections(pageId) {
     if (!pageId) {
         document.getElementById('currentSections').innerHTML = '<em class="text-muted">{{ __("Select a page to see current sections") }}</em>';
@@ -2003,6 +2476,36 @@ function updateFooterSelection(templateId) {
     // Similar to updateHeaderSelection but for footer
 }
 
+function deleteTemplate(templateId, type) {
+    if (confirm('{{ __("Are you sure you want to delete this template? This action cannot be undone.") }}')) {
+        fetch(`/admin/templates/${templateId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('success', '{{ __("Template deleted successfully") }}');
+                // Remove the template card from the page
+                const templateCard = document.querySelector(`[onclick*="${templateId}"]`).closest('.col-lg-4, .col-md-6');
+                if (templateCard) {
+                    templateCard.remove();
+                }
+                location.reload(); // Refresh to update the grid
+            } else {
+                showAlert('error', data.message || '{{ __("Failed to delete template") }}');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('error', '{{ __("An error occurred while deleting template") }}');
+        });
+    }
+}
+
 function showAlert(type, message, duration = 3000) {
     const iconMap = {
         'success': '<i class="fas fa-check me-1"></i>',
@@ -2024,5 +2527,467 @@ function showAlert(type, message, duration = 3000) {
         });
     }, duration);
 }
+
+// Create Template Modal Function
+function showCreateTemplateModal() {
+    $('#createTemplateModal').modal('show');
+}
+
+// Search and Filter Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('globalTemplateSearch');
+    const typeFilter = document.getElementById('globalTemplateFilter');
+    const statusFilter = document.getElementById('globalStatusFilter');
+
+    // Add search feedback
+    let searchTimeout;
+    
+    // Search functionality with debounce
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            
+            // Add searching visual feedback
+            searchInput.style.borderColor = '#ffc107';
+            
+            searchTimeout = setTimeout(() => {
+                filterTemplates();
+                searchInput.style.borderColor = '#ced4da';
+            }, 300);
+        });
+    }
+
+    // Filter functionality
+    if (typeFilter) {
+        typeFilter.addEventListener('change', function() {
+            // Add visual feedback
+            typeFilter.style.borderColor = '#28a745';
+            filterTemplates();
+            setTimeout(() => {
+                typeFilter.style.borderColor = '#ced4da';
+            }, 500);
+        });
+    }
+
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function() {
+            // Add visual feedback
+            statusFilter.style.borderColor = '#28a745';
+            filterTemplates();
+            setTimeout(() => {
+                statusFilter.style.borderColor = '#ced4da';
+            }, 500);
+        });
+    }
+
+    function filterTemplates() {
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+        const selectedType = typeFilter ? typeFilter.value : '';
+        const selectedStatus = statusFilter ? statusFilter.value : '';
+
+        console.log('Filter triggered:', {
+            searchTerm,
+            selectedType,
+            selectedStatus
+        });
+
+        // Show loading state
+        showFilteringState(true);
+
+        // Filter header templates - find them by the parent section
+        const headerSection = document.getElementById('header-templates');
+        const headerCards = headerSection ? headerSection.nextElementSibling.querySelectorAll('.col-lg-4, .col-md-6') : [];
+        console.log('Header section found:', headerSection, 'Cards:', headerCards.length);
+        filterCardsBySection(headerCards, searchTerm, selectedType, selectedStatus, 'header');
+
+        // Filter section templates
+        const sectionSection = document.getElementById('section-templates');
+        const sectionCards = sectionSection ? sectionSection.nextElementSibling.querySelectorAll('.col-lg-4, .col-md-6') : [];
+        console.log('Section section found:', sectionSection, 'Cards:', sectionCards.length);
+        filterCardsBySection(sectionCards, searchTerm, selectedType, selectedStatus, 'section');
+
+        // Filter footer templates
+        const footerSection = document.getElementById('footer-templates');
+        const footerCards = footerSection ? footerSection.nextElementSibling.querySelectorAll('.col-lg-4, .col-md-6') : [];
+        console.log('Footer section found:', footerSection, 'Cards:', footerCards.length);
+        filterCardsBySection(footerCards, searchTerm, selectedType, selectedStatus, 'footer');
+
+        // Show/hide sections based on visible cards
+        toggleSectionVisibility('header-templates', headerCards);
+        toggleSectionVisibility('section-templates', sectionCards);
+        toggleSectionVisibility('footer-templates', footerCards);
+
+        // Update results count
+        updateResultsCount(headerCards, sectionCards, footerCards);
+        
+        // Hide loading state
+        setTimeout(() => showFilteringState(false), 200);
+    }
+
+    function showFilteringState(isFiltering) {
+        const pageActions = document.querySelector('.page-actions');
+        if (pageActions) {
+            if (isFiltering) {
+                pageActions.style.opacity = '0.8';
+                pageActions.style.transform = 'scale(0.99)';
+            } else {
+                pageActions.style.opacity = '1';
+                pageActions.style.transform = 'scale(1)';
+            }
+        }
+    }
+
+    function updateResultsCount(headerCards, sectionCards, footerCards) {
+        const headerCount = Array.from(headerCards).filter(card => card.style.display !== 'none').length;
+        const sectionCount = Array.from(sectionCards).filter(card => card.style.display !== 'none').length;
+        const footerCount = Array.from(footerCards).filter(card => card.style.display !== 'none').length;
+        const totalCount = headerCount + sectionCount + footerCount;
+
+        // Update or create results indicator
+        let resultsIndicator = document.getElementById('results-indicator');
+        if (!resultsIndicator) {
+            resultsIndicator = document.createElement('div');
+            resultsIndicator.id = 'results-indicator';
+            resultsIndicator.className = 'alert alert-info mt-3 text-center';
+            resultsIndicator.style.cssText = 'margin: 20px 0; padding: 10px; border-radius: 8px; font-weight: 500;';
+            
+            const container = document.querySelector('.container-fluid');
+            const pageActions = container.querySelector('.page-actions');
+            if (pageActions) {
+                pageActions.parentNode.insertBefore(resultsIndicator, pageActions.nextSibling);
+            }
+        }
+
+        if ((searchInput && searchInput.value) || (typeFilter && typeFilter.value) || (statusFilter && statusFilter.value)) {
+            resultsIndicator.innerHTML = `
+                <i class="fas fa-search me-2"></i>
+                Found ${totalCount} templates 
+                (${headerCount} headers, ${sectionCount} sections, ${footerCount} footers)
+            `;
+            resultsIndicator.style.display = 'block';
+        } else {
+            resultsIndicator.style.display = 'none';
+        }
+    }
+
+    function filterCardsBySection(cards, searchTerm, selectedType, selectedStatus, cardType) {
+        console.log(`Filtering ${cardType} templates:`, {
+            cardsFound: cards.length,
+            searchTerm,
+            selectedType,
+            selectedStatus
+        });
+
+        cards.forEach((card, index) => {
+            const templateCard = card.querySelector('.template-card');
+            const cardTitle = card.querySelector('.card-top-text, .image-overlay-text');
+            const cardDesc = card.querySelector('.card-bottom-text');
+            const activeBadge = card.querySelector('.badge.bg-success');
+            
+            const titleText = cardTitle ? cardTitle.textContent.toLowerCase() : '';
+            const descText = cardDesc ? cardDesc.textContent.toLowerCase() : '';
+            const isActive = activeBadge ? true : false;
+            
+            console.log(`Card ${index}:`, {
+                titleText,
+                descText,
+                isActive,
+                cardType
+            });
+            
+            // Check search term
+            const matchesSearch = !searchTerm || 
+                titleText.includes(searchTerm) || 
+                descText.includes(searchTerm);
+            
+            // Check type filter
+            const matchesType = !selectedType || selectedType === cardType;
+            
+            // Check status filter
+            const matchesStatus = !selectedStatus || 
+                (selectedStatus === 'active' && isActive) || 
+                (selectedStatus === 'inactive' && !isActive);
+            
+            const shouldShow = matchesSearch && matchesType && matchesStatus;
+            
+            console.log(`Card ${index} matches:`, {
+                matchesSearch,
+                matchesType,
+                matchesStatus,
+                shouldShow
+            });
+            
+            // Show/hide card
+            if (shouldShow) {
+                card.style.display = 'block';
+                card.style.opacity = '1';
+                card.style.transform = 'scale(1)';
+            } else {
+                card.style.display = 'none';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.95)';
+            }
+        });
+    }
+
+    function toggleSectionVisibility(sectionId, cards) {
+        const section = document.getElementById(sectionId);
+        if (!section) return;
+
+        const visibleCards = Array.from(cards).some(card => 
+            card.style.display !== 'none' && 
+            window.getComputedStyle(card).display !== 'none'
+        );
+
+        if (visibleCards) {
+            section.style.display = 'block';
+            section.style.opacity = '1';
+        } else {
+            section.style.display = 'none';
+            section.style.opacity = '0.5';
+        }
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + K to focus search
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            if (searchInput) {
+                searchInput.focus();
+                searchInput.select();
+            }
+        }
+        
+        // Ctrl/Cmd + T to focus type filter
+        if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+            e.preventDefault();
+            if (typeFilter) {
+                typeFilter.focus();
+            }
+        }
+        
+        // Ctrl/Cmd + S to focus status filter
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            if (statusFilter) {
+                statusFilter.focus();
+            }
+        }
+        
+        // Ctrl/Cmd + R to clear all filters
+        if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+            e.preventDefault();
+            clearAllFilters();
+        }
+        
+        // Escape to clear search and filters
+        if (e.key === 'Escape') {
+            if (searchInput && searchInput.value) {
+                searchInput.value = '';
+                filterTemplates();
+                searchInput.blur();
+            } else if (typeFilter && typeFilter.value) {
+                typeFilter.value = '';
+                filterTemplates();
+                typeFilter.blur();
+            } else if (statusFilter && statusFilter.value) {
+                statusFilter.value = '';
+                filterTemplates();
+                statusFilter.blur();
+            }
+        }
+    });
+
+    // Initialize with no filters
+    filterTemplates();
+});
+
+// Clear All Filters Function
+function clearAllFilters() {
+    const searchInput = document.getElementById('globalTemplateSearch');
+    const typeFilter = document.getElementById('globalTemplateFilter');
+    const statusFilter = document.getElementById('globalStatusFilter');
+    
+    // Clear all filter values
+    if (searchInput) searchInput.value = '';
+    if (typeFilter) typeFilter.value = '';
+    if (statusFilter) statusFilter.value = '';
+    
+    // Add visual feedback
+    const clearBtn = event.target.closest('button');
+    const originalText = clearBtn.innerHTML;
+    clearBtn.innerHTML = '<i class="fas fa-check"></i>';
+    clearBtn.classList.add('btn-success');
+    clearBtn.classList.remove('btn-outline-secondary');
+    
+    // Reset button after animation
+    setTimeout(() => {
+        clearBtn.innerHTML = originalText;
+        clearBtn.classList.remove('btn-success');
+        clearBtn.classList.add('btn-outline-secondary');
+    }, 1000);
+    
+    // Refilter templates
+    filterTemplates();
+    
+    // Show success message
+    showAlert('success', '{{ __("All filters cleared") }}', 2000);
+}
+
+// Enhanced Filter Dropdown Initialization
+document.addEventListener('DOMContentLoaded', function() {
+    // Add icons to filter options
+    const addIconsToSelect = (selectElement) => {
+        if (!selectElement) return;
+        
+        const options = selectElement.querySelectorAll('option');
+        options.forEach(option => {
+            const icon = option.getAttribute('data-icon');
+            if (icon) {
+                option.style.backgroundImage = `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><text y='18' font-size='18'>📁</text></svg>")`;
+                option.style.backgroundRepeat = 'no-repeat';
+                option.style.backgroundPosition = '8px center';
+                option.style.paddingLeft = '32px';
+            }
+        });
+    };
+    
+    // Apply icons to filter dropdowns
+    addIconsToSelect(document.getElementById('globalTemplateFilter'));
+    addIconsToSelect(document.getElementById('globalStatusFilter'));
+    
+    // Add filter change animations
+    const filterDropdowns = document.querySelectorAll('.filter-dropdown');
+    filterDropdowns.forEach(dropdown => {
+        dropdown.addEventListener('change', function() {
+            this.style.transform = 'scale(1.05)';
+            this.style.borderColor = '#28a745';
+            
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+                this.style.borderColor = 'rgba(34, 46, 60, 0.15)';
+            }, 200);
+        });
+    });
+});
+
+// Handle template creation form
+function createNewTemplate() {
+    const form = document.getElementById('createTemplateForm');
+    const formData = new FormData(form);
+    
+    // Show loading state
+    const submitBtn = document.getElementById('createTemplateBtn');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+    submitBtn.disabled = true;
+    
+    fetch('/admin/templates', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            $('#createTemplateModal').modal('hide');
+            showAlert('success', data.message);
+            location.reload(); // Refresh to show new template
+        } else {
+            showAlert('error', data.message || 'Error creating template');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('error', 'Error creating template');
+    })
+    .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
 </script>
+
+<!-- Create Template Modal -->
+<div class="modal fade" id="createTemplateModal" tabindex="-1" aria-labelledby="createTemplateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createTemplateModalLabel">
+                    <i class="fas fa-plus me-2"></i>{{ __('Add Custom Section') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createTemplateForm">
+                    @csrf
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="templateName" class="form-label">{{ __('Template Name') }}</label>
+                                <input type="text" class="form-control" id="templateName" name="name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="templateType" class="form-label">{{ __('Template Type') }}</label>
+                                <select class="form-control" id="templateType" name="type" required>
+                                    <option value="">{{ __('Select Type') }}</option>
+                                    <option value="header">{{ __('Header') }}</option>
+                                    <option value="section">{{ __('Section') }}</option>
+                                    <option value="footer">{{ __('Footer') }}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="templateDescription" class="form-label">{{ __('Description') }}</label>
+                        <textarea class="form-control" id="templateDescription" name="description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="templateLanguage" class="form-label">{{ __('Language') }}</label>
+                                <select class="form-control" id="templateLanguage" name="language">
+                                    <option value="en">{{ __('English') }}</option>
+                                    <option value="ar">{{ __('Arabic') }}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="templateDirection" class="form-label">{{ __('Direction') }}</label>
+                                <select class="form-control" id="templateDirection" name="direction">
+                                    <option value="ltr">{{ __('LTR') }}</option>
+                                    <option value="rtl">{{ __('RTL') }}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="templateActive" name="is_active" value="1" checked>
+                            <label class="form-check-label" for="templateActive">
+                                {{ __('Set as Active') }}
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                <button type="button" class="btn btn-primary" id="createTemplateBtn" onclick="createNewTemplate()">
+                    <i class="fas fa-plus me-2"></i>{{ __('Create Template') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection

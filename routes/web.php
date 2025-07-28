@@ -84,8 +84,10 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() 
     // Content Management
     Route::get('layouts/header-footer', [LayoutController::class, 'headerFooter'])->name('layouts.header-footer');
     Route::resource('layouts', LayoutController::class);
-    Route::resource('pages', AdminPageController::class);
     
+    // Pages List API for dropdowns (must be before resource route)
+    Route::get('pages/list', [AdminPageController::class, 'listPages'])->name('pages.list');
+    Route::resource('pages', AdminPageController::class);
 
     // Page Theme Management
     Route::post('/pages/preview-theme', [ThemeController::class, 'previewPageTheme'])->name('pages.preview-theme');

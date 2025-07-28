@@ -415,4 +415,39 @@ class PageController extends Controller
             'in_footer' => !$pageInFooter
         ]);
     }
+
+    /**
+     * Get pages list for dropdowns
+     */
+    public function listPages(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            $site = $user->sites()->where('status_id', true)->first();
+            
+            if (!$site) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No active site found.'
+                ], 404);
+            }
+
+            $pages = TplPage::where('site_id', $site->id)
+                ->where('status', true)
+                ->select('id', 'name as title', 'slug')
+                ->orderBy('name')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'pages' => $pages
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading pages: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
