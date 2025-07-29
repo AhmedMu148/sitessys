@@ -1319,8 +1319,8 @@ class TemplateController extends Controller
             if (!$templateData || !isset($templateData['name'])) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Invalid template data'
-                ]);
+                    'message' => 'Template name is required'
+                ], 400);
             }
 
             // Handle image uploads
@@ -1332,31 +1332,42 @@ class TemplateController extends Controller
                 $imagePaths['ar'] = $request->file('image_ar')->store('templates/sections', 'public');
             }
 
-            // Get the current user's site
-            $user = Auth::user();
-            $site = Site::where('user_id', $user->id)->where('status_id', true)->first();
-            if (!$site) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No active site found'
-                ]);
-            }
+            // Generate section HTML based on type
+            $sectionType = $templateData['sectionType'] ?? 'content';
+            $sectionHTML = $this->generateSectionHTML($sectionType, $templateData);
+            
+            // Prepare default configuration
+            $defaultConfig = [
+                'title_en' => $templateData['title_en'] ?? 'Section Title',
+                'title_ar' => $templateData['title_ar'] ?? 'عنوان القسم',
+                'content_en' => $templateData['content_en'] ?? '',
+                'content_ar' => $templateData['content_ar'] ?? '',
+                'section_type' => $sectionType,
+                'bg_color' => $templateData['bg_color'] ?? '#ffffff',
+                'text_color' => $templateData['text_color'] ?? '#333333',
+                'images' => $imagePaths
+            ];
+
+            // Prepare configurable fields
+            $configurableFields = [
+                'title_en' => ['type' => 'text', 'label' => 'English Title', 'required' => true],
+                'title_ar' => ['type' => 'text', 'label' => 'Arabic Title', 'required' => false],
+                'content_en' => ['type' => 'textarea', 'label' => 'English Content', 'required' => false],
+                'content_ar' => ['type' => 'textarea', 'label' => 'Arabic Content', 'required' => false],
+                'bg_color' => ['type' => 'color', 'label' => 'Background Color', 'required' => false],
+                'text_color' => ['type' => 'color', 'label' => 'Text Color', 'required' => false]
+            ];
 
             // Create the custom section template
             $template = TplLayout::create([
-                'tpl_id' => 'custom_section_' . strtolower(str_replace(' ', '_', $templateData['name'])) . '_' . time(),
+                'tpl_id' => uniqid('section_'),
                 'layout_type' => 'section',
                 'name' => $templateData['name'],
-                'description' => 'Custom section template created by admin',
-                'content' => json_encode($templateData['content']),
-                'default_config' => json_encode([
-                    'type' => $templateData['sectionType'] ?? 'custom',
-                    'section_type' => $templateData['sectionType'] ?? 'custom',
-                    'styles' => $templateData['styles'] ?? '',
-                    'scripts' => $templateData['scripts'] ?? '',
-                    'images' => $imagePaths
-                ]),
-                'configurable_fields' => json_encode(['title', 'content']),
+                'description' => $templateData['description'] ?? 'Custom section template',
+                'path' => 'custom/sections/' . strtolower(str_replace(' ', '-', $templateData['name'])),
+                'content' => $sectionHTML,
+                'default_config' => json_encode($defaultConfig),
+                'configurable_fields' => json_encode($configurableFields),
                 'status' => true,
                 'sort_order' => TplLayout::where('layout_type', 'section')->count() + 1
             ]);
@@ -1387,6 +1398,218 @@ class TemplateController extends Controller
                 'message' => 'Error creating section template: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Generate section HTML based on type
+     */
+    private function generateSectionHTML($sectionType, $templateData)
+    {
+        $title = $templateData['title_en'] ?? 'Section Title';
+        $content = $templateData['content_en'] ?? 'Section content goes here';
+        $customCSS = $templateData['custom_css'] ?? '';
+        $customJS = $templateData['custom_js'] ?? '';
+        
+        switch ($sectionType) {
+            case 'hero':
+                return $this->generateHeroHTML($title, $content, $customCSS, $customJS);
+            case 'services':
+                return $this->generateServicesHTML($title, $content, $customCSS, $customJS);
+            case 'portfolio':
+                return $this->generatePortfolioHTML($title, $content, $customCSS, $customJS);
+            case 'contact':
+                return $this->generateContactHTML($title, $content, $customCSS, $customJS);
+            default:
+                return $this->generateContentHTML($title, $content, $customCSS, $customJS);
+        }
+    }
+
+    /**
+     * Generate Hero section HTML
+     */
+    private function generateHeroHTML($title, $content, $customCSS, $customJS)
+    {
+        return '<section class="hero-section py-5 bg-primary text-white">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-6">
+                        <h1 class="display-4 fw-bold mb-4">' . htmlspecialchars($title) . '</h1>
+                        <p class="lead mb-4">' . nl2br(htmlspecialchars($content)) . '</p>
+                        <a href="#" class="btn btn-light btn-lg">Get Started</a>
+                    </div>
+                    <div class="col-lg-6">
+                        <img src="/storage/placeholder-hero.jpg" class="img-fluid rounded" alt="Hero Image">
+                    </div>
+                </div>
+            </div>
+            <style>' . $customCSS . '</style>
+            <script>' . $customJS . '</script>
+        </section>';
+    }
+
+    /**
+     * Generate Services section HTML
+     */
+    private function generateServicesHTML($title, $content, $customCSS, $customJS)
+    {
+        return '<section class="services-section py-5">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <h2 class="display-5 fw-bold">' . htmlspecialchars($title) . '</h2>
+                    <p class="lead">' . nl2br(htmlspecialchars($content)) . '</p>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card h-100 text-center">
+                            <div class="card-body">
+                                <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+                                <h5 class="card-title">Digital Marketing</h5>
+                                <p class="card-text">Boost your online presence with our proven marketing strategies.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100 text-center">
+                            <div class="card-body">
+                                <i class="fas fa-code fa-3x text-primary mb-3"></i>
+                                <h5 class="card-title">Web Development</h5>
+                                <p class="card-text">Custom web solutions built with cutting-edge technologies.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100 text-center">
+                            <div class="card-body">
+                                <i class="fas fa-paint-brush fa-3x text-primary mb-3"></i>
+                                <h5 class="card-title">Design Services</h5>
+                                <p class="card-text">Creative designs that capture your brand essence.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <style>' . $customCSS . '</style>
+            <script>' . $customJS . '</script>
+        </section>';
+    }
+
+    /**
+     * Generate Portfolio section HTML
+     */
+    private function generatePortfolioHTML($title, $content, $customCSS, $customJS)
+    {
+        return '<section class="portfolio-section py-5 bg-light">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <h2 class="display-5 fw-bold">' . htmlspecialchars($title) . '</h2>
+                    <p class="lead">' . nl2br(htmlspecialchars($content)) . '</p>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card portfolio-item">
+                            <img src="/storage/placeholder-portfolio1.jpg" class="card-img-top" alt="Project 1">
+                            <div class="card-body">
+                                <h5 class="card-title">Project One</h5>
+                                <p class="card-text">E-commerce website with modern design and functionality.</p>
+                                <span class="badge bg-primary">Web Development</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card portfolio-item">
+                            <img src="/storage/placeholder-portfolio2.jpg" class="card-img-top" alt="Project 2">
+                            <div class="card-body">
+                                <h5 class="card-title">Project Two</h5>
+                                <p class="card-text">Mobile app for business management and analytics.</p>
+                                <span class="badge bg-success">Mobile App</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card portfolio-item">
+                            <img src="/storage/placeholder-portfolio3.jpg" class="card-img-top" alt="Project 3">
+                            <div class="card-body">
+                                <h5 class="card-title">Project Three</h5>
+                                <p class="card-text">Brand identity design for startup company.</p>
+                                <span class="badge bg-warning">Branding</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <style>' . $customCSS . '</style>
+            <script>' . $customJS . '</script>
+        </section>';
+    }
+
+    /**
+     * Generate Contact section HTML
+     */
+    private function generateContactHTML($title, $content, $customCSS, $customJS)
+    {
+        return '<section class="contact-section py-5">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <h2 class="display-5 fw-bold mb-4">' . htmlspecialchars($title) . '</h2>
+                        <p class="lead mb-4">' . nl2br(htmlspecialchars($content)) . '</p>
+                        <div class="contact-info">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-envelope fa-lg text-primary me-3"></i>
+                                <span>contact@example.com</span>
+                            </div>
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-phone fa-lg text-primary me-3"></i>
+                                <span>+1 (555) 123-4567</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-map-marker-alt fa-lg text-primary me-3"></i>
+                                <span>123 Business St, City, Country</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <form class="contact-form">
+                            <div class="mb-3">
+                                <input type="text" class="form-control" placeholder="Your Name" required>
+                            </div>
+                            <div class="mb-3">
+                                <input type="email" class="form-control" placeholder="Your Email" required>
+                            </div>
+                            <div class="mb-3">
+                                <textarea class="form-control" rows="5" placeholder="Your Message" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Send Message</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <style>' . $customCSS . '</style>
+            <script>' . $customJS . '</script>
+        </section>';
+    }
+
+    /**
+     * Generate Content section HTML
+     */
+    private function generateContentHTML($title, $content, $customCSS, $customJS)
+    {
+        return '<section class="content-section py-5">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="text-center mb-5">
+                            <h2 class="display-5 fw-bold">' . htmlspecialchars($title) . '</h2>
+                        </div>
+                        <div class="content-body">
+                            <p class="lead">' . nl2br(htmlspecialchars($content)) . '</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <style>' . $customCSS . '</style>
+            <script>' . $customJS . '</script>
+        </section>';
     }
 
     /**

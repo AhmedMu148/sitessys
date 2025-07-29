@@ -1490,8 +1490,11 @@
                                 <select class="form-select" id="sectionType">
                                     <option value="hero">{{ __('Hero Section') }}</option>
                                     <option value="content">{{ __('Content Section') }}</option>
+                                    <option value="services">{{ __('Services Section') }}</option>
+                                    <option value="portfolio">{{ __('Portfolio Section') }}</option>
                                     <option value="gallery">{{ __('Gallery Section') }}</option>
                                     <option value="testimonial">{{ __('Testimonial Section') }}</option>
+                                    <option value="contact">{{ __('Contact Section') }}</option>
                                     <option value="call-to-action">{{ __('Call to Action') }}</option>
                                     <option value="other">{{ __('Other') }}</option>
                                 </select>
@@ -2761,42 +2764,37 @@ function saveCustomTemplate() {
         return;
     }
     
+    // Get required fields
+    const templateTitleEn = document.getElementById('templateTitleEn')?.value || '';
+    const templateContentEn = document.getElementById('templateContentEn')?.value || '';
+    const templateTitleAr = document.getElementById('templateTitleAr')?.value || '';
+    const templateContentAr = document.getElementById('templateContentAr')?.value || '';
+    const templateCSS = document.getElementById('templateCSS')?.value || '';
+    const templateJS = document.getElementById('templateJS')?.value || '';
+    
     // Prepare data based on template type
     let templateData = {
         name: templateName,
         type: templateType,
-        content: {
-            en: {
-                title: document.getElementById('templateTitleEn').value,
-                content: document.getElementById('templateContentEn').value
-            },
-            ar: {
-                title: document.getElementById('templateTitleAr').value,
-                content: document.getElementById('templateContentAr').value
-            }
-        },
-        styles: document.getElementById('templateCSS').value,
-        scripts: document.getElementById('templateJS').value
+        layout_type: templateType,
+        description: 'Custom ' + templateType + ' template',
+        title_en: templateTitleEn,
+        title_ar: templateTitleAr,
+        content_en: templateContentEn,
+        content_ar: templateContentAr,
+        custom_css: templateCSS,
+        custom_js: templateJS,
+        bg_color: '#ffffff',
+        text_color: '#333333'
     };
-    
+
     // Add type-specific data
     if (templateType === 'section') {
-        templateData.sectionType = document.getElementById('sectionType').value;
+        const sectionType = document.getElementById('sectionType')?.value || 'content';
+        templateData.sectionType = sectionType;
     } else if (templateType === 'header' || templateType === 'footer') {
-        // Validate links
-        for (const lang of ['en', 'ar']) {
-            for (const link of templateLinksData[lang]) {
-                if (link.label && !link.url) {
-                    showAlert('warning', `Please provide URL for "${link.label}" in ${lang === 'en' ? 'English' : 'Arabic'}`);
-                    return;
-                }
-                if (link.url && !link.label) {
-                    showAlert('warning', `Please provide label for URL "${link.url}" in ${lang === 'en' ? 'English' : 'Arabic'}`);
-                    return;
-                }
-            }
-        }
-        templateData.links = templateLinksData;
+        // Add links data if needed
+        templateData.links = { en: [], ar: [] };
     }
     
     // Prepare form data
@@ -2804,8 +2802,8 @@ function saveCustomTemplate() {
     formData.append('template_data', JSON.stringify(templateData));
     
     // Add images
-    const imageEn = document.getElementById('templateImageEn').files[0];
-    const imageAr = document.getElementById('templateImageAr').files[0];
+    const imageEn = document.getElementById('templateImageEn')?.files[0];
+    const imageAr = document.getElementById('templateImageAr')?.files[0];
     if (imageEn) formData.append('image_en', imageEn);
     if (imageAr) formData.append('image_ar', imageAr);
     
@@ -2830,24 +2828,50 @@ function saveCustomTemplate() {
     fetch(endpoint, {
         method: 'POST',
         headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
         },
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
+    .then(async response => {
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
             showAlert('success', data.message || '{{ __("Template created successfully") }}');
-            $('#createTemplateModal').modal('hide');
-            // Reload page to show new template
-            setTimeout(() => location.reload(), 1500);
+            
+            // Force close modal
+            const modalElement = document.getElementById('createTemplateModal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+                modal.hide();
+            } else {
+                // Fallback: manually hide modal
+                modalElement.classList.remove('show');
+                modalElement.style.display = 'none';
+                document.body.classList.remove('modal-open');
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) backdrop.remove();
+            }
+            
+            // Reset form
+            resetCreateTemplateForm();
+            
+            // Reload page after short delay
+            setTimeout(() => location.reload(), 1000);
         } else {
-            showAlert('error', data.message || '{{ __("Failed to create template") }}');
+            // Show detailed error
+            let errorMessage = data.message || '{{ __("Failed to create template") }}';
+            if (data.errors) {
+                const errorList = Object.values(data.errors).flat().join(', ');
+                errorMessage += ': ' + errorList;
+            }
+            showAlert('error', errorMessage);
+            console.error('Template creation error:', data);
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        showAlert('error', '{{ __("An error occurred while creating template") }}');
+        console.error('Network error:', error);
+        showAlert('error', '{{ __("Network error - please check your connection") }}');
     });
 }
 

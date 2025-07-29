@@ -203,43 +203,77 @@ class PageController extends Controller
                 ->orderBy('sort_order')
                 ->get()
                 ->map(function ($section) use ($lang) {
-                    // Parse JSON content_data
+                    // Parse JSON content from both content and content_data fields
                     try {
-                        $contentData = json_decode($section->content_data, true);
+                        // Try content_data first, then fallback to content
+                        $contentData = null;
+                        if ($section->content_data) {
+                            $contentData = json_decode($section->content_data, true);
+                        }
+                        
+                        // If content_data is empty or invalid, use content field
+                        if (!$contentData || !is_array($contentData)) {
+                            $contentData = json_decode($section->content, true) ?? [];
+                        }
+                        
                         $settings = json_decode($section->settings, true);
                         
+                        // Ensure we have valid content data
+                        if (!$contentData || !is_array($contentData)) {
+                            $contentData = [];
+                        }
+                        
                         $section->parsed_content = [
-                            'title' => $contentData['title'] ?? $section->name,
-                            'content' => $contentData['content'] ?? '',
-                            'button_text' => $contentData['button_text'] ?? '',
+                            'title' => $contentData['title'] ?? $contentData['hero_title'] ?? $section->name,
+                            'content' => $contentData['content'] ?? $contentData['hero_description'] ?? $contentData['subtitle'] ?? '',
+                            'button_text' => $contentData['button_text'] ?? $contentData['cta_text'] ?? '',
+                            'button_url' => $contentData['button_url'] ?? $contentData['cta_url'] ?? '#',
+                            'html' => $contentData['html'] ?? '', // Add processed HTML
                         ];
                         
                         $section->parsed_settings = $settings ?? [];
                         
-                        // Process layout content with configurable fields
-                        if ($section->layout && $section->layout->content) {
-                            $layoutConfig = $section->layout->default_config ?? [];
-                            // Ensure it's an array
-                            if (is_string($layoutConfig)) {
-                                $layoutConfig = json_decode($layoutConfig, true) ?? [];
-                            }
+                        // Use pre-processed HTML if available, otherwise process layout content
+                        if (!empty($contentData['html'])) {
+                            // Use the pre-processed HTML from content_data
+                            $processedHTML = $contentData['html'];
                             
-                            // Extract content properly
-                            $contentToProcess = $section->layout->content;
-                            if (is_array($contentToProcess) && isset($contentToProcess['html'])) {
-                                $contentToProcess = $contentToProcess['html'];
-                            } elseif (is_string($contentToProcess)) {
+                            // Process any remaining placeholders with actual data
+                            $processedHTML = $this->processTemplatePlaceholders($processedHTML, [
+                                'title' => $section->parsed_content['title'],
+                                'content' => $section->parsed_content['content'],
+                                'button_text' => $section->parsed_content['button_text'],
+                                'button_url' => $section->parsed_content['button_url'],
+                                'image' => $contentData['image'] ?? ''
+                            ]);
+                            
+                            $section->layout->processed_content = $processedHTML;
+                        } elseif ($section->layout && $section->layout->content) {
+                            // Process layout content with actual data
+                            $layoutContent = $section->layout->content;
+                            
+                            // Extract HTML from array if needed
+                            if (is_array($layoutContent) && isset($layoutContent['html'])) {
+                                $layoutContent = $layoutContent['html'];
+                            } elseif (is_string($layoutContent)) {
                                 // Try to decode JSON
-                                $decoded = json_decode($contentToProcess, true);
+                                $decoded = json_decode($layoutContent, true);
                                 if (is_array($decoded) && isset($decoded['html'])) {
-                                    $contentToProcess = $decoded['html'];
+                                    $layoutContent = $decoded['html'];
                                 }
                             }
                             
-                            $section->layout->processed_content = $this->processTemplate(
-                                $contentToProcess, 
-                                $layoutConfig
-                            );
+                            // Process placeholders in layout content with actual section data
+                            $processedHTML = $this->processTemplatePlaceholders($layoutContent, [
+                                'title' => $section->parsed_content['title'],
+                                'content' => $section->parsed_content['content'],
+                                'button_text' => $section->parsed_content['button_text'],
+                                'button_url' => $section->parsed_content['button_url'],
+                                'services' => $contentData['services'] ?? [],
+                                'image' => $contentData['image'] ?? ''
+                            ]);
+                            
+                            $section->layout->processed_content = $processedHTML;
                         }
                     } catch (Exception $e) {
                         // Fallback for parsing errors
@@ -483,5 +517,63 @@ class PageController extends Controller
         $content = preg_replace('/@[a-zA-Z]+\([^)]*\)/', '', $content);
         
         return $content;
+    }
+
+    /**
+     * Process template placeholders with actual data
+     */
+    private function processTemplatePlaceholders($content, $data)
+    {
+        if (empty($content) || !is_string($content)) {
+            return $content;
+        }
+        
+        // Ensure data is an array
+        if (!is_array($data)) {
+            $data = [];
+        }
+        
+        // Handle both old Handlebars syntax and new placeholder syntax
+        $replacements = [
+            // New placeholder syntax (recommended)
+            '{TITLE_PLACEHOLDER}' => $data['title'] ?? '',
+            '{CONTENT_PLACEHOLDER}' => !empty($data['content']) ? nl2br(e($data['content'])) : '',
+            '{BUTTON_TEXT_PLACEHOLDER}' => $data['button_text'] ?? '',
+            '{BUTTON_URL_PLACEHOLDER}' => $data['button_url'] ?? '#',
+            '{IMAGE_PLACEHOLDER}' => $data['image'] ?? '',
+            
+            // Old Handlebars syntax (for backward compatibility)
+            '{{title}}' => $data['title'] ?? '',
+            '{{content}}' => !empty($data['content']) ? nl2br(e($data['content'])) : '',
+            '{{button_text}}' => $data['button_text'] ?? '',
+            '{{button_url}}' => $data['button_url'] ?? '#',
+            '{{image}}' => $data['image'] ?? '',
+            
+            // Additional common placeholders
+            '{TITLE}' => $data['title'] ?? '',
+            '{CONTENT}' => !empty($data['content']) ? nl2br(e($data['content'])) : '',
+            '{BUTTON_TEXT}' => $data['button_text'] ?? '',
+            '{BUTTON_URL}' => $data['button_url'] ?? '#',
+            '{IMAGE}' => $data['image'] ?? '',
+        ];
+        
+        // Apply replacements
+        $processedContent = str_replace(array_keys($replacements), array_values($replacements), $content);
+        
+        // Handle conditional statements for buttons
+        if (!empty($data['button_text'])) {
+            $processedContent = str_replace(['{{#if button_text}}', '{{/if}}'], '', $processedContent);
+        } else {
+            $processedContent = preg_replace('/\{\{#if button_text\}\}.*?\{\{\/if\}\}/s', '', $processedContent);
+        }
+        
+        // Handle conditional statements for images
+        if (!empty($data['image'])) {
+            $processedContent = str_replace(['{{#if image}}', '{{/if}}'], '', $processedContent);
+        } else {
+            $processedContent = preg_replace('/\{\{#if image\}\}.*?\{\{\/if\}\}/s', '', $processedContent);
+        }
+        
+        return $processedContent;
     }
 }
