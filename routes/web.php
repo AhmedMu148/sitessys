@@ -170,6 +170,10 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() 
         Route::post('header/custom', [TemplateController::class, 'createCustomHeader'])->name('header.custom.create');
         Route::post('footer/custom', [TemplateController::class, 'createCustomFooter'])->name('footer.custom.create');
         
+        // Section editing routes (HTML/CSS/JS)
+        Route::get('section/{section_id}/edit', [TemplateController::class, 'getSectionEditData'])->name('section.edit.data');
+        Route::post('section/{section_id}/update-code', [TemplateController::class, 'updateSectionCode'])->name('section.update.code');
+        
         // Helper routes
         Route::get('pages', [TemplateController::class, 'getSitePages'])->name('pages.get');
         Route::get('page/{page_id}/sections', [TemplateController::class, 'getPageSections'])->name('page.sections.get');

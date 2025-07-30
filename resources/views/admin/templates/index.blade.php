@@ -1439,45 +1439,272 @@
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <div class="alert alert-info d-flex align-items-center mb-4" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 1px solid rgba(34, 46, 60, 0.1); border-radius: 0.75rem; border-left: 4px solid #222e3c;">
-                    <div class="flex-shrink-0 me-3">
-                        <i class="fas fa-info-circle fs-4" style="color: #222e3c;"></i>
+            <form id="customTemplateForm" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body">
+                    <div class="alert alert-info d-flex align-items-center mb-4" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 1px solid rgba(34, 46, 60, 0.1); border-radius: 0.75rem; border-left: 4px solid #222e3c;">
+                        <div class="flex-shrink-0 me-3">
+                            <i class="fas fa-magic fs-4" style="color: #222e3c;"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1" style="color: #222e3c; font-weight: 600;">{{ __('Create Any Template Type') }}</h6>
+                            <p class="mb-0" style="color: #64748b; font-size: 0.9rem;">
+                                {{ __('Create Headers, Footers, or Sections with full HTML/CSS/JavaScript control, images, and complete customization.') }}
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <h6 class="mb-1" style="color: #222e3c; font-weight: 600;">{{ __('Create Custom Template') }}</h6>
-                        <p class="mb-0" style="color: #64748b; font-size: 0.9rem;">
-                            {{ __('Design and create custom templates for headers, sections, or footers with multi-language support, navigation links, images, and custom styling.') }}
-                        </p>
-                    </div>
-                </div>
-                
-                <!-- Template Type Selection -->
-                <div class="card mb-4" style="border: 1px solid #e3f2fd; border-radius: 0.75rem; box-shadow: 0 2px 12px rgba(34, 46, 60, 0.08);">
-                    <div class="card-header" style="background: linear-gradient(135deg, #f8faff 0%, #e3f2fd 100%); border-bottom: 1px solid #e3f2fd;">
-                        <h6 class="mb-0 fw-bold" style="color: #222e3c;">
-                            <i class="fas fa-layer-group me-2"></i>{{ __('Template Configuration') }}
-                        </h6>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">{{ __('Template Type') }}</label>
-                                <select class="form-select" id="templateType" onchange="updateTemplateFields()">
-                                    <option value="section">{{ __('Section Template') }}</option>
-                                    <option value="header">{{ __('Header Template') }}</option>
-                                    <option value="footer">{{ __('Footer Template') }}</option>
-                                </select>
-                                <small class="text-muted">{{ __('Choose the type of template you want to create') }}</small>
+                    
+                    <!-- Template Type Selection -->
+                    <div class="card mb-4" style="border: 1px solid #e3f2fd; border-radius: 0.75rem; box-shadow: 0 2px 12px rgba(34, 46, 60, 0.08);">
+                        <div class="card-header" style="background: linear-gradient(135deg, #f8faff 0%, #e3f2fd 100%); border-bottom: 1px solid #e3f2fd;">
+                            <h6 class="mb-0 fw-bold" style="color: #222e3c;">
+                                <i class="fas fa-cog me-2"></i>{{ __('Basic Configuration') }}
+                            </h6>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">{{ __('Template Type') }} <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="templateType" name="template_type" required onchange="updateTemplateFields()">
+                                        <option value="section">{{ __('Section Template') }}</option>
+                                        <option value="header">{{ __('Header Template') }}</option>
+                                        <option value="footer">{{ __('Footer Template') }}</option>
+                                    </select>
+                                    <small class="text-muted">{{ __('Choose what type of template to create') }}</small>
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label fw-bold">{{ __('Template Name') }} <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="templateName" name="name" required placeholder="{{ __('Enter template name...') }}">
+                                    <small class="text-muted">{{ __('Give your template a unique name') }}</small>
+                                </div>
+                                <div class="col-12 mt-3">
+                                    <label class="form-label fw-bold">{{ __('Description') }}</label>
+                                    <textarea class="form-control" id="templateDescription" name="description" rows="2" placeholder="{{ __('Describe what this template does...') }}"></textarea>
+                                </div>
                             </div>
-                            <div class="col-md-8">
-                                <label class="form-label fw-bold">{{ __('Template Name') }}</label>
-                                <input type="text" class="form-control" id="templateName" placeholder="{{ __('Enter a unique name for your template...') }}">
-                                <small class="text-muted">{{ __('Give your template a descriptive name for easy identification') }}</small>
+                        </div>
+                    </div>
+
+                    <!-- Images Section -->
+                    <div class="card mb-4" style="border: 1px solid #e3f2fd; border-radius: 0.75rem; box-shadow: 0 2px 12px rgba(34, 46, 60, 0.08);">
+                        <div class="card-header" style="background: linear-gradient(135deg, #f8faff 0%, #e3f2fd 100%); border-bottom: 1px solid #e3f2fd;">
+                            <h6 class="mb-0 fw-bold" style="color: #222e3c;">
+                                <i class="fas fa-images me-2"></i>{{ __('Template Images') }}
+                            </h6>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">{{ __('Template Preview Image') }}</label>
+                                    <input type="file" class="form-control" id="previewImage" name="preview_image" accept="image/*">
+                                    <small class="text-muted">{{ __('Image shown in template selection (will be used as thumbnail)') }}</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">{{ __('Content Image') }}</label>
+                                    <input type="file" class="form-control" id="contentImage" name="content_image" accept="image/*">
+                                    <small class="text-muted">{{ __('Image that will be used inside the template content') }}</small>
+                                </div>
+                                <div class="col-12 mt-3">
+                                    <label class="form-label fw-bold">{{ __('Additional Images') }}</label>
+                                    <input type="file" class="form-control" id="additionalImages" name="additional_images[]" accept="image/*" multiple>
+                                    <small class="text-muted">{{ __('Upload multiple images to use in your template') }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Custom Code Section -->
+                    <div class="card mb-4" style="border: 1px solid #e3f2fd; border-radius: 0.75rem; box-shadow: 0 2px 12px rgba(34, 46, 60, 0.08);">
+                        <div class="card-header" style="background: linear-gradient(135deg, #f8faff 0%, #e3f2fd 100%); border-bottom: 1px solid #e3f2fd;">
+                            <h6 class="mb-0 fw-bold" style="color: #222e3c;">
+                                <i class="fas fa-code me-2"></i>{{ __('Full Code Control') }}
+                            </h6>
+                            <small class="text-muted">{{ __('You have complete control - write any HTML, CSS, and JavaScript you want!') }}</small>
+                        </div>
+                        <div class="card-body p-4">
+                            <!-- HTML -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">{{ __('Custom HTML') }}</label>
+                                <textarea class="form-control font-monospace" id="customHtml" name="custom_html" rows="10" 
+                                    placeholder="<section class='my-template'>
+    <div class='container'>
+        <h1>My Amazing Template</h1>
+        <p>Your content here...</p>
+        <img src='{{ '{' }}{content_image_url}}' alt='Content' />
+        <button class='btn btn-primary'>Call to Action</button>
+    </div>
+</section>"></textarea>
+                                <small class="text-muted">
+                                    {{ __('Write your complete HTML structure. Use') }} <code>{{ '{' }}{content_image_url}}</code> {{ __('to reference your content image.') }}
+                                </small>
+                            </div>
+
+                            <div class="row">
+                                <!-- CSS -->
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">{{ __('Custom CSS') }}</label>
+                                    <textarea class="form-control font-monospace" id="customCss" name="custom_css" rows="15" 
+                                        placeholder=".my-template {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 80px 0;
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+.my-template h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    animation: fadeInUp 1s ease-out;
+}
+
+@keyframes fadeInUp {
+    from { 
+        opacity: 0; 
+        transform: translateY(30px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+.my-template img {
+    max-width: 100%;
+    border-radius: 15px;
+    transition: transform 0.3s ease;
+}
+
+.my-template img:hover {
+    transform: scale(1.05);
+}
+
+.my-template button {
+    background: #ff6b6b;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 50px;
+    color: white;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.my-template button:hover {
+    background: #ee5a52;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+}"></textarea>
+                                </div>
+
+                                <!-- JavaScript -->
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">{{ __('Custom JavaScript') }}</label>
+                                    <textarea class="form-control font-monospace" id="customJs" name="custom_js" rows="15" 
+                                        placeholder="// Your custom JavaScript - Add any interactions!
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Smooth scroll animation
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    });
+    
+    // Observe all elements for animations
+    document.querySelectorAll('.my-template *').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'all 0.6s ease';
+        observer.observe(el);
+    });
+    
+    // Button click interaction
+    document.querySelector('.my-template button')?.addEventListener('click', function() {
+        // Add your custom action here
+        alert('Button clicked! Customize this action.');
+        
+        // Example: Add ripple effect
+        this.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            this.style.transform = 'translateY(-2px)';
+        }, 150);
+    });
+    
+    // Image hover effects
+    document.querySelectorAll('.my-template img').forEach(img => {
+        img.addEventListener('mouseenter', function() {
+            this.style.filter = 'brightness(1.1)';
+        });
+        
+        img.addEventListener('mouseleave', function() {
+            this.style.filter = 'brightness(1)';
+        });
+    });
+    
+});"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Tips -->
+                            <div class="alert alert-success mt-4">
+                                <h6><i class="fas fa-rocket me-2"></i>{{ __('You Have Complete Freedom!') }}</h6>
+                                <ul class="mb-0">
+                                    <li>{{ __('Write any HTML structure you want') }}</li>
+                                    <li>{{ __('Style with CSS - animations, gradients, transforms, anything!') }}</li>
+                                    <li>{{ __('Add JavaScript for interactions, effects, API calls') }}</li>
+                                    <li>{{ __('Bootstrap 5 classes are available') }}</li>
+                                    <li>{{ __('Include external libraries if needed') }}</li>
+                                    <li>{{ __('Use') }} <code>{{ '{' }}{content_image_url}}</code> {{ __('in HTML to reference your content image') }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Optional Text Content -->
+                    <div class="card" style="border: 1px solid #e3f2fd; border-radius: 0.75rem; box-shadow: 0 2px 12px rgba(34, 46, 60, 0.08);">
+                        <div class="card-header" style="background: linear-gradient(135deg, #f8faff 0%, #e3f2fd 100%); border-bottom: 1px solid #e3f2fd;">
+                            <h6 class="mb-0 fw-bold" style="color: #222e3c;">
+                                <i class="fas fa-text-width me-2"></i>{{ __('Optional Text Content') }}
+                            </h6>
+                            <small class="text-muted">{{ __('Add text content if needed - you can reference these in your HTML') }}</small>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">{{ __('Title') }}</label>
+                                    <input type="text" class="form-control" id="templateTitle" name="title" placeholder="{{ __('Template title...') }}">
+                                    <small class="text-muted">{{ __('Use') }} <code>{{ '{' }}{title}}</code> {{ __('in your HTML') }}</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">{{ __('Subtitle') }}</label>
+                                    <input type="text" class="form-control" id="templateSubtitle" name="subtitle" placeholder="{{ __('Template subtitle...') }}">
+                                    <small class="text-muted">{{ __('Use') }} <code>{{ '{' }}{subtitle}}</code> {{ __('in your HTML') }}</small>
+                                </div>
+                                <div class="col-12 mt-3">
+                                    <label class="form-label fw-bold">{{ __('Content Text') }}</label>
+                                    <textarea class="form-control" id="templateContent" name="content" rows="3" placeholder="{{ __('Any text content...') }}"></textarea>
+                                    <small class="text-muted">{{ __('Use') }} <code>{{ '{' }}{content}}</code> {{ __('in your HTML') }}</small>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>{{ __('Cancel') }}
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>{{ __('Create Template') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
                 <!-- Dynamic Template Fields Container -->
                 <div id="templateFields">
@@ -1945,11 +2172,183 @@ function editSectionContent(sectionId) {
         window.open(url, '_blank');
     }function createCustomSection() {
     // Reset form
-    resetCustomSectionForm();
+    document.getElementById('customSectionForm').reset();
     
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('customSectionModal'));
     modal.show();
+}
+
+// Handle custom template form submission (unified for all types)
+document.addEventListener('DOMContentLoaded', function() {
+    const customTemplateForm = document.getElementById('customTemplateForm');
+    if (customTemplateForm) {
+        customTemplateForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const templateType = formData.get('template_type');
+            
+            // Show loading
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>{{ __("Creating...") }}';
+            submitBtn.disabled = true;
+            
+            // Determine the endpoint based on template type
+            let endpoint = '';
+            switch(templateType) {
+                case 'header':
+                    endpoint = '/admin/templates/header/custom';
+                    break;
+                case 'footer':
+                    endpoint = '/admin/templates/footer/custom';
+                    break;
+                case 'section':
+                default:
+                    endpoint = '/admin/templates/section/custom';
+                    break;
+            }
+            
+            // Submit to server
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('success', `{{ __("Custom :type template created successfully!") }}`.replace(':type', templateType));
+                    bootstrap.Modal.getInstance(document.getElementById('createTemplateModal')).hide();
+                    location.reload(); // Refresh to show new template
+                } else {
+                    showAlert('error', data.message || `{{ __("Failed to create :type template") }}`.replace(':type', templateType));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('error', `{{ __("An error occurred while creating the :type template") }}`.replace(':type', templateType));
+            })
+            .finally(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        });
+    }
+});
+
+function updateTemplateFields() {
+    const templateType = document.getElementById('templateType').value;
+    const htmlTextarea = document.getElementById('customHtml');
+    const cssTextarea = document.getElementById('customCss');
+    const jsTextarea = document.getElementById('customJs');
+    
+    // Update placeholder based on template type
+    switch(templateType) {
+        case 'header':
+            htmlTextarea.placeholder = '<nav class="navbar navbar-expand-lg">\n' +
+    '    <div class="container">\n' +
+    '        <a class="navbar-brand" href="/">\n' +
+    '            <img src="@{{content_image_url}}" alt="Logo" height="40">\n' +
+    '            @{{title}}\n' +
+    '        </a>\n' +
+    '        <div class="navbar-nav">\n' +
+    '            <a class="nav-link" href="/">Home</a>\n' +
+    '            <a class="nav-link" href="/about">About</a>\n' +
+    '            <a class="nav-link" href="/contact">Contact</a>\n' +
+    '        </div>\n' +
+    '    </div>\n' +
+    '</nav>';
+            cssTextarea.placeholder = '.navbar {\n' +
+    '    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n' +
+    '    padding: 1rem 0;\n' +
+    '    box-shadow: 0 2px 20px rgba(0,0,0,0.1);\n' +
+    '}\n\n' +
+    '.navbar-brand {\n' +
+    '    font-weight: bold;\n' +
+    '    color: white !important;\n' +
+    '}\n\n' +
+    '.nav-link {\n' +
+    '    color: white !important;\n' +
+    '    transition: all 0.3s ease;\n' +
+    '}\n\n' +
+    '.nav-link:hover {\n' +
+    '    color: #f8f9fa !important;\n' +
+    '    transform: translateY(-2px);\n' +
+    '}';
+            break;
+            
+        case 'footer':
+            htmlTextarea.placeholder = '<footer class="footer">\n' +
+    '    <div class="container">\n' +
+    '        <div class="row">\n' +
+    '            <div class="col-md-6">\n' +
+    '                <h5>@{{title}}</h5>\n' +
+    '                <p>@{{content}}</p>\n' +
+    '            </div>\n' +
+    '            <div class="col-md-6">\n' +
+    '                <img src="@{{content_image_url}}" alt="Footer Image" class="footer-img">\n' +
+    '            </div>\n' +
+    '        </div>\n' +
+    '        <hr>\n' +
+    '        <p class="text-center">© 2025 @{{title}}. All rights reserved.</p>\n' +
+    '    </div>\n' +
+    '</footer>';
+            cssTextarea.placeholder = '.footer {\n' +
+    '    background: #2c3e50;\n' +
+    '    color: white;\n' +
+    '    padding: 3rem 0 1rem;\n' +
+    '    margin-top: auto;\n' +
+    '}\n\n' +
+    '.footer h5 {\n' +
+    '    color: #3498db;\n' +
+    '    margin-bottom: 1rem;\n' +
+    '}\n\n' +
+    '.footer-img {\n' +
+    '    max-width: 100%;\n' +
+    '    border-radius: 10px;\n' +
+    '}\n\n' +
+    '.footer hr {\n' +
+    '    border-color: #34495e;\n' +
+    '    margin: 2rem 0 1rem;\n' +
+    '}';
+            break;
+            
+        case 'section':
+        default:
+            htmlTextarea.placeholder = '<section class="my-section">\n' +
+    '    <div class="container">\n' +
+    '        <h2>@{{title}}</h2>\n' +
+    '        <p>@{{content}}</p>\n' +
+    '        <img src="@{{content_image_url}}" alt="Content" class="section-img">\n' +
+    '        <button class="btn btn-primary">@{{subtitle}}</button>\n' +
+    '    </div>\n' +
+    '</section>';
+            cssTextarea.placeholder = '.my-section {\n' +
+    '    padding: 80px 0;\n' +
+    '    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n' +
+    '    color: white;\n' +
+    '    text-align: center;\n' +
+    '}\n\n' +
+    '.my-section h2 {\n' +
+    '    font-size: 3rem;\n' +
+    '    margin-bottom: 20px;\n' +
+    '    animation: fadeInUp 1s ease-out;\n' +
+    '}\n\n' +
+    '.section-img {\n' +
+    '    max-width: 100%;\n' +
+    '    border-radius: 15px;\n' +
+    '    margin: 20px 0;\n' +
+    '    transition: transform 0.3s ease;\n' +
+    '}\n\n' +
+    '.section-img:hover {\n' +
+    '    transform: scale(1.05);\n' +
+    '}';
+            break;
+    }
 }
 
 // ===================== Section Content Management =====================
@@ -2049,7 +2448,7 @@ function loadAvailablePages() {
     console.log('Loading pages from API...');
     
     // Fetch pages from server
-    fetch('/admin/pages/list', {
+    fetch('/admin/pages', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -2117,7 +2516,7 @@ function loadCurrentSections(pageId) {
         return;
     }
 
-    fetch(`/admin/templates/page/${pageId}/sections`)
+    fetch(`/admin/page/${pageId}/sections`)
     .then(response => response.json())
     .then(data => {
         if (data.success) {
@@ -2413,26 +2812,53 @@ function deleteTemplate(templateId, type) {
     }
 }
 
-function showAlert(type, message, duration = 3000) {
+function showAlert(type, message, duration = 5000) {
     const iconMap = {
         'success': '<i class="fas fa-check me-1"></i>',
         'error': '<i class="fas fa-times me-1"></i>',
         'warning': '<i class="fas fa-exclamation-triangle me-1"></i>',
         'info': '<i class="fas fa-info-circle me-1"></i>'
     };
-    const cls = type === 'success' ? 'alert-success' : type === 'error' ? 'alert-danger' : type === 'warning' ? 'alert-warning' : 'alert-info';
+    
+    const cls = type === 'success' ? 'alert-success' : 
+               type === 'error' ? 'alert-danger' : 
+               type === 'warning' ? 'alert-warning' : 'alert-info';
+    
     const icon = iconMap[type] || iconMap['info'];
-    const html = `<div class="alert ${cls} alert-dismissible fade show" role="alert">${icon} ${message}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>`;
     
+    // Create alert with better styling for errors
+    const alertClass = type === 'error' ? `${cls} border-danger` : cls;
+    const html = `
+        <div class="alert ${alertClass} alert-dismissible fade show position-relative" 
+             role="alert" 
+             style="margin-bottom: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-left: 4px solid ${type === 'error' ? '#dc3545' : type === 'success' ? '#28a745' : '#007bff'};">
+            ${icon} 
+            <span style="font-weight: 500;">${message}</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    
+    // Remove existing alerts
     document.querySelectorAll('.alert').forEach(a => a.remove());
-    document.querySelector('.container-fluid').insertAdjacentHTML('afterbegin', html);
     
+    // Add new alert at top of container
+    const container = document.querySelector('.container-fluid');
+    if (container) {
+        container.insertAdjacentHTML('afterbegin', html);
+        
+        // Auto-scroll to alert if needed
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    // Auto-remove after duration (longer for errors)
+    const actualDuration = type === 'error' ? duration * 2 : duration;
     setTimeout(() => {
         document.querySelectorAll('.alert').forEach(a => { 
-            a.classList.remove('show'); 
-            setTimeout(() => a.remove(), 150); 
+            a.classList.remove('show');
+            a.classList.add('fade'); 
+            setTimeout(() => a.remove(), 300); 
         });
-    }, duration);
+    }, actualDuration);
 }
 
 // Create Template Modal Function
@@ -2467,24 +2893,30 @@ function resetCreateTemplateForm() {
     document.getElementById('templateType').value = 'section';
     document.getElementById('templateName').value = '';
     
-    // Reset content fields
-    document.getElementById('templateTitleEn').value = '';
-    document.getElementById('templateContentEn').value = '';
-    document.getElementById('templateTitleAr').value = '';
-    document.getElementById('templateContentAr').value = '';
-    document.getElementById('templateCSS').value = '';
-    document.getElementById('templateJS').value = '';
+    // Reset content fields (with null checks)
+    const fields = [
+        'templateTitleEn', 'templateContentEn', 'templateTitleAr', 
+        'templateContentAr', 'templateCSS', 'templateJS'
+    ];
+    
+    fields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) field.value = '';
+    });
     
     // Reset section type
-    document.getElementById('sectionType').value = 'hero';
+    const sectionType = document.getElementById('sectionType');
+    if (sectionType) sectionType.value = 'hero';
     
     // Clear image previews and reset to placeholders
     clearTemplateImage('En');
     clearTemplateImage('Ar');
     
     // Reset file inputs
-    document.getElementById('templateImageEn').value = '';
-    document.getElementById('templateImageAr').value = '';
+    const imageEn = document.getElementById('templateImageEn');
+    const imageAr = document.getElementById('templateImageAr');
+    if (imageEn) imageEn.value = '';
+    if (imageAr) imageAr.value = '';
     
     // Clear navigation links and reset data
     templateLinksData = { en: [], ar: [] };
@@ -2493,6 +2925,13 @@ function resetCreateTemplateForm() {
     
     // Update template fields visibility
     updateTemplateFields();
+    
+    // Reset tabs to first tab
+    const firstTab = document.querySelector('#template-en-tab');
+    if (firstTab) {
+        const tab = new bootstrap.Tab(firstTab);
+        tab.show();
+    }
 }
 
 // Template Links Data Storage
@@ -2793,8 +3232,23 @@ function saveCustomTemplate() {
         const sectionType = document.getElementById('sectionType')?.value || 'content';
         templateData.sectionType = sectionType;
     } else if (templateType === 'header' || templateType === 'footer') {
-        // Add links data if needed
-        templateData.links = { en: [], ar: [] };
+        // For header/footer, always include links (even if empty)
+        templateData.links = {
+            en: templateLinksData.en || [],
+            ar: templateLinksData.ar || []
+        };
+        
+        // Generate content structure based on template type and links
+        templateData.content = {
+            type: templateType,
+            title: templateTitleEn || templateTitleAr || templateName,
+            description: templateContentEn || templateContentAr || `Custom ${templateType} template`,
+            links: templateData.links,
+            styles: templateCSS,
+            scripts: templateJS
+        };
+        
+        console.log('Template data for', templateType, ':', templateData); // Debug log
     }
     
     // Prepare form data
@@ -2822,7 +3276,18 @@ function saveCustomTemplate() {
             break;
     }
     
+    // Show loading message
     showAlert('info', '{{ __("Creating template...") }}');
+    
+    // Debug log
+    console.log('Sending template data:', {
+        endpoint: endpoint,
+        templateType: templateType,
+        templateName: templateName,
+        templateData: templateData,
+        hasImageEn: !!imageEn,
+        hasImageAr: !!imageAr
+    });
     
     // Send AJAX request
     fetch(endpoint, {
@@ -2839,34 +3304,59 @@ function saveCustomTemplate() {
         if (response.ok && data.success) {
             showAlert('success', data.message || '{{ __("Template created successfully") }}');
             
-            // Force close modal
+            // Force close modal with multiple methods
             const modalElement = document.getElementById('createTemplateModal');
-            const modal = bootstrap.Modal.getInstance(modalElement);
-            if (modal) {
-                modal.hide();
-            } else {
-                // Fallback: manually hide modal
-                modalElement.classList.remove('show');
-                modalElement.style.display = 'none';
-                document.body.classList.remove('modal-open');
-                const backdrop = document.querySelector('.modal-backdrop');
-                if (backdrop) backdrop.remove();
+            if (modalElement) {
+                // Method 1: Bootstrap Modal instance
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) {
+                    modal.hide();
+                }
+                
+                // Method 2: Fallback manual close
+                setTimeout(() => {
+                    modalElement.classList.remove('show');
+                    modalElement.style.display = 'none';
+                    modalElement.setAttribute('aria-hidden', 'true');
+                    modalElement.removeAttribute('aria-modal');
+                    
+                    // Remove backdrop
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) backdrop.remove();
+                    
+                    // Clean body classes
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                }, 100);
             }
             
             // Reset form
             resetCreateTemplateForm();
             
             // Reload page after short delay
-            setTimeout(() => location.reload(), 1000);
+            setTimeout(() => location.reload(), 1500);
         } else {
-            // Show detailed error
+            // Show detailed error with better formatting
             let errorMessage = data.message || '{{ __("Failed to create template") }}';
+            
+            // Handle validation errors
             if (data.errors) {
-                const errorList = Object.values(data.errors).flat().join(', ');
-                errorMessage += ': ' + errorList;
+                const errorList = Object.entries(data.errors).map(([field, errors]) => {
+                    return `${field}: ${Array.isArray(errors) ? errors.join(', ') : errors}`;
+                }).join('<br>');
+                errorMessage += '<br><small>' + errorList + '</small>';
             }
+            
+            // Log full error for debugging
+            console.error('Template creation failed:', {
+                status: response.status,
+                data: data,
+                templateType: templateType,
+                templateName: templateName
+            });
+            
             showAlert('error', errorMessage);
-            console.error('Template creation error:', data);
         }
     })
     .catch(error => {
@@ -3217,6 +3707,197 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </script>
 
+<!-- Custom Section Modal -->
+<div class="modal fade" id="customSectionModal" tabindex="-1" aria-labelledby="customSectionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="customSectionModalLabel">
+                    <i class="fas fa-code me-2"></i>{{ __('Create Custom Section') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="customSectionForm" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- Basic Info -->
+                        <div class="col-12 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>{{ __('Basic Information') }}</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="sectionName" class="form-label">{{ __('Section Name') }} <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="sectionName" name="name" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="sectionType" class="form-label">{{ __('Section Type') }}</label>
+                                                <select class="form-select" id="sectionType" name="sectionType">
+                                                    <option value="content">{{ __('Content Section') }}</option>
+                                                    <option value="hero">{{ __('Hero Section') }}</option>
+                                                    <option value="services">{{ __('Services Section') }}</option>
+                                                    <option value="portfolio">{{ __('Portfolio Section') }}</option>
+                                                    <option value="contact">{{ __('Contact Section') }}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="mb-3">
+                                                <label for="sectionDescription" class="form-label">{{ __('Description') }}</label>
+                                                <textarea class="form-control" id="sectionDescription" name="description" rows="2"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Custom Code -->
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-code me-2"></i>{{ __('Custom Code - Full Control') }}</h6>
+                                    <small class="text-muted">{{ __('Write your own HTML, CSS, and JavaScript - You control everything!') }}</small>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <!-- HTML -->
+                                        <div class="col-12 mb-4">
+                                            <label for="customHtml" class="form-label">{{ __('Custom HTML') }}</label>
+                                            <textarea class="form-control font-monospace" id="customHtml" name="custom_html" rows="8" 
+                                                placeholder="<section class='my-section'>
+    <div class='container'>
+        <h2>Your Amazing Title</h2>
+        <p>Your content goes here...</p>
+        <img src='/path/to/image.jpg' alt='Image' />
+        <button class='btn btn-primary'>Call to Action</button>
+    </div>
+</section>"></textarea>
+                                        </div>
+
+                                        <!-- CSS -->
+                                        <div class="col-md-6 mb-3">
+                                            <label for="customCss" class="form-label">{{ __('Custom CSS') }}</label>
+                                            <textarea class="form-control font-monospace" id="customCss" name="custom_css" rows="12" 
+                                                placeholder=".my-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 80px 0;
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+.my-section h2 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    animation: fadeInUp 1s ease-out;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.my-section img {
+    max-width: 100%;
+    border-radius: 15px;
+    transition: transform 0.3s ease;
+}
+
+.my-section img:hover {
+    transform: scale(1.05);
+}"></textarea>
+                                        </div>
+
+                                        <!-- JavaScript -->
+                                        <div class="col-md-6 mb-3">
+                                            <label for="customJs" class="form-label">{{ __('Custom JavaScript') }}</label>
+                                            <textarea class="form-control font-monospace" id="customJs" name="custom_js" rows="12" 
+                                                placeholder="// Your custom JavaScript - Add interactions!
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Smooth animations on scroll
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    });
+    
+    // Observe all elements in your section
+    document.querySelectorAll('.my-section *').forEach(el => {
+        observer.observe(el);
+    });
+    
+    // Click interactions
+    document.querySelector('.my-section button')?.addEventListener('click', function() {
+        alert('Button clicked! Add your custom action here.');
+    });
+    
+});"></textarea>
+                                        </div>
+                                    </div>
+
+                                    <!-- Additional Fields -->
+                                    <div class="row mt-4">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="titleEn" class="form-label">{{ __('Title (Optional)') }}</label>
+                                                <input type="text" class="form-control" id="titleEn" name="title_en" placeholder="Use in HTML as needed">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="contentEn" class="form-label">{{ __('Content (Optional)') }}</label>
+                                                <input type="text" class="form-control" id="contentEn" name="content_en" placeholder="Use in HTML as needed">
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="mb-3">
+                                                <label for="sectionImages" class="form-label">{{ __('Upload Images (Optional)') }}</label>
+                                                <input type="file" class="form-control" id="sectionImages" name="images[]" accept="image/*" multiple>
+                                                <small class="text-muted">{{ __('Upload images and reference them in your HTML') }}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Code Tips -->
+                                    <div class="alert alert-success mt-4">
+                                        <h6><i class="fas fa-rocket me-2"></i>{{ __('You Have Full Control!') }}</h6>
+                                        <ul class="mb-0">
+                                            <li>{{ __('Write any HTML structure you want') }}</li>
+                                            <li>{{ __('Style with CSS - use animations, gradients, transforms') }}</li>
+                                            <li>{{ __('Add JavaScript for interactions and effects') }}</li>
+                                            <li>{{ __('Include external libraries if needed') }}</li>
+                                            <li>{{ __('Bootstrap 5 is available for responsive design') }}</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>{{ __('Cancel') }}
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>{{ __('Create Section') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 
 @endsection
