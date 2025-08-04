@@ -933,34 +933,9 @@
 
                             <!-- Content Container -->
                             <div id="sectionContentContainer">
-                                <!-- Language Tabs -->
-                                <ul class="nav nav-tabs mb-4" id="languageTabs" role="tablist">
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link active" id="english-tab" data-bs-toggle="tab" data-bs-target="#english" type="button" role="tab">
-                                            <i class="fas fa-flag me-1"></i>{{ __('English') }}
-                                        </button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link" id="arabic-tab" data-bs-toggle="tab" data-bs-target="#arabic" type="button" role="tab">
-                                            <i class="fas fa-flag me-1"></i>{{ __('Arabic') }}
-                                        </button>
-                                    </li>
-                                </ul>
-
-                                <!-- Language Content -->
-                                <div class="tab-content" id="languageTabContent">
-                                    <!-- English Content -->
-                                    <div class="tab-pane fade show active" id="english" role="tabpanel">
-                                        <div id="englishFields">
-                                            <!-- Dynamic fields will be generated here -->
-                                        </div>
-                                    </div>
-                                    <!-- Arabic Content -->
-                                    <div class="tab-pane fade" id="arabic" role="tabpanel">
-                                        <div id="arabicFields">
-                                            <!-- Dynamic fields will be generated here -->
-                                        </div>
-                                    </div>
+                                <!-- Content Fields -->
+                                <div id="contentFields" class="mb-4">
+                                    <!-- Dynamic fields will be generated here -->
                                 </div>
 
                                 <!-- Media Management -->
@@ -1024,27 +999,6 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Advanced Settings -->
-                                <div class="card mt-4">
-                                    <div class="card-header">
-                                        <h6 class="mb-0">
-                                            <i class="fas fa-code me-2"></i>{{ __('Advanced Settings') }}
-                                        </h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="mb-3">
-                                            <label for="customStyles" class="form-label">{{ __('Custom CSS') }}</label>
-                                            <textarea class="form-control font-monospace" id="customStyles" rows="4" 
-                                                    placeholder="/* {{ __('Enter custom CSS styles') }} */"></textarea>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="customScripts" class="form-label">{{ __('Custom JavaScript') }}</label>
-                                            <textarea class="form-control font-monospace" id="customScripts" rows="4" 
-                                                    placeholder="// {{ __('Enter custom JavaScript code') }}"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -1260,54 +1214,50 @@ function updateSectionInfo(section) {
 function generateDynamicFields(section) {
     const configurableFields = section.layout?.configurable_fields || {};
     
-    // Generate English fields
-    generateFieldsForLanguage('englishFields', configurableFields, 'en');
-    
-    // Generate Arabic fields  
-    generateFieldsForLanguage('arabicFields', configurableFields, 'ar');
+    // Generate content fields
+    generateContentFields('contentFields', configurableFields);
     
     // Generate media fields
     generateMediaFields(section);
 }
 
-function generateFieldsForLanguage(containerId, configurableFields, lang) {
+function generateContentFields(containerId, configurableFields) {
     const container = document.getElementById(containerId);
-    const isRTL = lang === 'ar';
     let fieldsHtml = '';
     
     if (Object.keys(configurableFields).length === 0) {
         // Default fields if no configurable fields are defined
         fieldsHtml = `
             <div class="mb-3">
-                <label for="title_${lang}" class="form-label">{{ __('Title') }}</label>
-                <input type="text" class="form-control" id="title_${lang}" 
-                       placeholder="{{ __('Enter title') }}" ${isRTL ? 'dir="rtl"' : ''}>
+                <label for="title" class="form-label">{{ __('Title') }}</label>
+                <input type="text" class="form-control" id="title" 
+                       placeholder="{{ __('Enter title') }}">
             </div>
             <div class="mb-3">
-                <label for="subtitle_${lang}" class="form-label">{{ __('Subtitle') }}</label>
-                <input type="text" class="form-control" id="subtitle_${lang}" 
-                       placeholder="{{ __('Enter subtitle') }}" ${isRTL ? 'dir="rtl"' : ''}>
+                <label for="subtitle" class="form-label">{{ __('Subtitle') }}</label>
+                <input type="text" class="form-control" id="subtitle" 
+                       placeholder="{{ __('Enter subtitle') }}">
             </div>
             <div class="mb-3">
-                <label for="description_${lang}" class="form-label">{{ __('Description') }}</label>
-                <textarea class="form-control" id="description_${lang}" rows="4" 
-                          placeholder="{{ __('Enter description') }}" ${isRTL ? 'dir="rtl"' : ''}></textarea>
+                <label for="description" class="form-label">{{ __('Description') }}</label>
+                <textarea class="form-control" id="description" rows="4" 
+                          placeholder="{{ __('Enter description') }}"></textarea>
             </div>
             <div class="mb-3">
-                <label for="button_text_${lang}" class="form-label">{{ __('Button Text') }}</label>
-                <input type="text" class="form-control" id="button_text_${lang}" 
-                       placeholder="{{ __('Enter button text') }}" ${isRTL ? 'dir="rtl"' : ''}>
+                <label for="button_text" class="form-label">{{ __('Button Text') }}</label>
+                <input type="text" class="form-control" id="button_text" 
+                       placeholder="{{ __('Enter button text') }}">
             </div>
             <div class="mb-3">
-                <label for="button_url_${lang}" class="form-label">{{ __('Button URL') }}</label>
-                <input type="url" class="form-control" id="button_url_${lang}" 
+                <label for="button_url" class="form-label">{{ __('Button URL') }}</label>
+                <input type="url" class="form-control" id="button_url" 
                        placeholder="{{ __('Enter button URL') }}">
             </div>
         `;
     } else {
         // Generate fields based on configurable_fields
         for (const [fieldName, fieldConfig] of Object.entries(configurableFields)) {
-            const fieldId = `${fieldName}_${lang}`;
+            const fieldId = fieldName;
             const label = fieldConfig.label || fieldName;
             const placeholder = fieldConfig.default || '';
             
@@ -1317,7 +1267,7 @@ function generateFieldsForLanguage(containerId, configurableFields, lang) {
                         <div class="mb-3">
                             <label for="${fieldId}" class="form-label">${label}</label>
                             <input type="text" class="form-control" id="${fieldId}" 
-                                   placeholder="${placeholder}" ${isRTL ? 'dir="rtl"' : ''}>
+                                   placeholder="${placeholder}">
                         </div>
                     `;
                     break;
@@ -1327,7 +1277,7 @@ function generateFieldsForLanguage(containerId, configurableFields, lang) {
                         <div class="mb-3">
                             <label for="${fieldId}" class="form-label">${label}</label>
                             <textarea class="form-control" id="${fieldId}" rows="4" 
-                                      placeholder="${placeholder}" ${isRTL ? 'dir="rtl"' : ''}></textarea>
+                                      placeholder="${placeholder}"></textarea>
                         </div>
                     `;
                     break;
@@ -1427,11 +1377,9 @@ function populateFieldData(section) {
     // Populate content data
     const contentData = section.content_data || section.content || {};
     
-    // Populate English fields
-    populateLanguageFields(contentData.en || {}, 'en');
-    
-    // Populate Arabic fields
-    populateLanguageFields(contentData.ar || {}, 'ar');
+    // Populate content fields - check both English and main content
+    const mainContent = contentData.en || contentData;
+    populateContentFields(mainContent);
     
     // Populate media fields
     if (contentData.image_url) {
@@ -1460,21 +1408,12 @@ function populateFieldData(section) {
         document.getElementById('paddingBottom').value = settings.padding_bottom;
         document.getElementById('paddingBottomValue').textContent = settings.padding_bottom + 'px';
     }
-    
-    // Populate custom styles and scripts
-    if (section.custom_styles) {
-        document.getElementById('customStyles').value = section.custom_styles;
-    }
-    if (section.custom_scripts) {
-        document.getElementById('customScripts').value = section.custom_scripts;
-    }
 }
 
-function populateLanguageFields(data, lang) {
+function populateContentFields(data) {
     // Try to populate fields based on data keys
     for (const [key, value] of Object.entries(data)) {
-        const fieldId = `${key}_${lang}`;
-        const field = document.getElementById(fieldId);
+        const field = document.getElementById(key);
         if (field) {
             field.value = value;
         }
@@ -1551,11 +1490,8 @@ function saveAdvancedEditSection() {
     // Collect form data
     const formData = new FormData();
     
-    // Collect content data for both languages
-    const contentData = {
-        en: collectLanguageData('en'),
-        ar: collectLanguageData('ar')
-    };
+    // Collect content data
+    const contentData = collectContentData();
     
     // Collect settings
     const settings = {
@@ -1577,8 +1513,6 @@ function saveAdvancedEditSection() {
     // Prepare form data
     formData.append('content_data', JSON.stringify(contentData));
     formData.append('settings', JSON.stringify(settings));
-    formData.append('custom_styles', document.getElementById('customStyles').value || '');
-    formData.append('custom_scripts', document.getElementById('customScripts').value || '');
     formData.append('tpl_layouts_id', layoutId);
     formData.append('_method', 'PUT');
     
@@ -1622,15 +1556,14 @@ function saveAdvancedEditSection() {
     });
 }
 
-function collectLanguageData(lang) {
+function collectContentData() {
     const data = {};
-    const container = document.getElementById(lang === 'en' ? 'englishFields' : 'arabicFields');
+    const container = document.getElementById('contentFields');
     const inputs = container.querySelectorAll('input, textarea');
     
     inputs.forEach(input => {
-        const fieldName = input.id.replace(`_${lang}`, '');
-        if (input.value.trim()) {
-            data[fieldName] = input.value.trim();
+        if (input.id && input.value.trim()) {
+            data[input.id] = input.value.trim();
         }
     });
     
