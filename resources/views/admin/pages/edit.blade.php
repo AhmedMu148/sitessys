@@ -516,6 +516,123 @@
 [dir="rtl"] .no-sections-text { text-align: right; }
 [dir="rtl"] .btn-add-first-section { font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
+/* Advanced Edit Modal Styles */
+.modal-xl { max-width: 90% !important; }
+
+.modal-header.bg-primary {
+    background: linear-gradient(135deg, #222e3c 0%, #2b3947 100%) !important;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.modal-body .row.g-0 { min-height: 600px; }
+
+.modal-body .col-lg-8 { 
+    max-height: 80vh; 
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #ccc #f1f1f1;
+}
+
+.modal-body .col-lg-4 {
+    background: linear-gradient(135deg, #f8faff 0%, #e3f2fd 100%);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.preview-container {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+#sectionPreview {
+    min-height: 200px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.form-control:focus, .form-range:focus {
+    border-color: #222e3c;
+    box-shadow: 0 0 0 0.2rem rgba(34, 46, 60, 0.25);
+}
+
+.form-control-color {
+    width: 100%;
+    height: 40px;
+    padding: 2px;
+}
+
+.nav-tabs .nav-link {
+    color: #64748b;
+    border: 1px solid transparent;
+    border-bottom: 2px solid transparent;
+}
+
+.nav-tabs .nav-link.active {
+    color: #222e3c;
+    background-color: #fff;
+    border-color: #dee2e6 #dee2e6 #fff;
+    border-bottom: 2px solid #222e3c;
+}
+
+.card {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: none;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #f8faff 0%, #e3f2fd 100%);
+    border-bottom: 1px solid rgba(34, 46, 60, 0.1);
+}
+
+.input-group-text {
+    background: #f8f9fa;
+    border-color: #dee2e6;
+    color: #6c757d;
+    font-size: 0.875rem;
+    min-width: 50px;
+    text-align: center;
+}
+
+.font-monospace {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.875rem;
+}
+
+/* Loading Animation */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Range Input Styling */
+.form-range {
+    height: 1rem;
+}
+
+.form-range::-webkit-slider-thumb {
+    background: #222e3c;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(34, 46, 60, 0.25);
+}
+
+.form-range::-moz-range-thumb {
+    background: #222e3c;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(34, 46, 60, 0.25);
+}
+
+/* Image Preview Styling */
+.img-thumbnail {
+    border: 2px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.img-thumbnail:hover {
+    border-color: #222e3c;
+    transform: scale(1.05);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .component-card { height: 260px; margin-bottom: 1rem; }
@@ -530,6 +647,14 @@
     .no-sections-title { font-size: 1.25rem; margin-bottom: 0.75rem; }
     .no-sections-text { font-size: 0.9rem; margin-bottom: 1.5rem; }
     .btn-add-first-section { padding: 0.6rem 1.5rem; font-size: 0.9rem; }
+    
+    /* Modal adjustments for mobile */
+    .modal-xl { max-width: 95% !important; }
+    .modal-body .row.g-0 { min-height: auto; }
+    .modal-body .col-lg-8, .modal-body .col-lg-4 { 
+        max-height: none; 
+        overflow-y: visible;
+    }
 }
 </style>
 @endsection
@@ -595,7 +720,7 @@
                                         <span class="visually-hidden">Actions</span>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="{{ route('admin.pages.sections.edit', ['page_id' => $page->id, 'section_id' => $section->id]) }}">
+                                        <li><a class="dropdown-item" href="#" onclick="editSection({{ $section->id }})">
                                             <i class="fas fa-edit"></i>{{ __('Edit') }}
                                         </a></li>
                                         <li><a class="dropdown-item" href="{{ route('admin.pages.sections.preview', ['page_id' => $page->id, 'section_id' => $section->id]) }}" target="_blank">
@@ -782,87 +907,188 @@
     </div>
 </div>
 
-<!-- Edit Section Modal -->
+<!-- Advanced Edit Section Modal -->
 <div class="modal fade" id="editSectionModal" tabindex="-1" aria-labelledby="editSectionModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editSectionModalLabel">{{ __('Edit Section') }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="editSectionModalLabel">
+                    <i class="fas fa-edit me-2"></i>{{ __('Edit Section Content') }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <form id="editSectionForm">
-                    <input type="hidden" id="editSectionId">
+            <div class="modal-body p-0">
+                <div class="row g-0">
+                    <!-- Left Side - Form -->
+                    <div class="col-lg-8 p-4">
+                        <form id="editSectionForm">
+                            <input type="hidden" id="editSectionId">
+                            <input type="hidden" id="editSectionLayoutId">
 
-                    <!-- Title Tabs -->
-                    <ul class="nav nav-tabs" id="languageTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="english-tab" data-bs-toggle="tab" data-bs-target="#english" type="button" role="tab">
-                                {{ __('English') }}
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="arabic-tab" data-bs-toggle="tab" data-bs-target="#arabic" type="button" role="tab">
-                                {{ __('Arabic') }}
-                            </button>
-                        </li>
-                    </ul>
+                            <!-- Loading Indicator -->
+                            <div id="sectionLoadingIndicator" class="text-center py-4 d-none">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <p class="mt-2">{{ __('Loading section data...') }}</p>
+                            </div>
 
-                    <div class="tab-content mt-3" id="languageTabContent">
-                        <div class="tab-pane fade show active" id="english" role="tabpanel">
-                            <div class="mb-3">
-                                <label for="titleEn" class="form-label">{{ __('Title (English)') }}</label>
-                                <input type="text" class="form-control" id="titleEn" placeholder="{{ __('Enter English title') }}">
+                            <!-- Content Container -->
+                            <div id="sectionContentContainer">
+                                <!-- Language Tabs -->
+                                <ul class="nav nav-tabs mb-4" id="languageTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="english-tab" data-bs-toggle="tab" data-bs-target="#english" type="button" role="tab">
+                                            <i class="fas fa-flag me-1"></i>{{ __('English') }}
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="arabic-tab" data-bs-toggle="tab" data-bs-target="#arabic" type="button" role="tab">
+                                            <i class="fas fa-flag me-1"></i>{{ __('Arabic') }}
+                                        </button>
+                                    </li>
+                                </ul>
+
+                                <!-- Language Content -->
+                                <div class="tab-content" id="languageTabContent">
+                                    <!-- English Content -->
+                                    <div class="tab-pane fade show active" id="english" role="tabpanel">
+                                        <div id="englishFields">
+                                            <!-- Dynamic fields will be generated here -->
+                                        </div>
+                                    </div>
+                                    <!-- Arabic Content -->
+                                    <div class="tab-pane fade" id="arabic" role="tabpanel">
+                                        <div id="arabicFields">
+                                            <!-- Dynamic fields will be generated here -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Media Management -->
+                                <div class="card mt-4">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-images me-2"></i>{{ __('Media Management') }}
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="mediaContainer">
+                                            <!-- Media fields will be generated dynamically -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Visual Settings -->
+                                <div class="card mt-4">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-palette me-2"></i>{{ __('Visual Settings') }}
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="primaryColor" class="form-label">{{ __('Primary Color') }}</label>
+                                                    <input type="color" class="form-control form-control-color" id="primaryColor" value="#007bff">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="bgColor" class="form-label">{{ __('Background Color') }}</label>
+                                                    <input type="color" class="form-control form-control-color" id="bgColor" value="#ffffff">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="textColor" class="form-label">{{ __('Text Color') }}</label>
+                                                    <input type="color" class="form-control form-control-color" id="textColor" value="#333333">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="paddingTop" class="form-label">{{ __('Top Padding') }}</label>
+                                                    <div class="input-group">
+                                                        <input type="range" class="form-range" id="paddingTop" min="0" max="200" value="50">
+                                                        <span class="input-group-text" id="paddingTopValue">50px</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="paddingBottom" class="form-label">{{ __('Bottom Padding') }}</label>
+                                                    <div class="input-group">
+                                                        <input type="range" class="form-range" id="paddingBottom" min="0" max="200" value="50">
+                                                        <span class="input-group-text" id="paddingBottomValue">50px</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Advanced Settings -->
+                                <div class="card mt-4">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-code me-2"></i>{{ __('Advanced Settings') }}
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="customStyles" class="form-label">{{ __('Custom CSS') }}</label>
+                                            <textarea class="form-control font-monospace" id="customStyles" rows="4" 
+                                                    placeholder="/* {{ __('Enter custom CSS styles') }} */"></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="customScripts" class="form-label">{{ __('Custom JavaScript') }}</label>
+                                            <textarea class="form-control font-monospace" id="customScripts" rows="4" 
+                                                    placeholder="// {{ __('Enter custom JavaScript code') }}"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label for="contentEn" class="form-label">{{ __('Content (English)') }}</label>
-                                <textarea class="form-control" id="contentEn" rows="4" placeholder="{{ __('Enter English content') }}"></textarea>
+                        </form>
+                    </div>
+                    
+                    <!-- Right Side - Preview -->
+                    <div class="col-lg-4 border-start bg-light">
+                        <div class="p-3">
+                            <h6 class="mb-3">
+                                <i class="fas fa-eye me-2"></i>{{ __('Live Preview') }}
+                            </h6>
+                            <div class="preview-container">
+                                <div id="sectionPreview" class="border rounded p-3 bg-white">
+                                    <div class="text-center text-muted">
+                                        <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                                        <p>{{ __('Select a section to see preview') }}</p>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="tab-pane fade" id="arabic" role="tabpanel">
-                            <div class="mb-3">
-                                <label for="titleAr" class="form-label">{{ __('Title (Arabic)') }}</label>
-                                <input type="text" class="form-control" id="titleAr" placeholder="{{ __('Enter Arabic title') }}" dir="rtl">
-                            </div>
-                            <div class="mb-3">
-                                <label for="contentAr" class="form-label">{{ __('Content (Arabic)') }}</label>
-                                <textarea class="form-control" id="contentAr" rows="4" placeholder="{{ __('Enter Arabic content') }}" dir="rtl"></textarea>
+                            
+                            <!-- Section Info -->
+                            <div class="mt-3">
+                                <div class="card">
+                                    <div class="card-body p-3">
+                                        <h6 class="card-title mb-2">{{ __('Section Information') }}</h6>
+                                        <div id="sectionInfo">
+                                            <!-- Section info will be populated here -->
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Media Settings -->
-                    <div class="mb-3">
-                        <label for="mediaUrl" class="form-label">{{ __('Media Settings') }}</label>
-                        <input type="url" class="form-control" id="mediaUrl" placeholder="{{ __('Image/Video URL') }}">
-                    </div>
-
-                    <!-- Color Settings -->
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="bgColor" class="form-label">{{ __('Background Color') }}</label>
-                                <input type="color" class="form-control" id="bgColor" value="#ffffff">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="textColor" class="form-label">{{ __('Text Color') }}</label>
-                                <input type="color" class="form-control" id="textColor" value="#000000">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Advanced Settings -->
-                    <div class="mb-3">
-                        <label for="customCode" class="form-label">{{ __('Custom CSS/JS (Optional)') }}</label>
-                        <textarea class="form-control" id="customCode" rows="3" placeholder="{{ __('Enter custom CSS or JavaScript') }}"></textarea>
-                    </div>
-                </form>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="saveEditSection()">{{ __('Save Changes') }}</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                <button type="button" class="btn btn-success" onclick="saveAdvancedEditSection()">
+                    <i class="fas fa-save me-1"></i>{{ __('Save Changes') }}
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>{{ __('Cancel') }}
+                </button>
             </div>
         </div>
     </div>
@@ -946,32 +1172,469 @@ function saveSection(){
 }
 
 function editSection(id){
-    const s = pageData.sections.find(x=>x.id===id); if(!s) return;
+    // Show modal first
+    const modal = new bootstrap.Modal(document.getElementById('editSectionModal'));
+    modal.show();
+    
+    // Show loading indicator
+    document.getElementById('sectionLoadingIndicator').classList.remove('d-none');
+    document.getElementById('sectionContentContainer').style.display = 'none';
+    
+    // Store section ID
     document.getElementById('editSectionId').value = id;
-    document.getElementById('titleEn').value = s.title_en || '';
-    document.getElementById('titleAr').value = s.title_ar || '';
-    document.getElementById('contentEn').value = s.content_en || '';
-    document.getElementById('contentAr').value = s.content_ar || '';
-    document.getElementById('mediaUrl').value = s.media_url || '';
-    document.getElementById('bgColor').value = s.bg_color || '#ffffff';
-    document.getElementById('textColor').value = s.text_color || '#000000';
-    document.getElementById('customCode').value = s.custom_code || '';
-    new bootstrap.Modal(document.getElementById('editSectionModal')).show();
+    
+    // Fetch section data from API
+    fetch(`/admin/pages/{{ $page->id }}/sections/${id}/content`, {
+        method: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Hide loading indicator
+        document.getElementById('sectionLoadingIndicator').classList.add('d-none');
+        document.getElementById('sectionContentContainer').style.display = 'block';
+        
+        if(data.success) {
+            populateSectionForm(data.section);
+        } else {
+            showAlert('error', data.message || '{{ __("Failed to load section data") }}');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('sectionLoadingIndicator').classList.add('d-none');
+        showAlert('error', '{{ __("An error occurred while loading section data") }}');
+    });
 }
 
-function saveEditSection(){
-    const id = parseInt(document.getElementById('editSectionId').value);
-    const s = pageData.sections.find(x=>x.id===id); if(!s) return;
-    s.title_en   = document.getElementById('titleEn').value;
-    s.title_ar   = document.getElementById('titleAr').value;
-    s.content_en = document.getElementById('contentEn').value;
-    s.content_ar = document.getElementById('contentAr').value;
-    s.media_url  = document.getElementById('mediaUrl').value;
-    s.bg_color   = document.getElementById('bgColor').value;
-    s.text_color = document.getElementById('textColor').value;
-    s.custom_code= document.getElementById('customCode').value;
-    bootstrap.Modal.getInstance(document.getElementById('editSectionModal')).hide();
-    showAlert('success', '{{ __("Section updated successfully") }}');
+function populateSectionForm(section) {
+    // Set section info
+    document.getElementById('editSectionId').value = section.id;
+    document.getElementById('editSectionLayoutId').value = section.tpl_layouts_id;
+    
+    // Update section info panel
+    updateSectionInfo(section);
+    
+    // Generate dynamic fields based on section's configurable_fields
+    generateDynamicFields(section);
+    
+    // Populate existing data
+    populateFieldData(section);
+    
+    // Setup live preview
+    setupLivePreview(section);
+    
+    // Setup range input listeners
+    setupRangeInputs();
+}
+
+function updateSectionInfo(section) {
+    const infoHtml = `
+        <div class="row">
+            <div class="col-6">
+                <small class="text-muted">{{ __('Section Name') }}</small>
+                <div class="fw-bold">${section.name}</div>
+            </div>
+            <div class="col-6">
+                <small class="text-muted">{{ __('Template') }}</small>
+                <div class="fw-bold">${section.layout?.name || 'Default'}</div>
+            </div>
+            <div class="col-6 mt-2">
+                <small class="text-muted">{{ __('Sort Order') }}</small>
+                <div class="fw-bold">${section.sort_order || 1}</div>
+            </div>
+            <div class="col-6 mt-2">
+                <small class="text-muted">{{ __('Status') }}</small>
+                <div class="fw-bold">
+                    ${section.status ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Inactive</span>'}
+                </div>
+            </div>
+        </div>
+    `;
+    document.getElementById('sectionInfo').innerHTML = infoHtml;
+}
+
+function generateDynamicFields(section) {
+    const configurableFields = section.layout?.configurable_fields || {};
+    
+    // Generate English fields
+    generateFieldsForLanguage('englishFields', configurableFields, 'en');
+    
+    // Generate Arabic fields  
+    generateFieldsForLanguage('arabicFields', configurableFields, 'ar');
+    
+    // Generate media fields
+    generateMediaFields(section);
+}
+
+function generateFieldsForLanguage(containerId, configurableFields, lang) {
+    const container = document.getElementById(containerId);
+    const isRTL = lang === 'ar';
+    let fieldsHtml = '';
+    
+    if (Object.keys(configurableFields).length === 0) {
+        // Default fields if no configurable fields are defined
+        fieldsHtml = `
+            <div class="mb-3">
+                <label for="title_${lang}" class="form-label">{{ __('Title') }}</label>
+                <input type="text" class="form-control" id="title_${lang}" 
+                       placeholder="{{ __('Enter title') }}" ${isRTL ? 'dir="rtl"' : ''}>
+            </div>
+            <div class="mb-3">
+                <label for="subtitle_${lang}" class="form-label">{{ __('Subtitle') }}</label>
+                <input type="text" class="form-control" id="subtitle_${lang}" 
+                       placeholder="{{ __('Enter subtitle') }}" ${isRTL ? 'dir="rtl"' : ''}>
+            </div>
+            <div class="mb-3">
+                <label for="description_${lang}" class="form-label">{{ __('Description') }}</label>
+                <textarea class="form-control" id="description_${lang}" rows="4" 
+                          placeholder="{{ __('Enter description') }}" ${isRTL ? 'dir="rtl"' : ''}></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="button_text_${lang}" class="form-label">{{ __('Button Text') }}</label>
+                <input type="text" class="form-control" id="button_text_${lang}" 
+                       placeholder="{{ __('Enter button text') }}" ${isRTL ? 'dir="rtl"' : ''}>
+            </div>
+            <div class="mb-3">
+                <label for="button_url_${lang}" class="form-label">{{ __('Button URL') }}</label>
+                <input type="url" class="form-control" id="button_url_${lang}" 
+                       placeholder="{{ __('Enter button URL') }}">
+            </div>
+        `;
+    } else {
+        // Generate fields based on configurable_fields
+        for (const [fieldName, fieldConfig] of Object.entries(configurableFields)) {
+            const fieldId = `${fieldName}_${lang}`;
+            const label = fieldConfig.label || fieldName;
+            const placeholder = fieldConfig.default || '';
+            
+            switch (fieldConfig.type) {
+                case 'text':
+                    fieldsHtml += `
+                        <div class="mb-3">
+                            <label for="${fieldId}" class="form-label">${label}</label>
+                            <input type="text" class="form-control" id="${fieldId}" 
+                                   placeholder="${placeholder}" ${isRTL ? 'dir="rtl"' : ''}>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'textarea':
+                    fieldsHtml += `
+                        <div class="mb-3">
+                            <label for="${fieldId}" class="form-label">${label}</label>
+                            <textarea class="form-control" id="${fieldId}" rows="4" 
+                                      placeholder="${placeholder}" ${isRTL ? 'dir="rtl"' : ''}></textarea>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'url':
+                    fieldsHtml += `
+                        <div class="mb-3">
+                            <label for="${fieldId}" class="form-label">${label}</label>
+                            <input type="url" class="form-control" id="${fieldId}" 
+                                   placeholder="${placeholder}">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'email':
+                    fieldsHtml += `
+                        <div class="mb-3">
+                            <label for="${fieldId}" class="form-label">${label}</label>
+                            <input type="email" class="form-control" id="${fieldId}" 
+                                   placeholder="${placeholder}">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'number':
+                    fieldsHtml += `
+                        <div class="mb-3">
+                            <label for="${fieldId}" class="form-label">${label}</label>
+                            <input type="number" class="form-control" id="${fieldId}" 
+                                   placeholder="${placeholder}" 
+                                   min="${fieldConfig.min || 0}" 
+                                   max="${fieldConfig.max || 999999}">
+                        </div>
+                    `;
+                    break;
+            }
+        }
+    }
+    
+    container.innerHTML = fieldsHtml;
+}
+
+function generateMediaFields(section) {
+    const container = document.getElementById('mediaContainer');
+    const previewImage = section.layout?.preview_image;
+    
+    let mediaHtml = `
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="mainImage" class="form-label">{{ __('Main Image') }}</label>
+                    <input type="file" class="form-control" id="mainImage" accept="image/*" onchange="handleImagePreview(this, 'mainImagePreview')">
+                    <div class="form-text">{{ __('Upload a new image or keep the existing one') }}</div>
+                </div>
+                <div id="mainImagePreview" class="mt-2">
+                    ${previewImage ? `
+                        <div class="position-relative d-inline-block">
+                            <img src="${previewImage}" alt="Current Image" class="img-thumbnail" style="max-width: 150px; max-height: 100px;">
+                            <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0" 
+                                    onclick="removeImagePreview('mainImagePreview')" style="transform: translate(50%, -50%);">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="backgroundImage" class="form-label">{{ __('Background Image') }}</label>
+                    <input type="file" class="form-control" id="backgroundImage" accept="image/*" onchange="handleImagePreview(this, 'bgImagePreview')">
+                    <div class="form-text">{{ __('Optional background image') }}</div>
+                </div>
+                <div id="bgImagePreview" class="mt-2"></div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="imageUrl" class="form-label">{{ __('Or enter image URL') }}</label>
+                    <input type="url" class="form-control" id="imageUrl" placeholder="{{ __('https://example.com/image.jpg') }}">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="videoUrl" class="form-label">{{ __('Video URL (Optional)') }}</label>
+                    <input type="url" class="form-control" id="videoUrl" placeholder="{{ __('https://youtube.com/watch?v=...') }}">
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = mediaHtml;
+}
+
+function populateFieldData(section) {
+    // Populate content data
+    const contentData = section.content_data || section.content || {};
+    
+    // Populate English fields
+    populateLanguageFields(contentData.en || {}, 'en');
+    
+    // Populate Arabic fields
+    populateLanguageFields(contentData.ar || {}, 'ar');
+    
+    // Populate media fields
+    if (contentData.image_url) {
+        document.getElementById('imageUrl').value = contentData.image_url;
+    }
+    if (contentData.video_url) {
+        document.getElementById('videoUrl').value = contentData.video_url;
+    }
+    
+    // Populate style settings
+    const settings = section.settings || {};
+    if (settings.primary_color) {
+        document.getElementById('primaryColor').value = settings.primary_color;
+    }
+    if (settings.bg_color) {
+        document.getElementById('bgColor').value = settings.bg_color;
+    }
+    if (settings.text_color) {
+        document.getElementById('textColor').value = settings.text_color;
+    }
+    if (settings.padding_top) {
+        document.getElementById('paddingTop').value = settings.padding_top;
+        document.getElementById('paddingTopValue').textContent = settings.padding_top + 'px';
+    }
+    if (settings.padding_bottom) {
+        document.getElementById('paddingBottom').value = settings.padding_bottom;
+        document.getElementById('paddingBottomValue').textContent = settings.padding_bottom + 'px';
+    }
+    
+    // Populate custom styles and scripts
+    if (section.custom_styles) {
+        document.getElementById('customStyles').value = section.custom_styles;
+    }
+    if (section.custom_scripts) {
+        document.getElementById('customScripts').value = section.custom_scripts;
+    }
+}
+
+function populateLanguageFields(data, lang) {
+    // Try to populate fields based on data keys
+    for (const [key, value] of Object.entries(data)) {
+        const fieldId = `${key}_${lang}`;
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.value = value;
+        }
+    }
+}
+
+function setupLivePreview(section) {
+    // Basic preview setup - can be enhanced later
+    const previewContainer = document.getElementById('sectionPreview');
+    previewContainer.innerHTML = `
+        <div class="text-center">
+            <h5>${section.name}</h5>
+            <p class="text-muted">{{ __('Live preview will be updated as you edit') }}</p>
+            <div class="preview-placeholder bg-light p-3 rounded">
+                <i class="fas fa-eye fa-2x text-muted"></i>
+                <p class="mt-2 text-muted">{{ __('Preview will appear here') }}</p>
+            </div>
+        </div>
+    `;
+}
+
+function setupRangeInputs() {
+    // Setup padding range inputs
+    const paddingTop = document.getElementById('paddingTop');
+    const paddingBottom = document.getElementById('paddingBottom');
+    
+    if (paddingTop) {
+        paddingTop.addEventListener('input', function() {
+            document.getElementById('paddingTopValue').textContent = this.value + 'px';
+        });
+    }
+    
+    if (paddingBottom) {
+        paddingBottom.addEventListener('input', function() {
+            document.getElementById('paddingBottomValue').textContent = this.value + 'px';
+        });
+    }
+}
+
+function handleImagePreview(input, previewId) {
+    const file = input.files[0];
+    const previewContainer = document.getElementById(previewId);
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewContainer.innerHTML = `
+                <div class="position-relative d-inline-block">
+                    <img src="${e.target.result}" alt="Preview" class="img-thumbnail" style="max-width: 150px; max-height: 100px;">
+                    <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0" 
+                            onclick="removeImagePreview('${previewId}')" style="transform: translate(50%, -50%);">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function removeImagePreview(previewId) {
+    document.getElementById(previewId).innerHTML = '';
+}
+
+function saveAdvancedEditSection() {
+    const sectionId = document.getElementById('editSectionId').value;
+    const layoutId = document.getElementById('editSectionLayoutId').value;
+    
+    if (!sectionId) {
+        showAlert('error', '{{ __("Section ID not found") }}');
+        return;
+    }
+    
+    // Collect form data
+    const formData = new FormData();
+    
+    // Collect content data for both languages
+    const contentData = {
+        en: collectLanguageData('en'),
+        ar: collectLanguageData('ar')
+    };
+    
+    // Collect settings
+    const settings = {
+        primary_color: document.getElementById('primaryColor').value,
+        bg_color: document.getElementById('bgColor').value,
+        text_color: document.getElementById('textColor').value,
+        padding_top: document.getElementById('paddingTop').value,
+        padding_bottom: document.getElementById('paddingBottom').value
+    };
+    
+    // Add media URLs
+    if (document.getElementById('imageUrl').value) {
+        contentData.image_url = document.getElementById('imageUrl').value;
+    }
+    if (document.getElementById('videoUrl').value) {
+        contentData.video_url = document.getElementById('videoUrl').value;
+    }
+    
+    // Prepare form data
+    formData.append('content_data', JSON.stringify(contentData));
+    formData.append('settings', JSON.stringify(settings));
+    formData.append('custom_styles', document.getElementById('customStyles').value || '');
+    formData.append('custom_scripts', document.getElementById('customScripts').value || '');
+    formData.append('tpl_layouts_id', layoutId);
+    formData.append('_method', 'PUT');
+    
+    // Add uploaded images
+    const mainImage = document.getElementById('mainImage').files[0];
+    if (mainImage) {
+        formData.append('main_image', mainImage);
+    }
+    
+    const bgImage = document.getElementById('backgroundImage').files[0];
+    if (bgImage) {
+        formData.append('background_image', bgImage);
+    }
+    
+    // Show loading state
+    showAlert('info', '{{ __("Saving section changes...") }}');
+    
+    // Make API call
+    fetch(`/admin/pages/{{ $page->id }}/sections/${sectionId}`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('success', '{{ __("Section updated successfully") }}');
+            bootstrap.Modal.getInstance(document.getElementById('editSectionModal')).hide();
+            
+            // Reload page to reflect changes
+            setTimeout(() => { location.reload(); }, 1000);
+        } else {
+            showAlert('error', data.message || '{{ __("Failed to update section") }}');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('error', '{{ __("An error occurred while updating section") }}');
+    });
+}
+
+function collectLanguageData(lang) {
+    const data = {};
+    const container = document.getElementById(lang === 'en' ? 'englishFields' : 'arabicFields');
+    const inputs = container.querySelectorAll('input, textarea');
+    
+    inputs.forEach(input => {
+        const fieldName = input.id.replace(`_${lang}`, '');
+        if (input.value.trim()) {
+            data[fieldName] = input.value.trim();
+        }
+    });
+    
+    return data;
 }
 
 function deleteSection(id){

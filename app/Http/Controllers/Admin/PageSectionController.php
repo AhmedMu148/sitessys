@@ -11,6 +11,8 @@ use App\Models\SiteConfig;
 use App\Models\SiteImgMedia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class PageSectionController extends Controller
 {
@@ -146,31 +148,81 @@ class PageSectionController extends Controller
     /**
      * Update the specified section in storage
      */
-    public function update(Request $request, $pageId, $sectionId)
+    public function update(Request $request, $page_id, $section_id)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'tpl_layouts_id' => 'required|exists:tpl_layouts,id',
+        $validation = [
+            'tpl_layouts_id' => 'sometimes|exists:tpl_layouts,id',
+            'name' => 'sometimes|string|max:255',
             'content' => 'nullable|array',
+            'content_data' => 'nullable|json',
+            'settings' => 'nullable|json',
             'custom_styles' => 'nullable|string',
             'custom_scripts' => 'nullable|string',
-        ]);
+            'main_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'background_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048'
+        ];
+        
+        $request->validate($validation);
         
         $user = Auth::user();
         $site = $user->sites()->where('status_id', true)->first();
         
-        $section = TplPageSection::where('id', $sectionId)
-            ->where('page_id', $pageId)
+        $section = TplPageSection::where('id', $section_id)
+            ->where('page_id', $page_id)
             ->where('site_id', $site->id)
             ->firstOrFail();
 
-        $section->update([
-            'tpl_layouts_id' => $request->tpl_layouts_id,
-            'name' => $request->name,
-            'content' => $request->input('content', []),
-            'custom_styles' => $request->custom_styles,
-            'custom_scripts' => $request->custom_scripts,
-        ]);
+        // Prepare update data
+        $updateData = [];
+        
+        if ($request->has('name')) {
+            $updateData['name'] = $request->name;
+        }
+        
+        if ($request->has('tpl_layouts_id')) {
+            $updateData['tpl_layouts_id'] = $request->tpl_layouts_id;
+        }
+        
+        if ($request->has('content')) {
+            $updateData['content'] = $request->input('content', []);
+        }
+        
+        if ($request->has('content_data')) {
+            $updateData['content_data'] = json_decode($request->content_data, true);
+        }
+        
+        if ($request->has('settings')) {
+            $updateData['settings'] = json_decode($request->settings, true);
+        }
+        
+        if ($request->has('custom_styles')) {
+            $updateData['custom_styles'] = $request->custom_styles;
+        }
+        
+        if ($request->has('custom_scripts')) {
+            $updateData['custom_scripts'] = $request->custom_scripts;
+        }
+
+        // Handle image uploads
+        $contentData = $updateData['content_data'] ?? $section->content_data ?? [];
+        
+        if ($request->hasFile('main_image')) {
+            $mainImage = $request->file('main_image');
+            $imagePath = $mainImage->store('sections/images', 'public');
+            $contentData['main_image'] = '/storage/' . $imagePath;
+        }
+        
+        if ($request->hasFile('background_image')) {
+            $bgImage = $request->file('background_image');
+            $bgImagePath = $bgImage->store('sections/backgrounds', 'public');
+            $contentData['background_image'] = '/storage/' . $bgImagePath;
+        }
+        
+        if (!empty($contentData)) {
+            $updateData['content_data'] = $contentData;
+        }
+
+        $section->update($updateData);
         
         // Return JSON response for AJAX requests
         if ($request->ajax() || $request->wantsJson()) {
@@ -181,7 +233,7 @@ class PageSectionController extends Controller
             ]);
         }
         
-        return redirect()->route('admin.pages.sections.index', $pageId)
+        return redirect()->route('admin.pages.sections.index', $page_id)
             ->with('success', 'Section updated successfully!');
     }
 
@@ -401,7 +453,7 @@ class PageSectionController extends Controller
     {
         try {
             // Log the incoming request for debugging
-            \Log::info('Reorder request received', [
+            Log::info('Reorder request received', [
                 'page_id' => $pageId,
                 'section_orders' => $request->input('section_orders', [])
             ]);
@@ -421,7 +473,7 @@ class PageSectionController extends Controller
                     $newOrder = $orderData['order'];
                     
                     // Log each update
-                    \Log::info('Updating section order', [
+                    Log::info('Updating section order', [
                         'section_id' => $sectionId,
                         'new_order' => $newOrder,
                         'page_id' => $pageId
@@ -432,10 +484,10 @@ class PageSectionController extends Controller
                         ->where('page_id', $pageId)
                         ->update(['sort_order' => $newOrder]);
                         
-                    \Log::info('Section update result', ['updated_rows' => $updated]);
+                    Log::info('Section update result', ['updated_rows' => $updated]);
                 } else {
                     // Format: [1, 2, 3] (section IDs in order)
-                    \Log::error('Invalid section order format', ['order_data' => $orderData]);
+                    Log::error('Invalid section order format', ['order_data' => $orderData]);
                     return response()->json(['error' => 'Invalid section order format.'], 400);
                 }
             }
@@ -446,7 +498,7 @@ class PageSectionController extends Controller
             ]);
             
         } catch (\Exception $e) {
-            \Log::error('Reorder error', [
+            Log::error('Reorder error', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -571,34 +623,65 @@ class PageSectionController extends Controller
     }
 
     /**
-     * Get section content for specific language
+     * Get section content for specific language and editing modal
      */
-    public function getContent($pageId, $sectionId, $language = 'en')
+    public function getContent($page_id, $section_id, $language = 'en')
     {
-        $user = Auth::user();
-        $site = $user->sites()->where('status_id', true)->first();
-        
-        if (!$site) {
-            return response()->json(['error' => 'No active site found.'], 404);
-        }
+        try {
+            $user = Auth::user();
+            $site = $user->sites()->where('status_id', true)->first();
+            
+            if (!$site) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No active site found.'
+                ], 404);
+            }
 
-        $section = TplPageSection::where('id', $sectionId)
-            ->where('page_id', $pageId)
-            ->where('site_id', $site->id)
-            ->with('layout')
-            ->firstOrFail();
+            $section = TplPageSection::where('id', $section_id)
+                ->where('page_id', $page_id)
+                ->where('site_id', $site->id)
+                ->with(['layout' => function($query) {
+                    $query->select('*');
+                }])
+                ->firstOrFail();
 
-        $content = $section->content[$language] ?? [];
-
-        return response()->json([
-            'success' => true,
-            'content' => $content,
-            'section' => [
+            // Enhanced section data for the advanced modal
+            $sectionData = [
                 'id' => $section->id,
                 'name' => $section->name,
-                'template' => $section->layout->name
-            ]
-        ]);
+                'tpl_layouts_id' => $section->tpl_layouts_id,
+                'content' => $section->content,
+                'content_data' => $section->content_data,
+                'settings' => $section->settings,
+                'custom_styles' => $section->custom_styles,
+                'custom_scripts' => $section->custom_scripts,
+                'status' => $section->status,
+                'sort_order' => $section->sort_order,
+                'layout' => [
+                    'id' => $section->layout->id,
+                    'name' => $section->layout->name,
+                    'tpl_id' => $section->layout->tpl_id,
+                    'preview_image' => $section->layout->preview_image,
+                    'configurable_fields' => $section->layout->configurable_fields,
+                    'default_config' => $section->layout->default_config,
+                    'path' => $section->layout->path
+                ]
+            ];
+
+            return response()->json([
+                'success' => true,
+                'section' => $sectionData,
+                'content' => $section->content[$language] ?? [],
+                'message' => 'Section data loaded successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load section data: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

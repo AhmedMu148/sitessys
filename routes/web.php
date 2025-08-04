@@ -117,7 +117,6 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() 
 
     
     // Page Sections Management
-    Route::resource('page-sections', PageSectionController::class);
     Route::prefix('pages/{page_id}/sections')->name('pages.sections.')->group(function () {
         Route::get('/', [PageSectionController::class, 'index'])->name('index');
         Route::get('create', [PageSectionController::class, 'create'])->name('create');
