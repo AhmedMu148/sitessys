@@ -94,6 +94,255 @@
 .me-1 { margin-right: 0.25rem !important; }
 .me-2 { margin-right: 0.5rem !important; }
 
+/* ===================== Template Selection Modal Styles ===================== */
+.template-selection-card {
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 320px;
+    overflow: hidden;
+    position: relative;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+.template-selection-card:hover {
+    border-color: #222e3c;
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(34, 46, 60, 0.18);
+}
+
+.template-selection-card.selected {
+    border-color: #10b981;
+    box-shadow: 0 12px 30px rgba(16, 185, 129, 0.3);
+    background: linear-gradient(145deg, #f0fdf4 0%, #dcfce7 100%);
+    transform: translateY(-6px);
+}
+
+.template-card-header {
+    height: 200px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f8faff 0%, #e3f2fd 100%);
+}
+
+.template-preview-image {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.template-preview-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.template-selection-card:hover .template-preview-image img {
+    transform: scale(1.08);
+}
+
+.template-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f8faff 0%, #e3f2fd 100%);
+    color: #64748b;
+}
+
+.template-fallback i {
+    margin-bottom: 8px;
+    color: #94a3b8;
+}
+
+.template-fallback .template-type-text {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-top: 8px;
+}
+
+.template-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(34, 46, 60, 0.9) 0%, rgba(16, 185, 129, 0.9) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.template-selection-card:hover .template-overlay {
+    opacity: 1;
+}
+
+.template-overlay i {
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.template-card-body {
+    padding: 1.25rem;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: white;
+}
+
+.template-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+}
+
+.template-description {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    flex-grow: 1;
+}
+
+.template-meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.template-meta .badge {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.7rem;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.template-meta .badge.bg-primary {
+    background: linear-gradient(135deg, #222e3c 0%, #2b3947 100%) !important;
+}
+
+.template-meta .badge.bg-secondary {
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%) !important;
+}
+
+/* Section Templates Container */
+.section-templates-container {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.section-templates-container::-webkit-scrollbar {
+    width: 10px;
+}
+
+.section-templates-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 5px;
+}
+
+.section-templates-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+    border-radius: 5px;
+}
+
+.section-templates-container::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+}
+
+/* Search and Filter Styling */
+.input-group-text {
+    background: white;
+    border-color: #e2e8f0;
+    color: #6c757d;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.25);
+}
+
+/* Selected Template Info */
+#selectedTemplateInfo .alert {
+    border-left: 4px solid #10b981;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+
+/* Loading States */
+.btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Empty State Styling */
+.no-templates-state {
+    padding: 3rem 2rem;
+    text-align: center;
+    color: #64748b;
+}
+
+.no-templates-state i {
+    color: #cbd5e1;
+    margin-bottom: 1rem;
+}
+
+/* Modal Enhancements */
+.modal-header {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-footer.bg-light {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .template-selection-card {
+        height: 250px;
+        margin-bottom: 1rem;
+    }
+    
+    .template-card-header {
+        height: 140px;
+    }
+    
+    .template-card-body {
+        height: 110px;
+        padding: 0.75rem;
+    }
+    
+    .template-name {
+        font-size: 0.9rem;
+    }
+    
+    .template-description {
+        font-size: 0.8rem;
+    }
+}
+
 /* ===================== Component Cards ===================== */
 .component-card {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -869,39 +1118,137 @@
 
 <!-- Add Section Modal -->
 <div class="modal fade" id="addSectionModal" tabindex="-1" aria-labelledby="addSectionModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addSectionModalLabel">{{ __('Add New Section') }}</h5>
+                <h5 class="modal-title" id="addSectionModalLabel">
+                    <i class="fas fa-plus me-2"></i>{{ __('Add Section to Page') }}
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="sectionForm">
-                    <div class="mb-3">
-                        <label for="sectionType" class="form-label">{{ __('Section Type') }}</label>
-                        <select class="form-control" id="sectionType" required>
-                            <option value="">{{ __('Select Section Type') }}</option>
-                            <option value="hero">{{ __('Hero Section') }}</option>
-                            <option value="slider">{{ __('Slider Section') }}</option>
-                            <option value="testimonial">{{ __('Testimonial Section') }}</option>
-                            <option value="services">{{ __('Services Section') }}</option>
-                            <option value="about">{{ __('About Section') }}</option>
-                            <option value="contact">{{ __('Contact Section') }}</option>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {{ __('Choose a section template from the available templates below. Click on any template to add it to your page.') }}
+                </div>
+                
+                <!-- Search and Filter -->
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0 ps-0" id="sectionTemplateSearch" 
+                                   placeholder="{{ __('Search section templates...') }}" style="box-shadow: none;">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select" id="sectionTemplateFilter" style="border-color: #e2e8f0;">
+                            <option value="">{{ __('All Categories') }}</option>
+                            <option value="hero">{{ __('Hero Sections') }}</option>
+                            <option value="about">{{ __('About Sections') }}</option>
+                            <option value="services">{{ __('Service Sections') }}</option>
+                            <option value="contact">{{ __('Contact Sections') }}</option>
+                            <option value="gallery">{{ __('Gallery Sections') }}</option>
+                            <option value="testimonial">{{ __('Testimonial Sections') }}</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label for="sectionName" class="form-label">{{ __('Section Name') }}</label>
-                        <input type="text" class="form-control" id="sectionName" required placeholder="{{ __('Enter section name') }}">
+                </div>
+
+                <!-- Section Templates Grid -->
+                <div class="section-templates-container" style="max-height: 500px; overflow-y: auto;">
+                    <div class="row" id="sectionTemplatesGrid">
+                        @if(isset($sectionLayouts) && $sectionLayouts->count() > 0)
+                            @foreach($sectionLayouts as $template)
+                                <div class="col-lg-4 col-md-6 mb-4 section-template-item" 
+                                     data-template-id="{{ $template->id }}"
+                                     data-template-name="{{ strtolower($template->name) }}"
+                                     data-template-type="{{ $template->tpl_id ?? '' }}">
+                                    <div class="template-selection-card" onclick="selectSectionTemplate({{ $template->id }}, '{{ addslashes($template->name) }}')">
+                                        <div class="template-card-header">
+                                            @if($template->preview_image)
+                                                <div class="template-preview-image">
+                                                    <img src="{{ $template->preview_image }}" alt="{{ $template->name }}" 
+                                                         onerror="this.style.display='none'; this.parentElement.querySelector('.template-fallback').style.display='flex';">
+                                                    <div class="template-fallback" style="display: none;">
+                                                        <i class="fas fa-layer-group fa-3x"></i>
+                                                        <div class="template-type-text">{{ $template->name }}</div>
+                                                    </div>
+                                                </div>
+                                            @else
+                                                <div class="template-fallback">
+                                                    <i class="fas fa-layer-group fa-3x"></i>
+                                                    <div class="template-type-text">Section Template</div>
+                                                </div>
+                                            @endif
+                                            <div class="template-overlay">
+                                                <i class="fas fa-plus-circle fa-3x text-white"></i>
+                                            </div>
+                                        </div>
+                                        <div class="template-card-body">
+                                            <h6 class="template-name">{{ $template->name }}</h6>
+                                            <p class="template-description">{{ $template->description ?? __('Professional section template ready to use') }}</p>
+                                            <div class="template-meta">
+                                                <span class="badge bg-primary">{{ ucfirst($template->layout_type) }}</span>
+                                                @if($template->tpl_id)
+                                                    <span class="badge bg-secondary">{{ Str::limit($template->tpl_id, 15) }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="col-12 text-center py-5">
+                                <i class="fas fa-layer-group fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">{{ __('No Section Templates Available') }}</h5>
+                                <p class="text-muted">{{ __('Please create section templates first in the Templates page.') }}</p>
+                                <a href="{{ route('admin.templates.index') }}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-1"></i>{{ __('Create Templates') }}
+                                </a>
+                            </div>
+                        @endif
                     </div>
-                    <div class="mb-3">
-                        <label for="sectionOrder" class="form-label">{{ __('Sort Order') }}</label>
-                        <input type="number" class="form-control" id="sectionOrder" value="1" min="1">
+                </div>
+
+                <!-- Selected Template Info -->
+                <div id="selectedTemplateInfo" class="mt-4" style="display: none;">
+                    <div class="alert alert-success border-0" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-left: 4px solid #10b981 !important;">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle bg-success me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="fas fa-check text-white"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 text-success fw-bold">{{ __('Template Selected') }}</h6>
+                                <div id="selectedTemplateName" class="text-muted small"></div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <label class="form-label fw-semibold">{{ __('Section Name') }} <span class="text-muted">({{ __('Optional') }})</span></label>
+                                <input type="text" class="form-control border-success" id="customSectionName" 
+                                       placeholder="{{ __('Enter custom name for this section') }}" 
+                                       style="background-color: rgba(16, 185, 129, 0.05);">
+                                <small class="form-text text-muted">{{ __('Leave empty to use template name') }}</small>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="button" class="btn btn-outline-success btn-sm w-100" onclick="resetTemplateSelection()">
+                                    <i class="fas fa-undo me-1"></i>{{ __('Change Template') }}
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                </form>
+                </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-success" onclick="saveSection()">{{ __('Add Section') }}</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>{{ __('Cancel') }}
+                </button>
+                <button type="button" class="btn btn-success" id="addSectionButton" onclick="addSelectedSection()" style="display: none;">
+                    <i class="fas fa-plus me-1"></i>{{ __('Add Section') }}
+                    <span class="spinner-border spinner-border-sm ms-2 d-none" id="addSectionSpinner"></span>
+                </button>
             </div>
         </div>
     </div>
@@ -1062,34 +1409,67 @@ const pageData = {
 const availableLayouts = @json($sectionLayouts ?? []);
 const defaultLayoutId = availableLayouts.length > 0 ? availableLayouts[0].id : 1;
 
-// ===================== Functions =====================
-function duplicateCheck(componentType, sectionId = null){
-    const message = '{{ __("No duplicate sections found") }}';
-    showAlert('info', message);
-}
+// Global variables for template selection
+let selectedTemplateId = null;
+let selectedTemplateName = null;
 
-function addSection(){ new bootstrap.Modal(document.getElementById('addSectionModal')).show(); }
-
-function saveSection(){
-    const type  = document.getElementById('sectionType').value;
-    const name  = document.getElementById('sectionName').value;
-    const order = document.getElementById('sectionOrder').value;
-    
-    if(!type || !name){ 
-        showAlert('error', '{{ __("Please fill all required fields") }}'); 
-        return; 
+// ===================== Template Selection Functions =====================
+function addSection() { 
+    // Reset selection using the reset function
+    if (typeof resetModalState === 'function') {
+        resetModalState();
     }
     
-    // Show loading state
-    showAlert('info', '{{ __("Creating section...") }}');
+    // Show modal
+    new bootstrap.Modal(document.getElementById('addSectionModal')).show(); 
+}
+
+function selectSectionTemplate(templateId, templateName) {
+    // Remove previous selection
+    document.querySelectorAll('.template-selection-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    // Add selection to clicked template
+    event.currentTarget.classList.add('selected');
+    
+    // Store selection
+    selectedTemplateId = templateId;
+    selectedTemplateName = templateName;
+    
+    // Show selected template info
+    document.getElementById('selectedTemplateName').innerHTML = 
+        `<strong>${templateName}</strong> - Template ID: ${templateId}`;
+    document.getElementById('selectedTemplateInfo').style.display = 'block';
+    document.getElementById('addSectionButton').style.display = 'inline-block';
+    
+    // Auto-fill custom name with template name
+    document.getElementById('customSectionName').value = templateName;
+}
+
+function addSelectedSection() {
+    if (!selectedTemplateId) {
+        showAlert('error', '{{ __("Please select a template first") }}');
+        return;
+    }
+    
+    const customName = document.getElementById('customSectionName').value.trim();
+    const sectionName = customName || selectedTemplateName;
+    
+    // Show loading state on button
+    const addButton = document.getElementById('addSectionButton');
+    const spinner = document.getElementById('addSectionSpinner');
+    addButton.disabled = true;
+    spinner.classList.remove('d-none');
+    
+    // Show loading alert
+    showAlert('info', '{{ __("Adding section to page...") }}');
     
     // Prepare data for API call
     const sectionData = {
-        name: name,
-        type: type,
-        sort_order: parseInt(order),
+        name: sectionName,
+        tpl_layouts_id: selectedTemplateId,
         status: true,
-        tpl_layouts_id: defaultLayoutId, // Use default layout
         content: {},
         custom_styles: '',
         custom_scripts: ''
@@ -1106,23 +1486,118 @@ function saveSection(){
     })
     .then(response => response.json())
     .then(data => {
-        if(data.success) {
-            // Close modal and reset form
-            bootstrap.Modal.getInstance(document.getElementById('addSectionModal')).hide();
-            document.getElementById('sectionForm').reset();
+        // Hide loading state
+        addButton.disabled = false;
+        spinner.classList.add('d-none');
+        
+        if (data.success) {
+            showAlert('success', '{{ __("Section added successfully!") }}');
             
-            showAlert('success', '{{ __("Section created successfully") }}');
+            // Close modal properly
+            const modalElement = document.getElementById('addSectionModal');
+            const modalInstance = bootstrap.Modal.getInstance(modalElement);
+            if (modalInstance) {
+                modalInstance.hide();
+            } else {
+                // Fallback: create new instance and hide
+                const newModalInstance = new bootstrap.Modal(modalElement);
+                newModalInstance.hide();
+            }
+            
+            // Reset modal state
+            resetModalState();
             
             // Reload page to show new section
-            setTimeout(() => { location.reload(); }, 1000);
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
         } else {
-            showAlert('error', data.message || '{{ __("Failed to create section") }}');
+            showAlert('error', data.message || '{{ __("Failed to add section") }}');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showAlert('error', '{{ __("An error occurred while creating section") }}');
+        // Hide loading state
+        addButton.disabled = false;
+        spinner.classList.add('d-none');
+        showAlert('error', '{{ __("An error occurred while adding section") }}');
     });
+}
+
+// Function to reset modal state
+function resetModalState() {
+    selectedTemplateId = null;
+    selectedTemplateName = null;
+    document.getElementById('selectedTemplateInfo').style.display = 'none';
+    document.getElementById('addSectionButton').style.display = 'none';
+    document.getElementById('customSectionName').value = '';
+    
+    // Clear any previous selections
+    document.querySelectorAll('.template-selection-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+}
+
+// Function to reset template selection only (not the whole modal)
+function resetTemplateSelection() {
+    resetModalState();
+}
+
+// Template search and filter functionality
+function initializeTemplateSearch() {
+    const searchInput = document.getElementById('sectionTemplateSearch');
+    const filterSelect = document.getElementById('sectionTemplateFilter');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', filterTemplates);
+    }
+    
+    if (filterSelect) {
+        filterSelect.addEventListener('change', filterTemplates);
+    }
+}
+
+function filterTemplates() {
+    const searchTerm = document.getElementById('sectionTemplateSearch')?.value.toLowerCase() || '';
+    const selectedType = document.getElementById('sectionTemplateFilter')?.value.toLowerCase() || '';
+    
+    const templateItems = document.querySelectorAll('.section-template-item');
+    
+    templateItems.forEach(item => {
+        const templateName = item.dataset.templateName || '';
+        const templateType = item.dataset.templateType || '';
+        
+        let shouldShow = true;
+        
+        // Search filter
+        if (searchTerm && !templateName.includes(searchTerm)) {
+            shouldShow = false;
+        }
+        
+        // Type filter
+        if (selectedType && !templateType.toLowerCase().includes(selectedType)) {
+            shouldShow = false;
+        }
+        
+        // Show/hide template
+        if (shouldShow) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+// ===================== Legacy Functions (Updated) =====================
+function duplicateCheck(componentType, sectionId = null){
+    const message = '{{ __("No duplicate sections found") }}';
+    showAlert('info', message);
+}
+
+// Remove old saveSection function as it's replaced by addSelectedSection
+function saveSection() {
+    // This function is now handled by addSelectedSection
+    addSelectedSection();
 }
 
 function editSection(id){
@@ -1869,6 +2344,17 @@ document.addEventListener('DOMContentLoaded', function(){
         img.addEventListener('load',  function(){ const fb=this.parentElement.querySelector('.card-top-fallback'); if(fb) fb.style.display='none'; });
     });
     setTimeout(()=>{ imgs.forEach(img=>{ if(!img.src || img.src==='' || img.src===window.location.href){ img.dispatchEvent(new Event('error')); } }); },100);
+    
+    // Initialize template search and filter functionality
+    initializeTemplateSearch();
+    
+    // Add event listener for modal close to reset state
+    const addSectionModal = document.getElementById('addSectionModal');
+    if (addSectionModal) {
+        addSectionModal.addEventListener('hidden.bs.modal', function () {
+            resetModalState();
+        });
+    }
 });
 </script>
 @endsection

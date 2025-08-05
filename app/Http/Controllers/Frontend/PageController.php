@@ -208,15 +208,32 @@ class PageController extends Controller
                         // Try content_data first, then fallback to content
                         $contentData = null;
                         if ($section->content_data) {
-                            $contentData = json_decode($section->content_data, true);
+                            if (is_string($section->content_data)) {
+                                $contentData = json_decode($section->content_data, true);
+                            } elseif (is_array($section->content_data)) {
+                                $contentData = $section->content_data;
+                            }
                         }
                         
                         // If content_data is empty or invalid, use content field
                         if (!$contentData || !is_array($contentData)) {
-                            $contentData = json_decode($section->content, true) ?? [];
+                            if (is_string($section->content)) {
+                                $contentData = json_decode($section->content, true) ?? [];
+                            } elseif (is_array($section->content)) {
+                                $contentData = $section->content;
+                            } else {
+                                $contentData = [];
+                            }
                         }
                         
-                        $settings = json_decode($section->settings, true);
+                        $settings = null;
+                        if ($section->settings) {
+                            if (is_string($section->settings)) {
+                                $settings = json_decode($section->settings, true);
+                            } elseif (is_array($section->settings)) {
+                                $settings = $section->settings;
+                            }
+                        }
                         
                         // Ensure we have valid content data
                         if (!$contentData || !is_array($contentData)) {
