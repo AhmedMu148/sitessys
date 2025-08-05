@@ -979,19 +979,9 @@
                                         <li><a class="dropdown-item" href="#" onclick="toggleActive({{ $section->id }})">
                                             <i class="fas fa-toggle-on"></i>{{ ($section->status ?? true) ? __('Deactivate') : __('Activate') }}
                                         </a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="changeOrder({{ $section->id }})">
-                                            <i class="fas fa-sort"></i>{{ __('Change Order') }}
-                                        </a></li>
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="#" onclick="addSection()">
-                                            <i class="fas fa-plus"></i>{{ __('Add Section') }}
-                                        </a></li>
                                         <li><a class="dropdown-item text-danger" href="#" onclick="deleteSection({{ $section->id }})">
                                             <i class="fas fa-minus-circle"></i>{{ __('Remove from Page') }}
-                                        </a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="#" onclick="duplicateCheck('section', {{ $section->id }})">
-                                            <i class="fas fa-search"></i>{{ __('Duplicate Check') }}
                                         </a></li>
                                     </ul>
                                 </div>
@@ -1589,10 +1579,6 @@ function filterTemplates() {
 }
 
 // ===================== Legacy Functions (Updated) =====================
-function duplicateCheck(componentType, sectionId = null){
-    const message = '{{ __("No duplicate sections found") }}';
-    showAlert('info', message);
-}
 
 // Remove old saveSection function as it's replaced by addSelectedSection
 function saveSection() {
@@ -2124,61 +2110,6 @@ function toggleActive(id){
     .catch(error => {
         console.error('Error:', error);
         showAlert('error', '{{ __("An error occurred while updating section status") }}');
-    });
-}
-
-function changeOrder(id){
-    const val = prompt('{{ __("Enter new order (1-10):") }}','1');
-    if(val===null) return;
-    const order = parseInt(val);
-    if(isNaN(order)||order<1||order>10){ 
-        showAlert('error','{{ __("Please enter a valid order number (1-10)") }}'); 
-        return; 
-    }
-    
-    // Find the section to get required data
-    const section = pageData.sections.find(x=>x.id===id);
-    if(!section) {
-        showAlert('error', '{{ __("Section not found") }}');
-        return;
-    }
-    
-    // Show loading state
-    showAlert('info', '{{ __("Updating section order...") }}');
-    
-    // Make API call to update section with all required fields
-    fetch(`/admin/pages/{{ $page->id }}/sections/${id}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify({
-            name: section.name,
-            tpl_layouts_id: section.tpl_layouts_id || defaultLayoutId,
-            content: {},
-            custom_styles: '',
-            custom_scripts: '',
-            sort_order: order
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if(data.success) {
-            // Update local data
-            section.sort_order = order;
-            
-            showAlert('success', '{{ __("Section order updated successfully") }}');
-            
-            // Reload page to reflect changes
-            setTimeout(() => { location.reload(); }, 1000);
-        } else {
-            showAlert('error', data.message || '{{ __("Failed to update section order") }}');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showAlert('error', '{{ __("An error occurred while updating section order") }}');
     });
 }
 
