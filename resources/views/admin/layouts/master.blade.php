@@ -52,28 +52,37 @@
                         </a>
                     </li>
 
-                    <li class="sidebar-item {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
-                        <a class="sidebar-link" href="{{ route('admin.pages.index') }}">
-                            <i class="align-middle" data-feather="file-text"></i> <span class="align-middle">Pages</span>
-                        </a>
-                    </li>
-
-                    <li class="sidebar-item {{ request()->routeIs('admin.layouts.*') || request()->routeIs('admin.headers-footers.*') ? 'active' : '' }}">
-                        <a class="sidebar-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#layouts-collapse" aria-expanded="{{ request()->routeIs('admin.layouts.*') || request()->routeIs('admin.headers-footers.*') ? 'true' : 'false' }}">
-                            <i class="align-middle" data-feather="layout"></i> <span class="align-middle">Layouts</span>
+                    <li class="sidebar-item {{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.pages.*') || request()->routeIs('admin.layouts.*') || request()->routeIs('admin.headers-footers.*') || request()->routeIs('admin.colors.*') ? 'active' : '' }}">
+                        <a class="sidebar-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#settings-collapse" aria-expanded="{{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.pages.*') || request()->routeIs('admin.layouts.*') || request()->routeIs('admin.headers-footers.*') || request()->routeIs('admin.colors.*') ? 'true' : 'false' }}">
+                            <i class="align-middle" data-feather="settings"></i> <span class="align-middle">Settings</span>
                             <i class="align-middle ms-auto" data-feather="chevron-down"></i>
                         </a>
-                        <div class="collapse {{ request()->routeIs('admin.layouts.*') || request()->routeIs('admin.headers-footers.*') ? 'show' : '' }}" id="layouts-collapse">
+                        <div class="collapse {{ request()->routeIs('admin.settings.*') || request()->routeIs('admin.pages.*') || request()->routeIs('admin.layouts.*') || request()->routeIs('admin.headers-footers.*') || request()->routeIs('admin.colors.*') ? 'show' : '' }}" id="settings-collapse">
                             <ul class="sidebar-nav-sub">
-                                <li class="sidebar-item {{ request()->routeIs('admin.headers-footers.*') ? 'active' : '' }}">
-                                    <a class="sidebar-link" href="{{ route('admin.headers-footers.index') }}">
-                                        <i class="align-middle" data-feather="columns"></i> Headers & Footers
+                                <li class="sidebar-item {{ request()->routeIs('admin.tpl.*') || request()->routeIs('admin.pages.*') || request()->routeIs('admin.headers-footers.*') || request()->routeIs('admin.colors.*') ? 'active' : '' }}">
+                                    <a class="sidebar-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#tpl-collapse" aria-expanded="{{ request()->routeIs('admin.tpl.*') || request()->routeIs('admin.pages.*') || request()->routeIs('admin.headers-footers.*') || request()->routeIs('admin.colors.*') ? 'true' : 'false' }}">
+                                        <i class="align-middle" data-feather="layers"></i> <span class="align-middle">TPL</span>
+                                        <i class="align-middle ms-auto" data-feather="chevron-down"></i>
                                     </a>
-                                </li>
-                                <li class="sidebar-item {{ request()->routeIs('admin.layouts.index') || request()->routeIs('admin.layouts.create') || request()->routeIs('admin.layouts.edit') ? 'active' : '' }}">
-                                    <a class="sidebar-link" href="{{ route('admin.layouts.index') }}">
-                                        <i class="align-middle" data-feather="grid"></i> All Layouts
-                                    </a>
+                                    <div class="collapse {{ request()->routeIs('admin.tpl.*') || request()->routeIs('admin.pages.*') || request()->routeIs('admin.headers-footers.*') || request()->routeIs('admin.colors.*') ? 'show' : '' }}" id="tpl-collapse">
+                                        <ul class="sidebar-nav-sub">
+                                            <li class="sidebar-item {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
+                                                <a class="sidebar-link" href="{{ route('admin.pages.index') }}">
+                                                    <i class="align-middle" data-feather="file-text"></i> Pages
+                                                </a>
+                                            </li>
+                                            <li class="sidebar-item {{ request()->routeIs('admin.headers-footers.*') ? 'active' : '' }}">
+                                                <a class="sidebar-link" href="{{ route('admin.headers-footers.index') }}">
+                                                    <i class="align-middle" data-feather="columns"></i> Layout tabs
+                                                </a>
+                                            </li>
+                                            <li class="sidebar-item {{ request()->routeIs('admin.colors.*') ? 'active' : '' }}">
+                                                <a class="sidebar-link" href="{{ route('admin.colors.index') }}">
+                                                    <i class="align-middle" data-feather="palette"></i> Color palette
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </li>
                             </ul>
                         </div>
@@ -92,12 +101,6 @@
                     <li class="sidebar-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                         <a class="sidebar-link" href="{{ route('admin.users.index') }}">
                             <i class="align-middle" data-feather="users"></i> <span class="align-middle">Users</span>
-                        </a>
-                    </li>
-
-                    <li class="sidebar-item {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
-                        <a class="sidebar-link" href="{{ route('admin.settings.index') }}">
-                            <i class="align-middle" data-feather="settings"></i> <span class="align-middle">Settings</span>
                         </a>
                     </li>
                 </ul>
