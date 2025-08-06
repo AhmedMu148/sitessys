@@ -521,6 +521,30 @@
     border-color: #007bff !important;
     background: #f0f8ff;
 }
+
+/* Social Media Grid */
+.social-media-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.social-media-grid .card {
+    margin-bottom: 0;
+}
+
+.social-media-grid .form-label {
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.social-media-grid .form-label i {
+    margin-right: 0.5rem;
+    color: #007bff;
+}
 </style>
 @endsection
 
@@ -562,11 +586,6 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="footers-tab" data-bs-toggle="tab" data-bs-target="#footers" type="button" role="tab">
                 <i class="align-middle me-2" data-feather="layers"></i>Footers ({{ count($availableTemplates['global']) > 0 ? count(array_filter($availableTemplates['global'], fn($t) => $t['layout_type'] === 'footer')) : 0 }})
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="social-tab" data-bs-toggle="tab" data-bs-target="#social" type="button" role="tab">
-                <i class="align-middle me-2" data-feather="share-2"></i>Social Media
             </button>
         </li>
     </ul>
@@ -1025,6 +1044,12 @@
                                                     Edit Navigation
                                                 </a>
                                             </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#socialMediaModal">
+                                                    <i class="align-middle me-2" data-feather="share-2"></i>
+                                                    Edit Social Media
+                                                </a>
+                                            </li>
                                            
                                            
                                         </ul>
@@ -1134,6 +1159,12 @@
                                                 </a>
                                             </li>
                                             <li>
+                                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#socialMediaModal">
+                                                    <i class="align-middle me-2" data-feather="share-2"></i>
+                                                    Edit Social Media
+                                                </a>
+                                            </li>
+                                            <li>
                                                 <a class="dropdown-item" href="#" onclick="previewTemplate({{ $template['id'] }})">
                                                     <i class="align-middle me-2" data-feather="eye"></i>
                                                     Preview Template
@@ -1203,53 +1234,6 @@
             @endif
         </div>
 
-        {{-- Social Media Tab --}}
-        <div class="tab-pane fade" id="social" role="tabpanel">
-            <div class="row">
-                <div class="col-12">
-                    <h5 class="mb-3"><i class="align-middle" data-feather="share-2 text-primary me-2"></i>Social Media Links</h5>
-                    <p class="text-muted small mb-4">Configure your social media links. These will be displayed in your templates where the social media placeholder is used.</p>
-                </div>
-            </div>
-            
-            <form id="social-media-form">
-                @csrf
-                <div class="social-media-grid">
-                    @php
-                        $socialPlatforms = [
-                            'facebook' => 'Facebook',
-                            'twitter' => 'Twitter', 
-                            'instagram' => 'Instagram',
-                            'linkedin' => 'LinkedIn',
-                            'youtube' => 'YouTube',
-                            'github' => 'GitHub',
-                            'discord' => 'Discord',
-                            'tiktok' => 'TikTok',
-                            'pinterest' => 'Pinterest'
-                        ];
-                    @endphp
-                    
-                    @foreach($socialPlatforms as $platform => $label)
-                        <div class="card">
-                            <div class="card-body">
-                                <label for="{{ $platform }}" class="form-label">
-                                    <i class="align-middle" data-feather="{{ $platform === 'discord' ? 'message-circle' : ($platform === 'tiktok' ? 'video' : ($platform === 'pinterest' ? 'image' : $platform)) }} me-2"></i>{{ $label }}
-                                </label>
-                                <input type="url" class="form-control" id="{{ $platform }}" name="social_media[{{ $platform }}]" 
-                                       value="{{ $socialMediaConfig[$platform] ?? '' }}" 
-                                       placeholder="https://{{ $platform }}.com/username">
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-                
-                <div class="text-center mt-4">
-                    <button type="button" class="btn btn-primary" onclick="updateSocialMedia()">
-                        <i class="align-middle" data-feather="save me-2"></i>Save Social Media Links
-                    </button>
-                </div>
-            </form>
-        </div>
     </div>
 </div>
 
@@ -2012,6 +1996,61 @@ function addFooterLink() {
         submitButton.disabled = false;
     });
 }
+
+// Social Media Functions
+function updateSocialMedia() {
+    const form = document.getElementById('social-media-form');
+    const formData = new FormData(form);
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    // Get the save button for loading state
+    const saveButton = document.querySelector('#socialMediaModal .btn-primary');
+    const originalText = saveButton.textContent;
+    saveButton.textContent = 'Saving...';
+    saveButton.disabled = true;
+    
+    // Convert FormData to JSON
+    const data = {};
+    for (let [key, value] of formData.entries()) {
+        if (key.startsWith('social_media[') && key.endsWith(']')) {
+            // Extract platform name from social_media[platform] format
+            const platform = key.match(/social_media\[([^\]]+)\]/)[1];
+            data[platform] = value;
+        }
+    }
+    
+    fetch('/admin/headers-footers/social-media', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ social_media: data })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Social media links updated successfully!');
+            // Use Bootstrap 5 API to hide modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('socialMediaModal'));
+            if (modal) {
+                modal.hide();
+            }
+        } else {
+            alert('Error: ' + (data.message || 'Failed to update social media links'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while updating social media links.');
+    })
+    .finally(() => {
+        // Restore button state
+        saveButton.textContent = originalText;
+        saveButton.disabled = false;
+    });
+}
 </script>
 
 <!-- Header Navigation Modal -->
@@ -2255,6 +2294,62 @@ function addFooterLink() {
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" onclick="saveFooterNavigation()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Social Media Configuration Modal --}}
+<div class="modal fade" id="socialMediaModal" tabindex="-1" aria-labelledby="socialMediaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="socialMediaModalLabel">
+                    <i class="align-middle me-2" data-feather="share-2"></i>Social Media Configuration
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-4">Configure your social media links. These will be displayed in your footer templates where the social media placeholder is used.</p>
+                
+                <form id="social-media-form">
+                    @csrf
+                    <div class="social-media-grid">
+                        @php
+                            $socialPlatforms = [
+                                'facebook' => 'Facebook',
+                                'twitter' => 'Twitter', 
+                                'instagram' => 'Instagram',
+                                'linkedin' => 'LinkedIn',
+                                'youtube' => 'YouTube',
+                                'github' => 'GitHub',
+                                'discord' => 'Discord',
+                                'tiktok' => 'TikTok',
+                                'pinterest' => 'Pinterest'
+                            ];
+                        @endphp
+                        
+                        @foreach($socialPlatforms as $platform => $label)
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <label for="{{ $platform }}" class="form-label">
+                                        <i class="align-middle" data-feather="{{ $platform === 'discord' ? 'message-circle' : ($platform === 'tiktok' ? 'video' : ($platform === 'pinterest' ? 'image' : $platform)) }}" style="width: 16px; height: 16px;"></i>
+                                        {{ $label }}
+                                    </label>
+                                    <input type="url" class="form-control" id="{{ $platform }}" name="social_media[{{ $platform }}]" 
+                                           value="{{ $socialMediaConfig[$platform] ?? '' }}" 
+                                           placeholder="https://{{ $platform }}.com/username">
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="updateSocialMedia()">
+                    <i class="align-middle me-1" data-feather="save"></i>Save Social Media
+                </button>
             </div>
         </div>
     </div>
