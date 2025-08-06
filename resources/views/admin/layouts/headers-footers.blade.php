@@ -510,6 +510,17 @@
 [dir="rtl"] .dropdown-item:hover {
     transform: translateX(-4px);
 }
+
+/* Dashed border for add forms */
+.border-dashed {
+    border: 2px dashed #dee2e6 !important;
+    background: #f8f9fa;
+}
+
+.border-dashed:hover {
+    border-color: #007bff !important;
+    background: #f0f8ff;
+}
 </style>
 @endsection
 
@@ -551,11 +562,6 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="footers-tab" data-bs-toggle="tab" data-bs-target="#footers" type="button" role="tab">
                 <i class="align-middle me-2" data-feather="layers"></i>Footers ({{ count($availableTemplates['global']) > 0 ? count(array_filter($availableTemplates['global'], fn($t) => $t['layout_type'] === 'footer')) : 0 }})
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="navigation-tab" data-bs-toggle="tab" data-bs-target="#navigation" type="button" role="tab">
-                <i class="align-middle me-2" data-feather="menu"></i>Navigation & Links
             </button>
         </li>
         <li class="nav-item" role="presentation">
@@ -611,9 +617,9 @@
                                                 </li>
                                             @endif
                                             <li>
-                                                <a class="dropdown-item" href="#" onclick="copyTemplate({{ $template['id'] }}, 'header')">
-                                                    <i class="align-middle me-2" data-feather="copy"></i>
-                                                    Edit data
+                                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#headerNavModal">
+                                                    <i class="align-middle me-2" data-feather="menu"></i>
+                                                    Edit Navigation
                                                 </a>
                                             </li>
 
@@ -715,6 +721,12 @@
                                                 <a class="dropdown-item" href="#" onclick="editTemplate({{ $template['id'] }})">
                                                     <i class="align-middle me-2" data-feather="edit"></i>
                                                     Edit Template
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#headerNavModal">
+                                                    <i class="align-middle me-2" data-feather="menu"></i>
+                                                    Edit Navigation
                                                 </a>
                                             </li>
                                             <li>
@@ -1008,9 +1020,9 @@
                                                 </li>
                                             @endif
                                             <li>
-                                                <a class="dropdown-item" href="#" onclick="copyTemplate({{ $template['id'] }}, 'footer')">
-                                                    <i class="align-middle me-2" data-feather="copy"></i>
-                                                    Edit data
+                                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#footerNavModal">
+                                                    <i class="align-middle me-2" data-feather="layers"></i>
+                                                    Edit Navigation
                                                 </a>
                                             </li>
                                            
@@ -1116,6 +1128,12 @@
                                                 </a>
                                             </li>
                                             <li>
+                                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#footerNavModal">
+                                                    <i class="align-middle me-2" data-feather="layers"></i>
+                                                    Edit Navigation
+                                                </a>
+                                            </li>
+                                            <li>
                                                 <a class="dropdown-item" href="#" onclick="previewTemplate({{ $template['id'] }})">
                                                     <i class="align-middle me-2" data-feather="eye"></i>
                                                     Preview Template
@@ -1183,119 +1201,6 @@
                     @endforeach
                 </div>
             @endif
-        </div>
-
-        {{-- Navigation Tab --}}
-        <div class="tab-pane fade" id="navigation" role="tabpanel">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5 class="mb-3"><i class="align-middle" data-feather="menu text-primary me-2"></i>Header Navigation (Max 5 links)</h5>
-                    <div id="header-links">
-                        @foreach($navigationConfig['header_links'] ?? [] as $index => $link)
-                            <div class="nav-link-item" data-index="{{ $index }}">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="flex-grow-1">
-                                        <strong>{{ $link['title'] ?? $link['name'] ?? 'Untitled' }}</strong>
-                                        <div class="text-muted small">{{ $link['url'] ?? '#' }}</div>
-                                        @if($link['external'] ?? false)
-                                            <span class="badge bg-info badge-sm">External</span>
-                                        @endif
-                                        @if(!($link['active'] ?? true))
-                                            <span class="badge bg-secondary badge-sm">Inactive</span>
-                                        @endif
-                                    </div>
-                                    <div class="d-flex gap-2">
-                                        <button class="btn btn-sm btn-outline-secondary" onclick="toggleLinkStatus('header', {{ $index }}, {{ ($link['active'] ?? true) ? 'false' : 'true' }})">
-                                            @if($link['active'] ?? true)
-                                                <i class="align-middle" data-feather="eye"></i>
-                                            @else
-                                                <i class="align-middle" data-feather="eye-off"></i>
-                                            @endif
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger" onclick="removeLink('header', {{ $index }})">
-                                            <i class="align-middle" data-feather="trash-2"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                    
-                    @if(count($navigationConfig['header_links'] ?? []) < 5)
-                        <button class="btn btn-outline-primary btn-sm" onclick="showAddLinkModal('header')">
-                            <i class="align-middle" data-feather="plus me-1"></i>Add Header Link
-                        </button>
-                    @endif
-                </div>
-                
-                <div class="col-md-6">
-                    <h5 class="mb-3"><i class="align-middle" data-feather="layers text-primary me-2"></i>Footer Navigation (Max 10 links)</h5>
-                    <div id="footer-links">
-                        @foreach($navigationConfig['footer_links'] ?? [] as $index => $link)
-                            <div class="nav-link-item" data-index="{{ $index }}">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="flex-grow-1">
-                                        <strong>{{ $link['title'] ?? $link['name'] ?? 'Untitled' }}</strong>
-                                        <div class="text-muted small">{{ $link['url'] ?? '#' }}</div>
-                                        @if($link['external'] ?? false)
-                                            <span class="badge bg-info badge-sm">External</span>
-                                        @endif
-                                        @if(!($link['active'] ?? true))
-                                            <span class="badge bg-secondary badge-sm">Inactive</span>
-                                        @endif
-                                    </div>
-                                    <div class="d-flex gap-2">
-                                        <button class="btn btn-sm btn-outline-secondary" onclick="toggleLinkStatus('footer', {{ $index }}, {{ ($link['active'] ?? true) ? 'false' : 'true' }})">
-                                            @if($link['active'] ?? true)
-                                                <i class="align-middle" data-feather="eye"></i>
-                                            @else
-                                                <i class="align-middle" data-feather="eye-off"></i>
-                                            @endif
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger" onclick="removeLink('footer', {{ $index }})">
-                                            <i class="align-middle" data-feather="trash-2"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                    
-                    @if(count($navigationConfig['footer_links'] ?? []) < 10)
-                        <button class="btn btn-outline-primary btn-sm" onclick="showAddLinkModal('footer')">
-                            <i class="align-middle" data-feather="plus me-1"></i>Add Footer Link
-                        </button>
-                    @endif
-                </div>
-            </div>
-            
-            <div class="row mt-4">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <h6 class="card-title"><i class="align-middle" data-feather="settings me-2"></i>Authentication Display Settings</h6>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="show_auth_header" {{ ($navigationConfig['show_auth_in_header'] ?? true) ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="show_auth_header">
-                                            Show Login/Register/Profile in Header
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="show_auth_footer" {{ ($navigationConfig['show_auth_in_footer'] ?? true) ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="show_auth_footer">
-                                            Show Login/Register/Profile in Footer
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         {{-- Social Media Tab --}}
@@ -1401,7 +1306,7 @@
 </div>
 
 {{-- Add Link Modal --}}
-<div class="modal fade" id="addLinkModal" tabindex="-1">
+<div class="modal fade" id="addLinkModal" tabindex="-1" style="z-index: 1060;">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -1784,6 +1689,576 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Header Navigation Functions
+function saveHeaderNavigation() {
+    // Get authentication setting
+    const showAuthHeader = document.getElementById('show_auth_header').checked;
+    
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    // Prepare data for API call
+    const data = {
+        _token: csrfToken,
+        type: 'header',
+        show_auth_in_header: showAuthHeader
+    };
+    
+    // Make API call to save header navigation settings
+    fetch('/admin/headers-footers/update-navigation', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Header navigation settings saved successfully!');
+            $('#headerNavModal').modal('hide');
+        } else {
+            alert('Error: ' + (data.message || 'Failed to save header navigation settings'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while saving header navigation settings.');
+    });
+}
+
+// Footer Navigation Functions  
+function saveFooterNavigation() {
+    // Get authentication setting
+    const showAuthFooter = document.getElementById('show_auth_footer').checked;
+    
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    // Prepare data for API call
+    const data = {
+        _token: csrfToken,
+        type: 'footer',
+        show_auth_in_footer: showAuthFooter
+    };
+    
+    // Make API call to save footer navigation settings
+    fetch('/admin/headers-footers/update-navigation', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Footer navigation settings saved successfully!');
+            $('#footerNavModal').modal('hide');
+        } else {
+            alert('Error: ' + (data.message || 'Failed to save footer navigation settings'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while saving footer navigation settings.');
+    });
+}
+
+function toggleLinkStatus(type, index, status) {
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    // Prepare data for API call
+    const data = {
+        _token: csrfToken,
+        type: type,
+        index: index,
+        status: status === 'true'
+    };
+    
+    // Make API call to toggle link status
+    fetch('/admin/headers-footers/toggle-navigation-link', {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Refresh the page to show updated status
+            location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'Failed to toggle link status'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while toggling the link status.');
+    });
+}
+
+function removeLink(type, index) {
+    if(confirm('Are you sure you want to remove this link?')) {
+        // Get CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        
+        // Prepare data for API call
+        const data = {
+            _token: csrfToken,
+            type: type,
+            index: index
+        };
+        
+        // Make API call to remove link
+        fetch('/admin/headers-footers/remove-navigation-link', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Link removed successfully!');
+                // Refresh the page to show updated links
+                location.reload();
+            } else {
+                alert('Error: ' + (data.message || 'Failed to remove link'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while removing the link.');
+        });
+    }
+}
+
+function showAddLinkModal(type) {
+    // Implementation for adding new link
+    console.log(`Adding new ${type} link`);
+}
+
+// New inline form functions for Header
+function showAddHeaderForm() {
+    document.getElementById('add-header-link-form').style.display = 'block';
+    document.getElementById('show-add-header-form').style.display = 'none';
+    // Focus on first input
+    document.getElementById('header-link-title').focus();
+}
+
+function cancelAddHeaderLink() {
+    document.getElementById('add-header-link-form').style.display = 'none';
+    document.getElementById('show-add-header-form').style.display = 'block';
+    // Clear form
+    document.getElementById('header-link-title').value = '';
+    document.getElementById('header-link-url').value = '';
+    document.getElementById('header-link-external').checked = false;
+    document.getElementById('header-link-active').checked = true;
+}
+
+function addHeaderLink() {
+    const title = document.getElementById('header-link-title').value.trim();
+    const url = document.getElementById('header-link-url').value.trim();
+    const external = document.getElementById('header-link-external').checked;
+    const active = document.getElementById('header-link-active').checked;
+    
+    if (!title || !url) {
+        alert('Please fill in both title and URL');
+        return;
+    }
+    
+    // Show loading state
+    const submitButton = document.querySelector('#add-header-link-form .btn-success');
+    const originalText = submitButton.textContent;
+    submitButton.textContent = 'Adding...';
+    submitButton.disabled = true;
+    
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    // Prepare data for API call
+    const data = {
+        _token: csrfToken,
+        type: 'header',
+        title: title,
+        url: url,
+        external: external,
+        active: active
+    };
+    
+    // Make API call to save the link
+    fetch('/admin/headers-footers/add-navigation-link', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Header link added successfully!');
+            cancelAddHeaderLink();
+            
+            // Refresh the page to show new link
+            location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'Failed to add header link'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while adding the header link.');
+    })
+    .finally(() => {
+        // Restore button state
+        submitButton.textContent = originalText;
+        submitButton.disabled = false;
+    });
+}
+
+// New inline form functions for Footer
+function showAddFooterForm() {
+    document.getElementById('add-footer-link-form').style.display = 'block';
+    document.getElementById('show-add-footer-form').style.display = 'none';
+    // Focus on first input
+    document.getElementById('footer-link-title').focus();
+}
+
+function cancelAddFooterLink() {
+    document.getElementById('add-footer-link-form').style.display = 'none';
+    document.getElementById('show-add-footer-form').style.display = 'block';
+    // Clear form
+    document.getElementById('footer-link-title').value = '';
+    document.getElementById('footer-link-url').value = '';
+    document.getElementById('footer-link-external').checked = false;
+    document.getElementById('footer-link-active').checked = true;
+}
+
+function addFooterLink() {
+    const title = document.getElementById('footer-link-title').value.trim();
+    const url = document.getElementById('footer-link-url').value.trim();
+    const external = document.getElementById('footer-link-external').checked;
+    const active = document.getElementById('footer-link-active').checked;
+    
+    if (!title || !url) {
+        alert('Please fill in both title and URL');
+        return;
+    }
+    
+    // Show loading state
+    const submitButton = document.querySelector('#add-footer-link-form .btn-success');
+    const originalText = submitButton.textContent;
+    submitButton.textContent = 'Adding...';
+    submitButton.disabled = true;
+    
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    // Prepare data for API call
+    const data = {
+        _token: csrfToken,
+        type: 'footer',
+        title: title,
+        url: url,
+        external: external,
+        active: active
+    };
+    
+    // Make API call to save the link
+    fetch('/admin/headers-footers/add-navigation-link', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Footer link added successfully!');
+            cancelAddFooterLink();
+            
+            // Refresh the page to show new link
+            location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'Failed to add footer link'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while adding the footer link.');
+    })
+    .finally(() => {
+        // Restore button state
+        submitButton.textContent = originalText;
+        submitButton.disabled = false;
+    });
+}
 </script>
+
+<!-- Header Navigation Modal -->
+<div class="modal fade" id="headerNavModal" tabindex="-1" aria-labelledby="headerNavModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="headerNavModalLabel">
+                    <i class="align-middle me-2" data-feather="menu"></i>Header Navigation (Max 5 links)
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="header-links">
+                    @foreach($navigationConfig['header_links'] ?? [] as $index => $link)
+                        <div class="nav-link-item mb-3" data-index="{{ $index }}">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="flex-grow-1">
+                                            <strong>{{ $link['title'] ?? $link['name'] ?? 'Untitled' }}</strong>
+                                            <div class="text-muted small">{{ $link['url'] ?? '#' }}</div>
+                                            @if($link['external'] ?? false)
+                                                <span class="badge bg-info badge-sm">External</span>
+                                            @endif
+                                            @if(!($link['active'] ?? true))
+                                                <span class="badge bg-secondary badge-sm">Inactive</span>
+                                            @endif
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-sm btn-outline-secondary" onclick="toggleLinkStatus('header', {{ $index }}, {{ ($link['active'] ?? true) ? 'false' : 'true' }})">
+                                                @if($link['active'] ?? true)
+                                                    <i class="align-middle" data-feather="eye"></i>
+                                                @else
+                                                    <i class="align-middle" data-feather="eye-off"></i>
+                                                @endif
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="removeLink('header', {{ $index }})">
+                                                <i class="align-middle" data-feather="trash-2"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                
+                @if(count($navigationConfig['header_links'] ?? []) < 5)
+                    <div class="card border-dashed">
+                        <div class="card-body">
+                            <div id="add-header-link-form" style="display: none;">
+                                <h6 class="mb-3"><i class="align-middle me-2" data-feather="plus"></i>Add New Header Link</h6>
+                                <form>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="header-link-title" class="form-label">Link Title</label>
+                                                <input type="text" class="form-control" id="header-link-title" placeholder="About Us" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="header-link-url" class="form-label">URL</label>
+                                                <input type="text" class="form-control" id="header-link-url" placeholder="/about" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="header-link-external">
+                                                <label class="form-check-label" for="header-link-external">
+                                                    External Link (opens in new tab)
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="header-link-active" checked>
+                                                <label class="form-check-label" for="header-link-active">
+                                                    Active
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2 mt-3">
+                                        <button type="button" class="btn btn-success btn-sm" onclick="addHeaderLink()">
+                                            <i class="align-middle me-1" data-feather="check"></i>Add Link
+                                        </button>
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="cancelAddHeaderLink()">
+                                            <i class="align-middle me-1" data-feather="x"></i>Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                            <button id="show-add-header-form" class="btn btn-primary" onclick="showAddHeaderForm()">
+                                <i class="align-middle me-1" data-feather="plus"></i>Add Header Link
+                            </button>
+                        </div>
+                    </div>
+                @endif
+                
+                <div class="mt-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="card-title"><i class="align-middle me-2" data-feather="settings"></i>Authentication Display Settings</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="show_auth_header" {{ ($navigationConfig['show_auth_in_header'] ?? true) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="show_auth_header">
+                                    Show Login/Register/Profile in Header
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveHeaderNavigation()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer Navigation Modal -->
+<div class="modal fade" id="footerNavModal" tabindex="-1" aria-labelledby="footerNavModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="footerNavModalLabel">
+                    <i class="align-middle me-2" data-feather="layers"></i>Footer Navigation (Max 10 links)
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="footer-links">
+                    @foreach($navigationConfig['footer_links'] ?? [] as $index => $link)
+                        <div class="nav-link-item mb-3" data-index="{{ $index }}">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="flex-grow-1">
+                                            <strong>{{ $link['title'] ?? $link['name'] ?? 'Untitled' }}</strong>
+                                            <div class="text-muted small">{{ $link['url'] ?? '#' }}</div>
+                                            @if($link['external'] ?? false)
+                                                <span class="badge bg-info badge-sm">External</span>
+                                            @endif
+                                            @if(!($link['active'] ?? true))
+                                                <span class="badge bg-secondary badge-sm">Inactive</span>
+                                            @endif
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-sm btn-outline-secondary" onclick="toggleLinkStatus('footer', {{ $index }}, {{ ($link['active'] ?? true) ? 'false' : 'true' }})">
+                                                @if($link['active'] ?? true)
+                                                    <i class="align-middle" data-feather="eye"></i>
+                                                @else
+                                                    <i class="align-middle" data-feather="eye-off"></i>
+                                                @endif
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="removeLink('footer', {{ $index }})">
+                                                <i class="align-middle" data-feather="trash-2"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                
+                @if(count($navigationConfig['footer_links'] ?? []) < 10)
+                    <div class="card border-dashed">
+                        <div class="card-body">
+                            <div id="add-footer-link-form" style="display: none;">
+                                <h6 class="mb-3"><i class="align-middle me-2" data-feather="plus"></i>Add New Footer Link</h6>
+                                <form>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="footer-link-title" class="form-label">Link Title</label>
+                                                <input type="text" class="form-control" id="footer-link-title" placeholder="Privacy Policy" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="footer-link-url" class="form-label">URL</label>
+                                                <input type="text" class="form-control" id="footer-link-url" placeholder="/privacy" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="footer-link-external">
+                                                <label class="form-check-label" for="footer-link-external">
+                                                    External Link (opens in new tab)
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="footer-link-active" checked>
+                                                <label class="form-check-label" for="footer-link-active">
+                                                    Active
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2 mt-3">
+                                        <button type="button" class="btn btn-success btn-sm" onclick="addFooterLink()">
+                                            <i class="align-middle me-1" data-feather="check"></i>Add Link
+                                        </button>
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="cancelAddFooterLink()">
+                                            <i class="align-middle me-1" data-feather="x"></i>Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                            <button id="show-add-footer-form" class="btn btn-primary" onclick="showAddFooterForm()">
+                                <i class="align-middle me-1" data-feather="plus"></i>Add Footer Link
+                            </button>
+                        </div>
+                    </div>
+                @endif
+                
+                <div class="mt-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="card-title"><i class="align-middle me-2" data-feather="settings"></i>Authentication Display Settings</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="show_auth_footer" {{ ($navigationConfig['show_auth_in_footer'] ?? true) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="show_auth_footer">
+                                    Show Login/Register/Profile in Footer
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveFooterNavigation()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="{{ asset('js/admin/headers-footers.js') }}"></script>
 @endpush
