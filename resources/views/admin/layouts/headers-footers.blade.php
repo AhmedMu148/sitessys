@@ -12,6 +12,8 @@
     overflow: hidden;
     border: 1px solid #e3e6f0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    height: 300px;
+    position: relative;
 }
 
 .template-card:hover {
@@ -27,6 +29,138 @@
 .user-template {
     border-left: 4px solid #28a745;
     background: linear-gradient(135deg, #f0fff4 0%, #d4edda 100%);
+}
+
+/* Template Card Structure - Same as templates page */
+.card-top-section {
+    position: relative;
+    height: 160px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    overflow: hidden;
+}
+
+.card-top-image {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.card-top-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.template-card:hover .card-top-image img {
+    transform: scale(1.05);
+}
+
+.card-top-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: white;
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-align: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.card-icon {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color: rgba(255,255,255,0.3);
+    font-size: 2.5rem;
+}
+
+.card-top-fallback {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.image-overlay-text {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    color: white;
+    padding: 20px 15px 15px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.card-bottom-section {
+    padding: 15px;
+    height: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: white;
+}
+
+.card-bottom-text {
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: #666;
+    flex-grow: 1;
+}
+
+.card-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+}
+
+.actions-btn {
+    background: rgba(0,0,0,0.5);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.actions-btn:hover {
+    background: rgba(0,0,0,0.8);
+    transform: scale(1.1);
+}
+
+/* Section Template Card Specific Styles */
+.section-template-card {
+    margin-bottom: 1.5rem;
+}
+
+.section-template-card .template-card {
+    cursor: pointer;
+}
+
+.section-template-card .template-card:hover {
+    transform: translateY(-4px) scale(1.02);
+}
+
+/* Statistics Cards */
+.card h4 {
+    margin: 0;
+    font-weight: 700;
 }
 
 .template-preview {
@@ -412,11 +546,12 @@
                                     <p class="card-text text-muted small">{{ $template['description'] ?? 'Professional section template' }}</p>
                                     
                                     <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-primary btn-sm" onclick="addSectionToPage({{ $template['id'] }})">
+                                            <i class="align-middle me-1" data-feather="plus"></i>Add to Page
+                                        </button>
+                                        
                                         <button type="button" class="btn btn-copy btn-sm text-white" onclick="copyTemplate({{ $template['id'] }}, 'section')">
                                             <i class="align-middle me-1" data-feather="copy"></i>Copy & Customize
-                                        </button>
-                                        <button type="button" class="btn btn-outline-info btn-sm" onclick="previewTemplate({{ $template['id'] }})">
-                                            <i class="align-middle me-1" data-feather="eye"></i>Preview
                                         </button>
                                     </div>
                                 </div>
@@ -437,7 +572,7 @@
                 <div class="row mt-5">
                     <div class="col-12">
                         <h5 class="mb-3"><i class="align-middle text-success me-2" data-feather="user"></i>Your Custom Sections</h5>
-                        <p class="text-muted small mb-4">Section templates you've copied and customized for your site.</p>
+                        <p class="text-muted small mb-4">Templates you've copied and customized for your site.</p>
                     </div>
                 </div>
                 
@@ -463,12 +598,10 @@
                                     <p class="card-text text-muted small">{{ $template['description'] ?? 'Your custom section template' }}</p>
                                     
                                     <div class="d-flex gap-2">
-                                        <button type="button" class="btn btn-outline-info btn-sm" onclick="previewTemplate({{ $template['id'] }})">
-                                            <i class="align-middle me-1" data-feather="eye"></i>Preview
+                                        <button type="button" class="btn btn-primary btn-sm" onclick="addSectionToPage({{ $template['id'] }})">
+                                            <i class="align-middle me-1" data-feather="plus"></i>Add to Page
                                         </button>
-                                        <button type="button" class="btn btn-outline-warning btn-sm" onclick="editTemplate({{ $template['id'] }})">
-                                            <i class="align-middle me-1" data-feather="edit"></i>Edit
-                                        </button>
+                                        
                                         <form method="POST" action="{{ route('admin.headers-footers.destroy', $template['id']) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this template?')">
                                             @csrf
                                             @method('DELETE')
@@ -483,22 +616,6 @@
                     @endforeach
                 </div>
             @endif
-
-            {{-- Add New Section Button --}}
-            <div class="row mt-4">
-                <div class="col-12">
-                    <div class="card border-2 border-dashed">
-                        <div class="card-body text-center py-5">
-                            <i class="align-middle text-muted mb-3" data-feather="plus-circle" style="font-size: 3rem;"></i>
-                            <h6 class="text-muted">Create New Section Template</h6>
-                            <p class="text-muted small mb-3">Start building your custom section from scratch</p>
-                            <button type="button" class="btn btn-outline-primary" onclick="createNewSection()">
-                                <i class="align-middle me-2" data-feather="plus"></i>Create Section
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         {{-- Footers Tab --}}
@@ -862,6 +979,80 @@
 window.navigationConfig = @json($navigationConfig);
 window.socialMediaConfig = @json($socialMediaConfig);
 window.availablePages = @json($availablePages);
+
+// Section Templates Functions
+function addSectionToPage(templateId) {
+    // Implementation for adding section to a page
+    console.log('Adding section template', templateId, 'to page');
+    
+    // You can redirect to pages management or open a modal
+    if (confirm('Add this section template to a page?')) {
+        window.location.href = `/admin/pages?add_section=${templateId}`;
+    }
+}
+
+function previewSection(templateId) {
+    // Implementation for previewing section
+    console.log('Previewing section template', templateId);
+    
+    // Open preview in new window or modal
+    window.open(`/admin/sections/preview/${templateId}`, '_blank', 'width=1200,height=800');
+}
+
+function editTemplate(templateId) {
+    // Implementation for editing template
+    console.log('Editing template', templateId);
+    
+    // Redirect to edit page
+    window.location.href = `/admin/templates/${templateId}/edit`;
+}
+
+function deleteTemplate(templateId) {
+    // Implementation for deleting template
+    if (confirm('Are you sure you want to delete this template? This action cannot be undone.')) {
+        fetch(`/admin/templates/${templateId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error deleting template: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while deleting the template.');
+        });
+    }
+}
+
+function createNewSection() {
+    // Implementation for creating new section
+    console.log('Creating new section template');
+    
+    // Redirect to create page
+    window.location.href = '/admin/templates/create?type=section';
+}
+
+function refreshSections() {
+    // Implementation for refreshing sections
+    console.log('Refreshing sections');
+    location.reload();
+}
+
+// Initialize section functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize feather icons for any new icons
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+});
 </script>
 <script src="{{ asset('js/admin/headers-footers.js') }}"></script>
 @endpush
