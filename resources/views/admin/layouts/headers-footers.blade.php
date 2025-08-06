@@ -235,6 +235,11 @@
             </button>
         </li>
         <li class="nav-item" role="presentation">
+            <button class="nav-link" id="sections-tab" data-bs-toggle="tab" data-bs-target="#sections" type="button" role="tab">
+                <i class="align-middle me-2" data-feather="grid"></i>Sections ({{ count($availableTemplates['global']) > 0 ? count(array_filter($availableTemplates['global'], fn($t) => $t['layout_type'] === 'section')) : 0 }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
             <button class="nav-link" id="footers-tab" data-bs-toggle="tab" data-bs-target="#footers" type="button" role="tab">
                 <i class="align-middle me-2" data-feather="layers"></i>Footers ({{ count($availableTemplates['global']) > 0 ? count(array_filter($availableTemplates['global'], fn($t) => $t['layout_type'] === 'footer')) : 0 }})
             </button>
@@ -373,6 +378,127 @@
                     @endforeach
                 </div>
             @endif
+        </div>
+
+        {{-- Sections Tab --}}
+        <div class="tab-pane fade" id="sections" role="tabpanel">
+            <div class="row">
+                <div class="col-12">
+                    <h5 class="mb-3"><i class="align-middle text-primary me-2" data-feather="star"></i>Global Section Templates</h5>
+                    <p class="text-muted small mb-4">Choose from our professionally designed global section templates. You can copy and customize any template for your site.</p>
+                </div>
+            </div>
+            
+            <div class="row">
+                @if(isset($availableTemplates['global']) && count($availableTemplates['global']) > 0)
+                    @foreach(array_filter($availableTemplates['global'], fn($template) => $template['layout_type'] === 'section') as $template)
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card template-card global-template h-100">
+                                <div class="template-preview">
+                                    @if($template['preview_image'])
+                                        <img src="{{ $template['preview_image'] }}" alt="Preview" class="img-fluid">
+                                    @else
+                                        <div class="text-center">
+                                            <i class="align-middle" data-feather="grid" style="font-size: 2rem;"></i>
+                                            <div>{{ $template['name'] }}</div>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="card-title mb-0">{{ $template['name'] }}</h6>
+                                        <span class="badge badge-global">Global</span>
+                                    </div>
+                                    <p class="card-text text-muted small">{{ $template['description'] ?? 'Professional section template' }}</p>
+                                    
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-copy btn-sm text-white" onclick="copyTemplate({{ $template['id'] }}, 'section')">
+                                            <i class="align-middle me-1" data-feather="copy"></i>Copy & Customize
+                                        </button>
+                                        <button type="button" class="btn btn-outline-info btn-sm" onclick="previewTemplate({{ $template['id'] }})">
+                                            <i class="align-middle me-1" data-feather="eye"></i>Preview
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                @else
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <i class="align-middle me-2" data-feather="info"></i>No global section templates available.
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            {{-- User Templates Section --}}
+            @if(isset($availableTemplates['user']) && count(array_filter($availableTemplates['user'], fn($template) => $template['layout_type'] === 'section')) > 0)
+                <div class="row mt-5">
+                    <div class="col-12">
+                        <h5 class="mb-3"><i class="align-middle text-success me-2" data-feather="user"></i>Your Custom Sections</h5>
+                        <p class="text-muted small mb-4">Section templates you've copied and customized for your site.</p>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    @foreach(array_filter($availableTemplates['user'], fn($template) => $template['layout_type'] === 'section') as $template)
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card template-card user-template h-100">
+                                <div class="template-preview">
+                                    @if($template['preview_image'])
+                                        <img src="{{ $template['preview_image'] }}" alt="Preview" class="img-fluid">
+                                    @else
+                                        <div class="text-center">
+                                            <i class="align-middle" data-feather="grid" style="font-size: 2rem;"></i>
+                                            <div>{{ $template['name'] }}</div>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="card-title mb-0">{{ $template['name'] }}</h6>
+                                        <span class="badge badge-user">Custom</span>
+                                    </div>
+                                    <p class="card-text text-muted small">{{ $template['description'] ?? 'Your custom section template' }}</p>
+                                    
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-outline-info btn-sm" onclick="previewTemplate({{ $template['id'] }})">
+                                            <i class="align-middle me-1" data-feather="eye"></i>Preview
+                                        </button>
+                                        <button type="button" class="btn btn-outline-warning btn-sm" onclick="editTemplate({{ $template['id'] }})">
+                                            <i class="align-middle me-1" data-feather="edit"></i>Edit
+                                        </button>
+                                        <form method="POST" action="{{ route('admin.headers-footers.destroy', $template['id']) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this template?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                <i class="align-middle me-1" data-feather="trash-2"></i>Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
+            {{-- Add New Section Button --}}
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card border-2 border-dashed">
+                        <div class="card-body text-center py-5">
+                            <i class="align-middle text-muted mb-3" data-feather="plus-circle" style="font-size: 3rem;"></i>
+                            <h6 class="text-muted">Create New Section Template</h6>
+                            <p class="text-muted small mb-3">Start building your custom section from scratch</p>
+                            <button type="button" class="btn btn-outline-primary" onclick="createNewSection()">
+                                <i class="align-middle me-2" data-feather="plus"></i>Create Section
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         {{-- Footers Tab --}}
