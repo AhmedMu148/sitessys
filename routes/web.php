@@ -18,6 +18,8 @@ use App\Http\Controllers\Admin\LanguageController;
 use App\Http\Controllers\Admin\ColorController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\LocaleController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 /*
 |--------------------------------------------------------------------------
@@ -51,6 +53,20 @@ Route::get('/profile', function () {
 Route::get('/settings', function () {
     return view('frontend.profile');
 })->middleware(['auth'])->name('settings');
+
+// Test route without authentication
+Route::post('/test-api', function(Request $request) {
+    Log::info('Test API hit', [
+        'method' => $request->method(),
+        'data' => $request->all()
+    ]);
+    
+    return response()->json([
+        'success' => true,
+        'message' => 'Test API working',
+        'data' => $request->all()
+    ]);
+});
 
 // Frontend Language switching routes
 Route::post('/locale/set', [LocaleController::class, 'setLocale'])->name('locale.set.post');
@@ -101,6 +117,11 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() 
         // Wildcard routes (must be last)
         Route::post('/{layout}/activate', [HeaderFooterController::class, 'activate'])->name('activate');
         Route::delete('/{layout}', [HeaderFooterController::class, 'destroy'])->name('destroy');
+    });
+
+    // Sections Management
+    Route::prefix('sections')->name('sections.')->group(function () {
+        Route::post('/add-to-page', [HeaderFooterController::class, 'addSectionToPage'])->name('add-to-page');
     });
 
     // Page Theme Management

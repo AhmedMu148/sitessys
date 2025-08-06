@@ -903,6 +903,58 @@
     </div>
 </div>
 
+{{-- Add Section to Page Modal --}}
+<div class="modal fade" id="addSectionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Section to Page</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-section-form">
+                    @csrf
+                    <input type="hidden" id="section-template-id" name="template_id">
+                    
+                    <div class="mb-3">
+                        <label for="selected-page" class="form-label">Select Page</label>
+                        <select class="form-control" id="selected-page" name="page_id" required>
+                            <option value="">Choose a page...</option>
+                            @foreach($availablePages ?? [] as $page)
+                                <option value="{{ $page['id'] }}">{{ $page['name'] }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="section-position" class="form-label">Position</label>
+                        <select class="form-control" id="section-position" name="position">
+                            <option value="end">At the end</option>
+                            <option value="start">At the beginning</option>
+                            <option value="custom">Custom position</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3" id="custom-position-field" style="display: none;">
+                        <label for="sort-order" class="form-label">Sort Order</label>
+                        <input type="number" class="form-control" id="sort-order" name="sort_order" min="0" placeholder="0">
+                        <small class="form-text text-muted">Higher numbers appear later in the page</small>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="align-middle me-2" data-feather="info"></i>
+                        <span id="section-info">Select a section template and page to add it to your website.</span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="confirmAddSection()">Add Section</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- Add Link Modal --}}
 <div class="modal fade" id="addLinkModal" tabindex="-1">
     <div class="modal-dialog">
@@ -982,55 +1034,129 @@ window.availablePages = @json($availablePages);
 
 // Section Templates Functions
 function addSectionToPage(templateId) {
-    // Implementation for adding section to a page
-    console.log('Adding section template', templateId, 'to page');
+    // Set the template ID in the modal
+    document.getElementById('section-template-id').value = templateId;
     
-    // You can redirect to pages management or open a modal
-    if (confirm('Add this section template to a page?')) {
-        window.location.href = `/admin/pages?add_section=${templateId}`;
+    // Update the info text
+    const sectionInfo = document.getElementById('section-info');
+    sectionInfo.textContent = `Adding section template ID: ${templateId} to the selected page.`;
+    
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('addSectionModal'));
+    modal.show();
+}
+
+function confirmAddSection() {
+    const templateId = document.getElementById('section-template-id').value;
+    const pageId = document.getElementById('selected-page').value;
+    const position = document.getElementById('section-position').value;
+    const sortOrder = document.getElementById('sort-order').value;
+    
+    if (!templateId || !pageId) {
+        alert('Please select a page.');
+        return;
     }
-}
-
-function previewSection(templateId) {
-    // Implementation for previewing section
-    console.log('Previewing section template', templateId);
     
-    // Open preview in new window or modal
-    window.open(`/admin/sections/preview/${templateId}`, '_blank', 'width=1200,height=800');
-}
-
-function editTemplate(templateId) {
-    // Implementation for editing template
-    console.log('Editing template', templateId);
+    // Show loading state
+    const submitButton = document.querySelector('#addSectionModal .btn-primary');
+    const originalText = submitButton.textContent;
+    submitButton.textContent = 'Adding...';
+    submitButton.disabled = true;
     
-    // Redirect to edit page
-    window.location.href = `/admin/templates/${templateId}/edit`;
-}
-
-function deleteTemplate(templateId) {
-    // Implementation for deleting template
-    if (confirm('Are you sure you want to delete this template? This action cannot be undone.')) {
-        fetch(`/admin/templates/${templateId}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Content-Type': 'application/json',
+    // Get CSRF token from the form
+    const csrfToken = document.querySelector('#add-section-form input[name="_token"]').value;
+    
+    // Prepare data for API call
+    const data = {
+        _token: csrfToken,
+        template_id: parseInt(templateId),
+        page_id: parseInt(pageId),
+        position: position,
+        sort_order: position === 'custom' && sortOrder ? parseInt(sortOrder) : null
+    };
+    
+    console.log('Sending data:', data); // Debug log
+    
+    // Make API call to add section to page
+    fetch('/admin/sections/add-to-page', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        console.log('Response status:', response.status); // Debug log
+        console.log('Response headers:', response.headers); // Debug log
+        console.log('Response ok:', response.ok); // Debug log
+        
+        // Check if response is actually JSON
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+            return response.json();
+        } else {
+            console.log('Response is not JSON, returning text'); // Debug log
+            return response.text();
+        }
+    })
+    .then(responseData => {
+        console.log('Response data:', responseData); // Debug log
+        console.log('Response data type:', typeof responseData); // Debug log
+        
+        // Handle different response types
+        let data = responseData;
+        if (typeof responseData === 'string') {
+            try {
+                data = JSON.parse(responseData);
+            } catch (e) {
+                console.error('Failed to parse JSON:', e);
+                console.log('Raw response:', responseData);
+                alert('Server returned invalid response: ' + responseData.substring(0, 200));
+                return;
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
+        }
+        if (data.success) {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addSectionModal'));
+            modal.hide();
+            
+            // Show success message
+            alert(`Section "${data.data.template_name}" added to page "${data.data.page_name}" successfully!`);
+            
+            // Reset form
+            document.getElementById('add-section-form').reset();
+        } else {
+            alert('Error: ' + (data.message || 'Failed to add section to page'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while adding the section to the page.');
+    })
+    .finally(() => {
+        // Restore button state
+        submitButton.textContent = originalText;
+        submitButton.disabled = false;
+    });
+}
+
+// Handle position selection change
+document.addEventListener('DOMContentLoaded', function() {
+    const positionSelect = document.getElementById('section-position');
+    const customPositionField = document.getElementById('custom-position-field');
+    
+    if (positionSelect) {
+        positionSelect.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                customPositionField.style.display = 'block';
             } else {
-                alert('Error deleting template: ' + data.message);
+                customPositionField.style.display = 'none';
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while deleting the template.');
         });
     }
-}
+});
 
 function createNewSection() {
     // Implementation for creating new section

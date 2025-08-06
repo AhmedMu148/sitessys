@@ -7,6 +7,7 @@ use App\Models\Site;
 use App\Models\TplLayout;
 use App\Models\TplSite;
 use App\Models\TplPage;
+use App\Models\TplPageSection;
 use App\Services\GlobalTemplateService;
 use App\Services\NavigationService;
 use Illuminate\Http\Request;
@@ -539,6 +540,142 @@ class HeaderFooterController extends Controller
         $tplSite = TplSite::where('site_id', $site->id)->first();
         
         return $tplSite->footer_data['social_media'] ?? [];
+    }
+
+    /**
+     * Add section template to page
+     */
+    public function addSectionToPage(Request $request): JsonResponse
+    {
+        try {
+            // Log the incoming request for debugging
+            Log::info('Add section to page request:', [
+                'all_data' => $request->all(),
+                'json_data' => $request->json()->all(),
+                'method' => $request->method(),
+                'content_type' => $request->header('Content-Type')
+            ]);
+
+            // Validate the request
+            $validated = $request->validate([
+                'template_id' => 'required|integer|exists:tpl_layouts,id',
+                'page_id' => 'required|integer|exists:tpl_pages,id',
+                'position' => 'nullable|in:start,end,custom',
+                'sort_order' => 'nullable|integer|min:0'
+            ]);
+
+            $user = Auth::user();
+            $site = $this->getCurrentSite($request);
+            
+            Log::info('User and site info:', [
+                'user_id' => $user->id,
+                'site_id' => $site->id
+            ]);
+            
+            // Check if page belongs to user's site
+            $page = TplPage::where('id', $validated['page_id'])
+                ->where('site_id', $site->id)
+                ->first();
+                
+            if (!$page) {
+                Log::warning('Page not found or not accessible', [
+                    'page_id' => $validated['page_id'],
+                    'site_id' => $site->id
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Page not found or not accessible'
+                ], 404);
+            }
+
+            // Check if template exists and is a section
+            $template = TplLayout::where('id', $validated['template_id'])
+                ->where('layout_type', 'section')
+                ->first();
+                
+            if (!$template) {
+                Log::warning('Section template not found', [
+                    'template_id' => $validated['template_id']
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Section template not found'
+                ], 404);
+            }
+
+            // Determine sort order
+            $position = $validated['position'] ?? 'end';
+            $sortOrder = 0;
+            
+            if ($position === 'start') {
+                $sortOrder = 0;
+                // Update existing sections to make room
+                TplPageSection::where('page_id', $page->id)
+                    ->increment('sort_order');
+            } elseif ($position === 'end') {
+                $maxOrder = TplPageSection::where('page_id', $page->id)
+                    ->max('sort_order');
+                $sortOrder = ($maxOrder ?? -1) + 1;
+            } elseif ($position === 'custom' && isset($validated['sort_order'])) {
+                $sortOrder = $validated['sort_order'];
+                // Update existing sections to make room if needed
+                TplPageSection::where('page_id', $page->id)
+                    ->where('sort_order', '>=', $sortOrder)
+                    ->increment('sort_order');
+            }
+
+            // Create the page section
+            $pageSection = TplPageSection::create([
+                'page_id' => $page->id,
+                'site_id' => $site->id,
+                'tpl_layouts_id' => $template->id,
+                'name' => $template->name,
+                'content' => $template->content ?? '{}',
+                'status' => true,
+                'sort_order' => $sortOrder
+            ]);
+
+            Log::info('Section added to page successfully', [
+                'page_id' => $page->id,
+                'template_id' => $template->id,
+                'section_id' => $pageSection->id,
+                'sort_order' => $sortOrder
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Section added to page successfully',
+                'data' => [
+                    'section_id' => $pageSection->id,
+                    'page_name' => $page->name,
+                    'template_name' => $template->name,
+                    'sort_order' => $sortOrder
+                ]
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation failed:', [
+                'errors' => $e->errors(),
+                'request_data' => $request->all()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+            
+        } catch (\Exception $e) {
+            Log::error('Failed to add section to page: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to add section to page: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
