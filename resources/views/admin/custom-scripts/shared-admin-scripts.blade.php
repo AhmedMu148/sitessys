@@ -746,7 +746,6 @@ function initializeTooltips() {
     $('[data-bs-toggle="popover"]').popover();
     
     // Add tooltips to action buttons
-    $('.actions-btn').attr('title', currentLang === 'ar' ? 'المزيد من الخيارات' : 'More options');
     $('.btn-create').attr('title', currentLang === 'ar' ? 'إنشاء عنصر جديد' : 'Create new item');
     
     // Refresh tooltips

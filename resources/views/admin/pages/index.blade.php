@@ -153,7 +153,7 @@
             <!-- Card Actions Dropdown -->
             <div class="card-actions">
                 <div class="dropdown">
-                    <button class="btn actions-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="إجراءات الصفحة / Page Actions">
+                    <button class="btn actions-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="">
                         <i data-feather="more-vertical" style="width: 16px; height: 16px;"></i>
                         <span class="visually-hidden">Actions</span>
                     </button>

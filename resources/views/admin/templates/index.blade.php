@@ -103,7 +103,7 @@
                         <div class="card-top-section">
                             <div class="card-actions">
                                 <div class="dropdown">
-                                    <button class="btn actions-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Template Actions">
+                                    <button class="btn actions-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="">
                                         <span style="font-size: 14px; color: white; font-weight: bold;">⋯</span>
                                         <span class="visually-hidden">Actions</span>
                                     </button>
@@ -172,7 +172,7 @@
                         <div class="card-top-section">
                             <div class="card-actions">
                                 <div class="dropdown">
-                                    <button class="btn actions-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Template Actions">
+                                    <button class="btn actions-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="">
                                         <span style="font-size: 14px; color: white; font-weight: bold;">⋯</span>
                                         <span class="visually-hidden">Actions</span>
                                     </button>
@@ -230,7 +230,7 @@
                         <div class="card-top-section">
                             <div class="card-actions">
                                 <div class="dropdown">
-                                    <button class="btn actions-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Template Actions">
+                                    <button class="btn actions-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="">
                                         <span style="font-size: 14px; color: white; font-weight: bold;">⋯</span>
                                         <span class="visually-hidden">Actions</span>
                                     </button>

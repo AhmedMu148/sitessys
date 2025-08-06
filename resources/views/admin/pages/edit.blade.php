@@ -964,7 +964,7 @@
                             <div class="card-actions">
                                 <!-- Actions dropdown -->
                                 <div class="dropdown">
-                                    <button class="btn actions-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Section Actions">
+                                    <button class="btn actions-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="">
                                         <span style="font-size: 14px; color: white; font-weight: bold;">⋯</span>
                                         <span class="visually-hidden">Actions</span>
                                     </button>
