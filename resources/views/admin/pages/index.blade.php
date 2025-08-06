@@ -52,6 +52,7 @@
                 <option value="portfolio">Portfolio</option>
                 <option value="ecommerce">Ecommerce</option>
                 <option value="seo-services">SEO Services</option>
+                <option value="default">Default</option>
             </select>
         </div>
         <div class="col-lg-2 col-md-6 col-12">
@@ -79,7 +80,12 @@
             </select>
         </div>
         <div class="col-lg-3 col-md-12 col-12">
-            <div class="d-flex justify-content-end">
+            <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-outline-secondary" onclick="clearAllFilters()" title="Clear all filters">
+                    <i class="align-middle me-2" data-feather="x-circle" style="width: 16px; height: 16px;"></i>
+                    <span class="en">Clear</span>
+                    <span class="ar" style="display: none;">مسح</span>
+                </button>
                 <a href="{{ route('admin.pages.create') }}" class="btn btn-create">
                     <i class="align-middle me-2" data-feather="plus" style="width: 16px; height: 16px;"></i>
                     <span class="en">Create New Page</span>
@@ -130,7 +136,7 @@
 <div class="row" id="pagesGrid">
     @forelse($pages as $index => $page)
     <div class="col-xl-3 col-lg-4 col-md-6 col-12 mb-4 page-item" 
-         data-theme="{{ $page->themePage->name ?? 'default' }}" 
+         data-theme="{{ strtolower(str_replace(' ', '-', $page->themePage->name ?? 'business')) }}" 
          data-status="{{ $page->status ? 'active' : 'inactive' }}"
          data-name="{{ strtolower($page->name) }}"
          data-nav="{{ $page->show_in_nav ? 'in-nav' : 'not-in-nav' }}"

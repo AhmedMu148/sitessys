@@ -275,7 +275,9 @@
         </div>
     </div>
 
-    <!-- Bootstrap JS (must be loaded first) -->
+    <!-- jQuery (must be loaded first) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Feather Icons -->
     <script src="https://unpkg.com/feather-icons"></script>
@@ -292,6 +294,7 @@
             });
             
             console.log('Initialized', dropdowns.length, 'dropdowns');
+            console.log('jQuery loaded:', typeof $ !== 'undefined');
         });
         
         // Additional click handler as fallback

@@ -178,20 +178,35 @@ function filterPages() {
     
     $('.page-item').each(function() {
         const $item = $(this);
-        const name = $item.data('name') || '';
+        const name = ($item.data('name') || '').toString().toLowerCase();
         const theme = $item.data('theme') || '';
         const status = $item.data('status') || '';
         const nav = $item.data('nav') || '';
         
         let showItem = true;
         
-        if (searchTerm && !name.toString().toLowerCase().includes(searchTerm)) showItem = false;
-        if (filterTheme && theme !== filterTheme) showItem = false;
-        if (filterStatus && status !== filterStatus) showItem = false;
-        if (filterNav && nav !== filterNav) showItem = false;
+        // Search filter
+        if (searchTerm && !name.includes(searchTerm)) {
+            showItem = false;
+        }
+        
+        // Theme filter
+        if (filterTheme && theme !== filterTheme) {
+            showItem = false;
+        }
+        
+        // Status filter  
+        if (filterStatus && status !== filterStatus) {
+            showItem = false;
+        }
+        
+        // Navigation filter
+        if (filterNav && nav !== filterNav) {
+            showItem = false;
+        }
         
         if (showItem) {
-            $item.show();
+            $item.show().css('display', 'block');
             visibleCount++;
         } else {
             $item.hide();
@@ -362,6 +377,7 @@ function clearAllFilters() {
             clearBtn.innerHTML = originalText;
             clearBtn.classList.remove('btn-success');
             clearBtn.classList.add('btn-outline-secondary');
+            feather.replace(); // Re-initialize feather icons
         }, 1000);
     }
     
