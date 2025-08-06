@@ -334,6 +334,181 @@
     .nav-link-item {
         padding: 8px;
     }
+    
+    .card-actions {
+        top: 8px;
+        right: 8px;
+    }
+    
+    .actions-btn {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+/* ===================== DROPDOWN ACTIONS STYLES ===================== */
+/* From shared admin panel styles - Card Actions Dropdown */
+.card-actions {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 15;
+    opacity: 1;
+    transition: all 0.3s ease;
+    transform: translateY(0);
+}
+
+.actions-btn {
+    background: rgba(34, 46, 60, 0.9);
+    border: 1px solid rgba(34, 46, 60, 0.3);
+    border-radius: 0.5rem;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(34, 46, 60, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.actions-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: 0.5rem;
+}
+
+.actions-btn:hover {
+    background: linear-gradient(135deg, #222e3c 0%, #2b3947 100%);
+    border-color: #222e3c;
+    box-shadow: 0 6px 20px rgba(34, 46, 60, 0.35);
+    transform: scale(1.08);
+    color: white;
+}
+
+.actions-btn:hover::before {
+    opacity: 1;
+}
+
+.actions-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(34, 46, 60, 0.25);
+    background: linear-gradient(135deg, #222e3c 0%, #2b3947 100%);
+}
+
+.actions-btn:active {
+    transform: scale(0.95);
+    background: linear-gradient(135deg, #1a2530 0%, #222e3c 100%);
+}
+
+.actions-btn i {
+    transition: all 0.3s ease;
+    color: #ffffff;
+    stroke-width: 2;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.actions-btn:hover i,
+.actions-btn:focus i {
+    color: #ffffff;
+    transform: rotate(90deg);
+}
+
+.actions-btn[aria-expanded="true"] i {
+    color: #ffffff;
+    transform: rotate(180deg);
+}
+
+.actions-btn svg {
+    display: inline-block !important;
+    vertical-align: middle;
+    pointer-events: none;
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+    border: 1px solid rgba(34, 46, 60, 0.15);
+    box-shadow: 0 4px 12px rgba(34, 46, 60, 0.15);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0;
+    min-width: 180px;
+}
+
+.dropdown-item {
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    color: #475569;
+}
+
+.dropdown-item:hover {
+    background: #f8faff;
+    color: #222e3c;
+}
+
+.dropdown-item:focus {
+    background: #f8faff;
+    color: #222e3c;
+    outline: none;
+}
+
+.dropdown-item.text-danger:hover {
+    background: #fee2e2;
+    color: #dc2626 !important;
+}
+
+/* Button styled as dropdown item */
+.dropdown-item.border-0.bg-transparent {
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    color: #475569;
+    cursor: pointer;
+}
+
+.dropdown-item.border-0.bg-transparent:hover {
+    background: #f8faff !important;
+    color: #222e3c !important;
+}
+
+.dropdown-item.border-0.bg-transparent:focus {
+    background: #f8faff !important;
+    color: #222e3c !important;
+    outline: none;
+    box-shadow: none;
+}
+
+.dropdown-divider {
+    margin: 0.5rem 0.5rem;
+    border-color: rgba(34, 46, 60, 0.1);
+    opacity: 0.7;
+}
+
+/* RTL Support for Dropdowns */
+[dir="rtl"] .card-actions {
+    right: auto;
+    left: 12px;
+}
+
+[dir="rtl"] .dropdown-menu {
+    right: auto;
+    left: 0;
+}
+
+[dir="rtl"] .dropdown-item:hover {
+    transform: translateX(-4px);
 }
 </style>
 @endsection
@@ -405,7 +580,47 @@
                 @if(isset($availableTemplates['global']) && count($availableTemplates['global']) > 0)
                     @foreach(array_filter($availableTemplates['global'], fn($template) => $template['layout_type'] === 'header') as $template)
                         <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card template-card global-template h-100 {{ $site->active_header_id == $template['id'] ? 'current-template' : '' }}">
+                            <div class="card template-card global-template h-100 {{ $site->active_header_id == $template['id'] ? 'current-template' : '' }}"
+                                 onmouseenter="showCardActions(this)" 
+                                 onmouseleave="hideCardActions(this)">
+                                
+                                <!-- Card Actions Dropdown -->
+                                <div class="card-actions">
+                                    <div class="dropdown">
+                                        <button class="btn actions-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions">
+                                            <i data-feather="more-vertical" style="width: 16px; height: 16px;"></i>
+                                            <span class="visually-hidden">Actions</span>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            @if($site->active_header_id == $template['id'])
+                                                <li>
+                                                    <span class="dropdown-item text-success">
+                                                        <i class="align-middle me-2" data-feather="check-circle"></i>
+                                                        Currently Active
+                                                    </span>
+                                                </li>
+                                            @else
+                                                <li>
+                                                    <form method="POST" action="{{ route('admin.headers-footers.activate', $template['id']) }}" class="d-inline">
+                                                        @csrf
+                                                        <button type="submit" class="dropdown-item border-0 bg-transparent text-start w-100">
+                                                            <i class="align-middle me-2" data-feather="play"></i>
+                                                            Activate Header
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            @endif
+                                            <li>
+                                                <a class="dropdown-item" href="#" onclick="copyTemplate({{ $template['id'] }}, 'header')">
+                                                    <i class="align-middle me-2" data-feather="copy"></i>
+                                                    Edit data
+                                                </a>
+                                            </li>
+
+                                        </ul>
+                                    </div>
+                                </div>
+                                
                                 <div class="template-preview">
                                     @if($template['preview_image'])
                                         <img src="{{ $template['preview_image'] }}" alt="Preview" class="img-fluid">
@@ -438,7 +653,7 @@
                                         @endif
                                         
                                         <button type="button" class="btn btn-copy btn-sm text-white" onclick="copyTemplate({{ $template['id'] }}, 'header')">
-                                            <i class="align-middle me-1" data-feather="copy"></i>Copy & Customize
+                                            <i class="align-middle me-1" data-feather="copy"></i>Edit Data
                                         </button>
                                     </div>
                                 </div>
@@ -466,7 +681,65 @@
                 <div class="row">
                     @foreach(array_filter($availableTemplates['user'], fn($template) => $template['layout_type'] === 'header') as $template)
                         <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card template-card user-template h-100 {{ $site->active_header_id == $template['id'] ? 'current-template' : '' }}">
+                            <div class="card template-card user-template h-100 {{ $site->active_header_id == $template['id'] ? 'current-template' : '' }}"
+                                 onmouseenter="showCardActions(this)" 
+                                 onmouseleave="hideCardActions(this)">
+                                
+                                <!-- Card Actions Dropdown -->
+                                <div class="card-actions">
+                                    <div class="dropdown">
+                                        <button class="btn actions-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions">
+                                            <i data-feather="more-vertical" style="width: 16px; height: 16px;"></i>
+                                            <span class="visually-hidden">Actions</span>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            @if($site->active_header_id == $template['id'])
+                                                <li>
+                                                    <span class="dropdown-item text-success">
+                                                        <i class="align-middle me-2" data-feather="check-circle"></i>
+                                                        Currently Active
+                                                    </span>
+                                                </li>
+                                            @else
+                                                <li>
+                                                    <form method="POST" action="{{ route('admin.headers-footers.activate', $template['id']) }}" class="d-inline">
+                                                        @csrf
+                                                        <button type="submit" class="dropdown-item border-0 bg-transparent text-start w-100">
+                                                            <i class="align-middle me-2" data-feather="play"></i>
+                                                            Activate Header
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            @endif
+                                            <li>
+                                                <a class="dropdown-item" href="#" onclick="editTemplate({{ $template['id'] }})">
+                                                    <i class="align-middle me-2" data-feather="edit"></i>
+                                                    Edit Template
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#" onclick="previewTemplate({{ $template['id'] }})">
+                                                    <i class="align-middle me-2" data-feather="eye"></i>
+                                                    Preview Template
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#" onclick="duplicateTemplate({{ $template['id'] }})">
+                                                    <i class="align-middle me-2" data-feather="copy"></i>
+                                                    Duplicate Template
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item text-danger" href="#" onclick="confirmDeleteTemplate({{ $template['id'] }})">
+                                                    <i class="align-middle me-2" data-feather="trash-2"></i>
+                                                    Delete Template
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
                                 <div class="template-preview">
                                     @if($template['preview_image'])
                                         <img src="{{ $template['preview_image'] }}" alt="Preview" class="img-fluid">
@@ -527,7 +800,34 @@
                 @if(isset($availableTemplates['global']) && count($availableTemplates['global']) > 0)
                     @foreach(array_filter($availableTemplates['global'], fn($template) => $template['layout_type'] === 'section') as $template)
                         <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card template-card global-template h-100">
+                            <div class="card template-card global-template h-100"
+                                 onmouseenter="showCardActions(this)" 
+                                 onmouseleave="hideCardActions(this)">
+                                
+                                <!-- Card Actions Dropdown -->
+                                <div class="card-actions">
+                                    <div class="dropdown">
+                                        <button class="btn actions-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions">
+                                            <i data-feather="more-vertical" style="width: 16px; height: 16px;"></i>
+                                            <span class="visually-hidden">Actions</span>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <a class="dropdown-item" href="#" onclick="addSectionToPage({{ $template['id'] }})">
+                                                    <i class="align-middle me-2" data-feather="plus"></i>
+                                                    Add to Page
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#" onclick="copyTemplate({{ $template['id'] }}, 'section')">
+                                                    <i class="align-middle me-2" data-feather="copy"></i>
+                                                    Edite data
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
                                 <div class="template-preview">
                                     @if($template['preview_image'])
                                         <img src="{{ $template['preview_image'] }}" alt="Preview" class="img-fluid">
@@ -551,7 +851,7 @@
                                         </button>
                                         
                                         <button type="button" class="btn btn-copy btn-sm text-white" onclick="copyTemplate({{ $template['id'] }}, 'section')">
-                                            <i class="align-middle me-1" data-feather="copy"></i>Copy & Customize
+                                            <i class="align-middle me-1" data-feather="copy"></i>Edite Data
                                         </button>
                                     </div>
                                 </div>
@@ -579,7 +879,53 @@
                 <div class="row">
                     @foreach(array_filter($availableTemplates['user'], fn($template) => $template['layout_type'] === 'section') as $template)
                         <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card template-card user-template h-100">
+                            <div class="card template-card user-template h-100"
+                                 onmouseenter="showCardActions(this)" 
+                                 onmouseleave="hideCardActions(this)">
+                                
+                                <!-- Card Actions Dropdown -->
+                                <div class="card-actions">
+                                    <div class="dropdown">
+                                        <button class="btn actions-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions">
+                                            <i data-feather="more-vertical" style="width: 16px; height: 16px;"></i>
+                                            <span class="visually-hidden">Actions</span>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <a class="dropdown-item" href="#" onclick="addSectionToPage({{ $template['id'] }})">
+                                                    <i class="align-middle me-2" data-feather="plus"></i>
+                                                    Add to Page
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#" onclick="editTemplate({{ $template['id'] }})">
+                                                    <i class="align-middle me-2" data-feather="edit"></i>
+                                                    Edit Template
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#" onclick="previewTemplate({{ $template['id'] }})">
+                                                    <i class="align-middle me-2" data-feather="eye"></i>
+                                                    Preview Template
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#" onclick="duplicateTemplate({{ $template['id'] }})">
+                                                    <i class="align-middle me-2" data-feather="copy"></i>
+                                                    Duplicate Template
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item text-danger" href="#" onclick="confirmDeleteTemplate({{ $template['id'] }})">
+                                                    <i class="align-middle me-2" data-feather="trash-2"></i>
+                                                    Delete Template
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
                                 <div class="template-preview">
                                     @if($template['preview_image'])
                                         <img src="{{ $template['preview_image'] }}" alt="Preview" class="img-fluid">
@@ -631,7 +977,48 @@
                 @if(isset($availableTemplates['global']) && count($availableTemplates['global']) > 0)
                     @foreach(array_filter($availableTemplates['global'], fn($template) => $template['layout_type'] === 'footer') as $template)
                         <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card template-card global-template h-100 {{ $site->active_footer_id == $template['id'] ? 'current-template' : '' }}">
+                            <div class="card template-card global-template h-100 {{ $site->active_footer_id == $template['id'] ? 'current-template' : '' }}"
+                                 onmouseenter="showCardActions(this)" 
+                                 onmouseleave="hideCardActions(this)">
+                                
+                                <!-- Card Actions Dropdown -->
+                                <div class="card-actions">
+                                    <div class="dropdown">
+                                        <button class="btn actions-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions">
+                                            <i data-feather="more-vertical" style="width: 16px; height: 16px;"></i>
+                                            <span class="visually-hidden">Actions</span>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            @if($site->active_footer_id == $template['id'])
+                                                <li>
+                                                    <span class="dropdown-item text-success">
+                                                        <i class="align-middle me-2" data-feather="check-circle"></i>
+                                                        Currently Active
+                                                    </span>
+                                                </li>
+                                            @else
+                                                <li>
+                                                    <form method="POST" action="{{ route('admin.headers-footers.activate', $template['id']) }}" class="d-inline">
+                                                        @csrf
+                                                        <button type="submit" class="dropdown-item border-0 bg-transparent text-start w-100">
+                                                            <i class="align-middle me-2" data-feather="play"></i>
+                                                            Activate Footer
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            @endif
+                                            <li>
+                                                <a class="dropdown-item" href="#" onclick="copyTemplate({{ $template['id'] }}, 'footer')">
+                                                    <i class="align-middle me-2" data-feather="copy"></i>
+                                                    Edit data
+                                                </a>
+                                            </li>
+                                           
+                                           
+                                        </ul>
+                                    </div>
+                                </div>
+                                
                                 <div class="template-preview">
                                     @if($template['preview_image'])
                                         <img src="{{ $template['preview_image'] }}" alt="Preview" class="img-fluid">
@@ -664,7 +1051,7 @@
                                         @endif
                                         
                                         <button type="button" class="btn btn-copy btn-sm text-white" onclick="copyTemplate({{ $template['id'] }}, 'footer')">
-                                            <i class="align-middle me-1" data-feather="copy"></i>Copy & Customize
+                                            <i class="align-middle me-1" data-feather="copy"></i>Edite Data
                                         </button>
                                     </div>
                                 </div>
@@ -692,7 +1079,65 @@
                 <div class="row">
                     @foreach(array_filter($availableTemplates['user'], fn($template) => $template['layout_type'] === 'footer') as $template)
                         <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card template-card user-template h-100 {{ $site->active_footer_id == $template['id'] ? 'current-template' : '' }}">
+                            <div class="card template-card user-template h-100 {{ $site->active_footer_id == $template['id'] ? 'current-template' : '' }}"
+                                 onmouseenter="showCardActions(this)" 
+                                 onmouseleave="hideCardActions(this)">
+                                
+                                <!-- Card Actions Dropdown -->
+                                <div class="card-actions">
+                                    <div class="dropdown">
+                                        <button class="btn actions-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions">
+                                            <i data-feather="more-vertical" style="width: 16px; height: 16px;"></i>
+                                            <span class="visually-hidden">Actions</span>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            @if($site->active_footer_id == $template['id'])
+                                                <li>
+                                                    <span class="dropdown-item text-success">
+                                                        <i class="align-middle me-2" data-feather="check-circle"></i>
+                                                        Currently Active
+                                                    </span>
+                                                </li>
+                                            @else
+                                                <li>
+                                                    <form method="POST" action="{{ route('admin.headers-footers.activate', $template['id']) }}" class="d-inline">
+                                                        @csrf
+                                                        <button type="submit" class="dropdown-item border-0 bg-transparent text-start w-100">
+                                                            <i class="align-middle me-2" data-feather="play"></i>
+                                                            Activate Footer
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            @endif
+                                            <li>
+                                                <a class="dropdown-item" href="#" onclick="editTemplate({{ $template['id'] }})">
+                                                    <i class="align-middle me-2" data-feather="edit"></i>
+                                                    Edit Template
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#" onclick="previewTemplate({{ $template['id'] }})">
+                                                    <i class="align-middle me-2" data-feather="eye"></i>
+                                                    Preview Template
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#" onclick="duplicateTemplate({{ $template['id'] }})">
+                                                    <i class="align-middle me-2" data-feather="copy"></i>
+                                                    Duplicate Template
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item text-danger" href="#" onclick="confirmDeleteTemplate({{ $template['id'] }})">
+                                                    <i class="align-middle me-2" data-feather="trash-2"></i>
+                                                    Delete Template
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
                                 <div class="template-preview">
                                     @if($template['preview_image'])
                                         <img src="{{ $template['preview_image'] }}" alt="Preview" class="img-fluid">
@@ -1178,6 +1623,166 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof feather !== 'undefined') {
         feather.replace();
     }
+});
+
+// ============ Dropdown Functions for Template Cards ============
+
+// Show/Hide card actions on hover
+function showCardActions(card) {
+    const actions = card.querySelector('.card-actions');
+    if (actions) {
+        actions.style.opacity = '1';
+        actions.style.transform = 'translateY(0)';
+    }
+}
+
+function hideCardActions(card) {
+    const actions = card.querySelector('.card-actions');
+    if (actions) {
+        actions.style.opacity = '1'; // Keep visible for accessibility
+        actions.style.transform = 'translateY(0)';
+    }
+}
+
+// Activate template function
+function activateTemplate(templateId, type) {
+    if (confirm(`Are you sure you want to activate this ${type} template?`)) {
+        // Create a form and submit it
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/admin/headers-footers/activate/${templateId}`;
+        
+        // Add CSRF token
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        form.appendChild(csrfInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Edit template function
+function editTemplate(templateId) {
+    window.location.href = `/admin/templates/${templateId}/edit`;
+}
+
+// Preview template function
+function previewTemplate(templateId) {
+    window.open(`/admin/templates/${templateId}/preview`, '_blank');
+}
+
+// Duplicate template function
+function duplicateTemplate(templateId) {
+    if (confirm('Do you want to create a copy of this template?')) {
+        fetch(`/admin/templates/${templateId}/duplicate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Template duplicated successfully!');
+                location.reload();
+            } else {
+                alert('Error: ' + (data.message || 'Failed to duplicate template'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while duplicating the template.');
+        });
+    }
+}
+
+// Confirm delete template function
+function confirmDeleteTemplate(templateId) {
+    if (confirm('Are you sure you want to delete this template? This action cannot be undone.')) {
+        deleteTemplate(templateId);
+    }
+}
+
+// Delete template function
+function deleteTemplate(templateId) {
+    fetch(`/admin/headers-footers/${templateId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Template deleted successfully!');
+            location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'Failed to delete template'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while deleting the template.');
+    });
+}
+
+// View template details function
+function viewTemplateDetails(templateId) {
+    // You can implement a modal or redirect to details page
+    window.open(`/admin/templates/${templateId}`, '_blank');
+}
+
+// Initialize dropdown positioning (similar to shared admin scripts)
+document.addEventListener('DOMContentLoaded', function() {
+    // Enhanced dropdown positioning
+    setTimeout(() => {
+        document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(el => {
+            new bootstrap.Dropdown(el, {
+                popperConfig: {
+                    strategy: 'fixed',
+                    modifiers: [
+                        { name: 'preventOverflow', options: { boundary: document.body } }
+                    ]
+                }
+            });
+        });
+    }, 300);
+
+    // Enhanced positioning classes toggle
+    document.addEventListener('show.bs.dropdown', function(e) {
+        const menu = e.target.querySelector('.dropdown-menu');
+        if (!menu) return;
+        
+        menu.classList.remove('dropdown-menu-up', 'dropdown-menu-end');
+        
+        setTimeout(() => {
+            const btnRect = e.target.querySelector('[data-bs-toggle="dropdown"]').getBoundingClientRect();
+            const menuRect = menu.getBoundingClientRect();
+            const cardRect = e.target.closest('.template-card')?.getBoundingClientRect();
+            
+            if (btnRect.bottom + menuRect.height > window.innerHeight - 20) {
+                menu.classList.add('dropdown-menu-up');
+            }
+            
+            if (cardRect && (btnRect.left + menuRect.width > cardRect.right)) {
+                menu.classList.add('dropdown-menu-end');
+            }
+        }, 10);
+    });
+
+    document.addEventListener('hide.bs.dropdown', e => {
+        const menu = e.target.querySelector('.dropdown-menu');
+        if (menu) {
+            menu.classList.remove('dropdown-menu-up');
+        }
+    });
 });
 </script>
 <script src="{{ asset('js/admin/headers-footers.js') }}"></script>
