@@ -104,9 +104,9 @@ class HeaderFooterController extends Controller
             $site = $this->getCurrentSite($request);
             $template = TplLayout::findOrFail($layout);
             
-            // Don't allow deletion of global templates
-            if (str_starts_with($template->tpl_id, 'global-')) {
-                return redirect()->back()->with('error', 'Cannot delete global templates.');
+            // Only allow deletion of user-specific templates (not system templates)
+            if (!str_starts_with($template->tpl_id, 'user-' . $site->user_id . '-')) {
+                return redirect()->back()->with('error', 'Cannot delete system templates. You can only delete your custom templates.');
             }
             
             // Check if template is currently active
@@ -449,43 +449,42 @@ class HeaderFooterController extends Controller
      */
     private function getAvailableTemplates(Site $site): array
     {
-        // Get global templates
-        $globalTemplates = TplLayout::where('tpl_id', 'like', 'global-%')
+        // Get all available templates (system templates + user's own templates)
+        $allTemplates = TplLayout::where(function($query) use ($site) {
+                // Include all non-user templates OR user templates that belong to current user
+                $query->where('tpl_id', 'not like', 'user-%')
+                      ->orWhere('tpl_id', 'like', 'user-' . $site->user_id . '-%');
+            })
             ->orderBy('layout_type')
             ->orderBy('name')
             ->get()
-            ->map(function($template) {
+            ->map(function($template) use ($site) {
                 return [
                     'id' => $template->id,
                     'tpl_id' => $template->tpl_id,
                     'layout_type' => $template->layout_type,
                     'name' => $template->name,
                     'description' => $template->description ?? '',
-                    'preview_image' => $template->preview_image ?? null
+                    'preview_image' => $template->preview_image ?? null,
+                    'is_user_template' => str_starts_with($template->tpl_id, 'user-' . $site->user_id . '-')
                 ];
             })
             ->toArray();
 
-        // Get user templates for this site
-        $userTemplates = TplLayout::where('tpl_id', 'like', 'user-' . $site->user_id . '-%')
-            ->orderBy('layout_type')
-            ->orderBy('name')
-            ->get()
-            ->map(function($template) {
-                return [
-                    'id' => $template->id,
-                    'tpl_id' => $template->tpl_id,
-                    'layout_type' => $template->layout_type,
-                    'name' => $template->name,
-                    'description' => $template->description ?? '',
-                    'preview_image' => $template->preview_image ?? null
-                ];
-            })
-            ->toArray();
+        // Separate user-specific templates
+        $userTemplates = array_filter($allTemplates, function($template) use ($site) {
+            return str_starts_with($template['tpl_id'], 'user-' . $site->user_id . '-');
+        });
+
+        // System templates are all non-user templates
+        $systemTemplates = array_filter($allTemplates, function($template) {
+            return !str_starts_with($template['tpl_id'], 'user-');
+        });
 
         return [
-            'global' => $globalTemplates,
-            'user' => $userTemplates
+            'global' => $allTemplates, // All available templates for this user
+            'user' => array_values($userTemplates),
+            'system' => array_values($systemTemplates)
         ];
     }
 
