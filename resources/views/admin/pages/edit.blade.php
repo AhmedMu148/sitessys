@@ -956,9 +956,9 @@
                 <div class="col-lg-4 col-md-6 section-item" data-section-id="{{ $section->id }}" data-sort-order="{{ $section->sort_order ?? ($index + 1) }}">
                     <div class="component-card section-card">
                         <!-- Order indicator -->
-                        <div class="order-indicator" title="{{ __('Section Order') }}">
+                        {{-- <div class="order-indicator" title="{{ __('Section Order') }}">
                             {{ $section->sort_order ?? ($index + 1) }}
-                        </div>
+                        </div> --}}
                         
                         <div class="card-top-section">
                             <div class="card-actions">
