@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\ThemeController;
 use App\Http\Controllers\Admin\LanguageController;
 use App\Http\Controllers\Admin\ColorController;
+use App\Http\Controllers\Admin\ContentEditorController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\LocaleController;
 use Illuminate\Http\Request;
@@ -86,6 +87,9 @@ Route::post('/admin/login', [AuthController::class, 'adminLogin'])->name('admin.
 Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.main');
+
+    // Edit Content landing (active header/footer + sections)
+    Route::get('/content', [ContentEditorController::class, 'index'])->name('content.index');
     
     // Site Management
     Route::resource('sites', SiteController::class);

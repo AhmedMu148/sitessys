@@ -83,6 +83,12 @@
                                             </li>
                                         </ul>
                                     </div>
+
+                                     <li class="sidebar-item {{ request()->routeIs('admin.content.*') ? 'active' : '' }}">
+                                                <a class="sidebar-link" href="{{ route('admin.content.index') }}">
+                                                    <i class="align-middle" data-feather="columns"></i> Edit Content
+                                                </a>
+                                            </li>
                                 </li>
                             </ul>
                         </div>

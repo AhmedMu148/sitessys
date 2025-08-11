@@ -1088,7 +1088,7 @@
                                         @endif
                                         
                                         <button type="button" class="btn btn-copy btn-sm text-white" onclick="copyTemplate({{ $template['id'] }}, 'footer')">
-                                            <i class="align-middle me-1" data-feather="copy"></i>Edite Data
+                                            <i class="align-middle me-1" data-feather="copy"></i>Edite Data 
                                         </button>
                                     </div>
                                 </div>
