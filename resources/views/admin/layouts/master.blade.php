@@ -298,6 +298,28 @@
             
             console.log('Initialized', dropdowns.length, 'dropdowns');
             console.log('jQuery loaded:', typeof $ !== 'undefined');
+
+            // Sidebar toggle behavior
+            const sidebar = document.querySelector('#sidebar');
+            const toggleBtn = document.querySelector('.js-sidebar-toggle');
+            if (sidebar && toggleBtn) {
+                // Restore previous state
+                try {
+                    const saved = localStorage.getItem('sps_sidebar_collapsed');
+                    if (saved === '1') sidebar.classList.add('collapsed');
+                } catch (e) { /* ignore */ }
+
+                toggleBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    sidebar.classList.toggle('collapsed');
+                    // Persist state
+                    try {
+                        localStorage.setItem('sps_sidebar_collapsed', sidebar.classList.contains('collapsed') ? '1' : '0');
+                    } catch (e) { /* ignore */ }
+                });
+            } else {
+                console.warn('Sidebar toggle not initialized: element not found');
+            }
         });
         
         // Additional click handler as fallback
