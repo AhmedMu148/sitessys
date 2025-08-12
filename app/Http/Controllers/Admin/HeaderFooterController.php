@@ -406,7 +406,10 @@ class HeaderFooterController extends Controller
                 return !empty($value);
             });
 
-            $tplSite->footer_data = array_merge($tplSite->footer_data ?? [], ['social_media' => $socialMedia]);
+            // Store social media in footer_data as it was originally
+            $footerData = $tplSite->footer_data ?? [];
+            $footerData['social_media'] = $socialMedia;
+            $tplSite->footer_data = $footerData;
             $tplSite->save();
 
             return response()->json([
@@ -496,12 +499,12 @@ class HeaderFooterController extends Controller
         $tplSite = TplSite::where('site_id', $site->id)->first();
         
         if (!$tplSite) {
-            return [
-                'header_links' => [],
-                'footer_links' => [],
-                'show_auth_in_header' => true,
-                'show_auth_in_footer' => true
-            ];
+            // Create a new TplSite record if it doesn't exist
+            $tplSite = TplSite::create([
+                'site_id' => $site->id,
+                'nav_data' => ['links' => [], 'show_auth' => true, 'social_media' => []],
+                'footer_data' => ['links' => [], 'show_auth' => true],
+            ]);
         }
 
         // Normalize link data - convert 'name' to 'title' for consistent usage
@@ -537,6 +540,15 @@ class HeaderFooterController extends Controller
     private function getSocialMediaConfig(Site $site): array
     {
         $tplSite = TplSite::where('site_id', $site->id)->first();
+        
+        if (!$tplSite) {
+            // Create a new TplSite record if it doesn't exist
+            $tplSite = TplSite::create([
+                'site_id' => $site->id,
+                'nav_data' => ['links' => [], 'show_auth' => false],
+                'footer_data' => ['links' => [], 'show_auth' => false, 'social_media' => []],
+            ]);
+        }
         
         return $tplSite->footer_data['social_media'] ?? [];
     }
@@ -673,6 +685,52 @@ class HeaderFooterController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to add section to page: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get current navigation configuration (API endpoint)
+     */
+    public function getNavigation(Request $request): JsonResponse
+    {
+        try {
+            $site = $this->getCurrentSite($request);
+            $navigationConfig = $this->getNavigationConfig($site);
+            
+            return response()->json([
+                'success' => true,
+                'navigationConfig' => $navigationConfig
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error getting navigation configuration: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error getting navigation configuration: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get current social media configuration (API endpoint)
+     */
+    public function getSocialMedia(Request $request): JsonResponse
+    {
+        try {
+            $site = $this->getCurrentSite($request);
+            $socialMediaConfig = $this->getSocialMediaConfig($site);
+            
+            return response()->json([
+                'success' => true,
+                'socialMediaConfig' => $socialMediaConfig
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error getting social media configuration: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error getting social media configuration: ' . $e->getMessage()
             ], 500);
         }
     }

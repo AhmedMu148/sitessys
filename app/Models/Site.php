@@ -40,6 +40,14 @@ class Site extends Model
     }
 
     /**
+     * Get the template site configuration (for navigation and social media)
+     */
+    public function tplSite()
+    {
+        return $this->hasOne(TplSite::class, 'site_id');
+    }
+
+    /**
      * Get the active header layout
      */
     public function activeHeader()

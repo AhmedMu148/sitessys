@@ -112,11 +112,14 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() 
         
         // Enhanced features for global templates and navigation (before wildcard routes)
         Route::post('/create-user-copy', [HeaderFooterController::class, 'createUserCopy'])->name('create-user-copy');
+        Route::get('/get-navigation', [HeaderFooterController::class, 'getNavigation'])->name('get-navigation');
+        Route::get('/get-social-media', [HeaderFooterController::class, 'getSocialMedia'])->name('get-social-media');
         Route::post('/update-navigation', [HeaderFooterController::class, 'updateNavigation'])->name('update-navigation');
         Route::post('/add-navigation-link', [HeaderFooterController::class, 'addNavigationLink'])->name('add-navigation-link');
         Route::delete('/remove-navigation-link', [HeaderFooterController::class, 'removeNavigationLink'])->name('remove-navigation-link');
         Route::patch('/toggle-navigation-link', [HeaderFooterController::class, 'toggleNavigationLink'])->name('toggle-navigation-link');
         Route::post('/update-social-media', [HeaderFooterController::class, 'updateSocialMedia'])->name('update-social-media');
+        Route::post('/social-media', [HeaderFooterController::class, 'updateSocialMedia'])->name('social-media');
         
         // Wildcard routes (must be last)
         Route::post('/{layout}/activate', [HeaderFooterController::class, 'activate'])->name('activate');
