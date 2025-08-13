@@ -1623,6 +1623,21 @@ function generateFormField(fieldName, fieldConfig, currentValue) {
                 arrayValue = [];
             }
             
+            // Add proper field header for array fields
+            fieldHtml += `
+                <div class="array-field-header mb-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="mb-1 text-primary">
+                                <i class="align-middle me-2" data-feather="list"></i>${label}
+                                ${fieldConfig.required ? '<span class="text-danger ms-1">*</span>' : ''}
+                            </h6>
+                            ${fieldConfig.description ? `<small class="text-muted">${fieldConfig.description}</small>` : ''}
+                        </div>
+                        <span class="badge bg-light text-dark">${arrayValue.length} ${arrayValue.length === 1 ? 'item' : 'items'}</span>
+                    </div>
+                </div>`;
+            
             // Comprehensive array type detection
             const lowerLabel = (fieldConfig.label||'').toLowerCase();
             const lowerFieldName = (fieldName||'').toLowerCase();
@@ -1631,7 +1646,7 @@ function generateFormField(fieldName, fieldConfig, currentValue) {
                 fieldHtml += generateArrayField(fieldName, arrayValue, 'features');
             } else if (lowerLabel.includes('menu') || lowerFieldName.includes('menu')) {
                 fieldHtml += generateArrayField(fieldName, arrayValue, 'menu');
-            } else if (lowerLabel.includes('stat') || lowerFieldName.includes('stat') || lowerFieldName === 'items') {
+            } else if (lowerLabel.includes('stat') || lowerFieldName.includes('stat')) {
                 fieldHtml += generateArrayField(fieldName, arrayValue, 'stats');
             } else if (lowerLabel.includes('testimonial') || lowerFieldName.includes('testimonial')) {
                 fieldHtml += generateArrayField(fieldName, arrayValue, 'testimonials');
@@ -1645,12 +1660,56 @@ function generateFormField(fieldName, fieldConfig, currentValue) {
                 fieldHtml += generateArrayField(fieldName, arrayValue, 'cards');
             } else if (lowerFieldName.includes('link') || lowerLabel.includes('link')) {
                 fieldHtml += generateArrayField(fieldName, arrayValue, 'links');
+            } else if (lowerLabel.includes('image') || lowerFieldName.includes('image') || lowerFieldName === 'images') {
+                fieldHtml += generateArrayField(fieldName, arrayValue, 'images');
+            } else if (lowerLabel.includes('gallery') || lowerFieldName.includes('gallery')) {
+                fieldHtml += generateArrayField(fieldName, arrayValue, 'images');
+            } else if (lowerLabel.includes('faq') || lowerFieldName.includes('faq') || lowerFieldName === 'items') {
+                // Check if this looks like FAQ items
+                if (arrayValue.length > 0 && arrayValue[0] && ('q' in arrayValue[0] || 'question' in arrayValue[0])) {
+                    fieldHtml += generateArrayField(fieldName, arrayValue, 'faq');
+                } else {
+                    // Continue with normal detection
+                    if (arrayValue.length > 0) {
+                        const firstItem = arrayValue[0];
+                        if (firstItem && typeof firstItem === 'object') {
+                            if ('title' in firstItem && 'text' in firstItem) {
+                                fieldHtml += generateArrayField(fieldName, arrayValue, 'zigzag');
+                            } else if ('icon' in firstItem && 'title' in firstItem && 'description' in firstItem) {
+                                fieldHtml += generateArrayField(fieldName, arrayValue, 'features');
+                            } else if ('value' in firstItem && 'label' in firstItem) {
+                                fieldHtml += generateArrayField(fieldName, arrayValue, 'stats');
+                            } else if ('number' in firstItem && 'label' in firstItem) {
+                                fieldHtml += generateArrayField(fieldName, arrayValue, 'stats');
+                            } else if ('quote' in firstItem && 'name' in firstItem) {
+                                fieldHtml += generateArrayField(fieldName, arrayValue, 'testimonials');
+                            } else if ('icon' in firstItem && 'url' in firstItem) {
+                                fieldHtml += generateArrayField(fieldName, arrayValue, 'social');
+                            } else if ('label' in firstItem && 'url' in firstItem) {
+                                fieldHtml += generateArrayField(fieldName, arrayValue, 'links');
+                            } else if ('text' in firstItem || 'content' in firstItem) {
+                                fieldHtml += generateArrayField(fieldName, arrayValue, 'generic');
+                            } else {
+                                fieldHtml += generateArrayField(fieldName, arrayValue, 'generic');
+                            }
+                        } else {
+                            fieldHtml += generateArrayField(fieldName, arrayValue, 'simple');
+                        }
+                    } else {
+                        // Default to simple array
+                        fieldHtml += generateArrayField(fieldName, arrayValue, 'simple');
+                    }
+                }
             } else {
                 // Auto-detect from array content
                 if (arrayValue.length > 0) {
                     const firstItem = arrayValue[0];
                     if (firstItem && typeof firstItem === 'object') {
-                        if ('icon' in firstItem && 'title' in firstItem && 'description' in firstItem) {
+                        if ('title' in firstItem && 'text' in firstItem) {
+                            fieldHtml += generateArrayField(fieldName, arrayValue, 'zigzag');
+                        } else if ('q' in firstItem || 'question' in firstItem) {
+                            fieldHtml += generateArrayField(fieldName, arrayValue, 'faq');
+                        } else if ('icon' in firstItem && 'title' in firstItem && 'description' in firstItem) {
                             fieldHtml += generateArrayField(fieldName, arrayValue, 'features');
                         } else if ('value' in firstItem && 'label' in firstItem) {
                             fieldHtml += generateArrayField(fieldName, arrayValue, 'stats');
@@ -1750,6 +1809,9 @@ function generateArrayField(fieldName, arrayValue, arrayType) {
     // Initialize empty array if needed
     if (!arrayValue || !Array.isArray(arrayValue) || arrayValue.length === 0) {
         switch (arrayType) {
+            case 'zigzag':
+                arrayValue = [{ title: '', text: '' }];
+                break;
             case 'features':
                 arrayValue = [{ icon: 'fas fa-star', title: '', description: '' }];
                 break;
@@ -1761,6 +1823,12 @@ function generateArrayField(fieldName, arrayValue, arrayType) {
                 break;
             case 'testimonials':
                 arrayValue = [{ quote: '', name: '', company: '' }];
+                break;
+            case 'faq':
+                arrayValue = [{ q: '', a: '' }];
+                break;
+            case 'images':
+                arrayValue = [''];
                 break;
             case 'social':
                 arrayValue = [{ icon: 'fab fa-facebook', url: '' }];
@@ -1864,6 +1932,22 @@ function generateArrayField(fieldName, arrayValue, arrayType) {
                     </div>`;
                 break;
                 
+            case 'faq':
+                html += `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Question</label>
+                            <input type="text" class="form-control" name="${fieldName}[${index}][q]" 
+                                   value="${item.q || item.question || ''}" placeholder="Enter question">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Answer</label>
+                            <textarea class="form-control" name="${fieldName}[${index}][a]" rows="3"
+                                    placeholder="Enter answer">${item.a || item.answer || ''}</textarea>
+                        </div>
+                    </div>`;
+                break;
+                
             case 'testimonials':
                 html += `
                     <div class="row">
@@ -1963,6 +2047,17 @@ function generateArrayField(fieldName, arrayValue, arrayType) {
                     </div>`;
                 break;
                 
+            case 'images':
+                html += `
+                    <div class="mb-2">
+                        <label class="form-label">Image URL</label>
+                        <input type="text" class="form-control" name="${fieldName}[${index}]" 
+                               value="${typeof item === 'string' ? item : ''}" 
+                               placeholder="https://example.com/image.jpg or http://example.com/image.jpg">
+                        <div class="form-text">Enter the full URL to the image (HTTP or HTTPS)</div>
+                    </div>`;
+                break;
+                
             case 'simple':
                 html += `<input type="text" class="form-control" name="${fieldName}[${index}]" 
                                value="${typeof item === 'string' ? item : ''}" placeholder="Item value">`;
@@ -2006,6 +2101,8 @@ function getItemLabel(arrayType) {
         case 'menu': return 'Menu Item';
         case 'stats': return 'Stat';
         case 'testimonials': return 'Testimonial';
+        case 'faq': return 'FAQ Item';
+        case 'images': return 'Image';
         case 'social': return 'Social Link';
         case 'plans': return 'Plan';
         case 'services': return 'Service';
@@ -2109,6 +2206,33 @@ function addArrayItem(fieldName, arrayType) {
                     </div>
                 </div>`;
             break;
+            
+        case 'faq':
+            newItemHtml += `
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Question</label>
+                        <input type="text" class="form-control" name="${fieldName}[${index}][q]" 
+                               placeholder="Enter question">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Answer</label>
+                        <textarea class="form-control" name="${fieldName}[${index}][a]" rows="3"
+                                placeholder="Enter answer"></textarea>
+                    </div>
+                </div>`;
+            break;
+            
+        case 'images':
+            newItemHtml += `
+                <div class="mb-2">
+                    <label class="form-label">Image URL</label>
+                    <input type="text" class="form-control" name="${fieldName}[${index}]" 
+                           placeholder="https://example.com/image.jpg or http://example.com/image.jpg">
+                    <div class="form-text">Enter the full URL to the image (HTTP or HTTPS)</div>
+                </div>`;
+            break;
+            
         case 'social':
             newItemHtml += `
                 <div class="row">
@@ -2344,8 +2468,16 @@ function saveSectionContent() {
     // Convert FormData to JSON, handling special cases
     const contentData = {};
     
+    // Define fields to skip (system/form fields)
+    const skipFields = ['_token', 'section_id', 'page_id'];
+    
     // Handle regular fields
     for (let [key, value] of formData.entries()) {
+        // Skip system fields
+        if (skipFields.includes(key)) {
+            continue;
+        }
+        
         if (key.includes('[')) {
             // Skip array items, we'll handle them separately
             continue;
@@ -2385,13 +2517,19 @@ function saveSectionContent() {
         
         container.querySelectorAll('.array-item').forEach((item, index) => {
             const itemData = {};
+            let simpleValue = null;
             
             // Collect all inputs for this array item
             item.querySelectorAll('input, textarea, select').forEach(input => {
                 if (input.name && input.name.includes(`[${index}]`)) {
-                    const fieldMatch = input.name.match(/\[(\w+)\]$/);
-                    if (fieldMatch) {
-                        const fieldKey = fieldMatch[1];
+                    // Check if this is a simple array item (like images[0]) or object array item (like features[0][title])
+                    const namePattern = input.name;
+                    const simpleArrayMatch = namePattern.match(new RegExp(`\\[${index}\\]$`));
+                    const objectArrayMatch = namePattern.match(new RegExp(`\\[${index}\\]\\[([\\w]+)\\]$`));
+                    
+                    if (objectArrayMatch) {
+                        // This is an object array item (has property name like features[0][title])
+                        const fieldKey = objectArrayMatch[1];
                         
                         if (input.type === 'checkbox') {
                             itemData[fieldKey] = input.checked;
@@ -2403,12 +2541,21 @@ function saveSectionContent() {
                         } else {
                             itemData[fieldKey] = input.value || '';
                         }
+                    } else if (simpleArrayMatch) {
+                        // This is a simple array item (like images[0])
+                        simpleValue = input.value || '';
                     }
                 }
             });
             
-            // Only add non-empty items
-            if (Object.keys(itemData).length > 0 && Object.values(itemData).some(v => v !== '' && v !== false)) {
+            // Add to array based on type
+            if (simpleValue !== null) {
+                // Simple array item (like image URLs)
+                if (simpleValue !== '') {
+                    arrayData.push(simpleValue);
+                }
+            } else if (Object.keys(itemData).length > 0 && Object.values(itemData).some(v => v !== '' && v !== false)) {
+                // Object array item (like FAQ, features, etc.)
                 arrayData.push(itemData);
             }
         });
@@ -2418,8 +2565,23 @@ function saveSectionContent() {
         }
     });
     
+    // Final cleanup - remove unwanted duplicate/alias fields
+    const duplicateFields = ['hero_title', 'hero_description', 'content', 'description'];
+    duplicateFields.forEach(field => {
+        if (contentData.hasOwnProperty(field)) {
+            delete contentData[field];
+        }
+    });
+    
     // Get CSRF token
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    // Check if CSRF token exists and is valid
+    if (!csrfToken || csrfToken === 'undefined' || csrfToken.length < 10) {
+        showSectionError('CSRF token is missing or invalid. Please refresh the page.');
+        console.error('Invalid CSRF token:', csrfToken);
+        return;
+    }
     
     // Debug: Log the data being sent
     console.log('Form Data entries:');
@@ -2443,8 +2605,15 @@ function saveSectionContent() {
         })
     })
     .then(response => {
+        console.log('Response received:', response);
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
         if (!response.ok) {
-            throw new Error('Failed to save section content');
+            return response.text().then(text => {
+                console.error('Error response body:', text);
+                throw new Error(`HTTP ${response.status}: ${text}`);
+            });
         }
         return response.json();
     })
@@ -2468,7 +2637,8 @@ function saveSectionContent() {
     })
     .catch(error => {
         console.error('Error saving section content:', error);
-        showSectionError('Failed to save section content. Please try again.');
+        alert('فشل في حفظ المحتوى: ' + error.message);
+        showSectionError('Failed to save section content: ' + error.message);
     })
     .finally(() => {
         // Restore save button

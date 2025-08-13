@@ -212,6 +212,16 @@ class ContentEditorController extends Controller
     public function updateSectionContent(Request $request, $pageId, $sectionId)
     {
         try {
+            // Debug: Write to file for debugging
+            file_put_contents(storage_path('logs/section_update_debug.log'), 
+                "[" . date('Y-m-d H:i:s') . "] UpdateSectionContent called\n" .
+                "Page ID: $pageId\n" .
+                "Section ID: $sectionId\n" .
+                "Request Data: " . json_encode($request->all()) . "\n" .
+                "Headers: " . json_encode($request->headers->all()) . "\n\n", 
+                FILE_APPEND | LOCK_EX
+            );
+            
             // Debug: Log incoming request data
             Log::info('UpdateSectionContent called', [
                 'pageId' => $pageId,

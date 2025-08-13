@@ -91,6 +91,10 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() 
     // Edit Content landing (active header/footer + sections)
     Route::get('/content', [ContentEditorController::class, 'index'])->name('content.index');
     
+    // Section Content Management
+    Route::get('/content/sections/{pageId}/{sectionId}', [ContentEditorController::class, 'getSectionContent'])->name('content.sections.get');
+    Route::put('/content/sections/{pageId}/{sectionId}', [ContentEditorController::class, 'updateSectionContent'])->name('content.sections.update');
+    
     // Site Management
     Route::resource('sites', SiteController::class);
     
