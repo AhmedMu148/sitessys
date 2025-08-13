@@ -92,7 +92,6 @@
                                 </li>
                             </ul>
                         </div>
-                    </li>
 
                     <li class="sidebar-item {{ request()->routeIs('admin.templates.*') ? 'active' : '' }}">
                         <a class="sidebar-link" href="{{ route('admin.templates.index') }}">

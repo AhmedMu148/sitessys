@@ -746,4 +746,326 @@ class HeaderFooterController extends Controller
             ->get(['id', 'name', 'slug', 'link'])
             ->toArray();
     }
+
+    /**
+     * Get header content for editing
+     */
+    public function getHeaderContent(Request $request, $id): JsonResponse
+    {
+        try {
+            $site = $this->getCurrentSite($request);
+            
+            // Verify this is the active header for the site
+            if ($site->active_header_id != $id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This header is not active for the current site'
+                ], 403);
+            }
+            
+            $header = TplLayout::where('id', $id)
+                ->where('layout_type', 'header')
+                ->first();
+                
+            if (!$header) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Header not found'
+                ], 404);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'header' => [
+                    'id' => $header->id,
+                    'name' => $header->name,
+                    'content_data' => $header->content,
+                    'content' => $header->content
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error getting header content: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error getting header content: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update header content
+     */
+    public function updateHeaderContent(Request $request, $id): JsonResponse
+    {
+        try {
+            Log::info('=== Header Content Update Request ===');
+            Log::info('Header ID: ' . $id);
+            Log::info('Request Data: ' . json_encode($request->all()));
+            
+            $site = $this->getCurrentSite($request);
+            Log::info('Current Site ID: ' . $site->id);
+            Log::info('Site Active Header ID: ' . $site->active_header_id);
+            
+            // Verify this is the active header for the site
+            $force = $request->boolean('force_override');
+            if ($site->active_header_id != $id && !$force) {
+                Log::warning('Header ID mismatch - requested: ' . $id . ', active: ' . $site->active_header_id);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This header is not active for the current site'
+                ], 403);
+            }
+            
+            $header = TplLayout::where('id', $id)
+                ->where('layout_type', 'header')
+                ->first();
+                
+            if (!$header) {
+                Log::error('Header not found with ID: ' . $id);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Header not found'
+                ], 404);
+            }
+            
+            Log::info('Found Header: ' . $header->name);
+            Log::info('Original Content: ' . json_encode($header->content));
+            
+            // Get content data from request
+            $contentData = $request->input('content_data', []);
+            Log::info('Incoming Content Data: ' . json_encode($contentData));
+
+            // Existing content
+            $existing = $header->content ?? [];
+            Log::info('Existing Content (before merge): ' . json_encode($existing));
+
+            // Preserve html/template keys if present in existing but not in new
+            $preserveKeys = ['html','template','template_html','raw_html'];
+            foreach ($preserveKeys as $k) {
+                if (isset($existing[$k]) && !isset($contentData[$k])) {
+                    $contentData[$k] = $existing[$k];
+                }
+            }
+
+            // Merge (new overrides existing for same scalar keys except arrays we replace fully)
+            $merged = array_merge($existing, $contentData);
+            Log::info('Merged Content (about to save): ' . json_encode($merged));
+
+            // Avoid saving empty content that would hide header
+            if (empty($merged)) {
+                Log::warning('Merged content empty – aborting save to prevent header disappearance');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Nothing to update'
+                ], 422);
+            }
+
+            // Ensure html key exists (fallback: load original blade file if possible)
+            if (!isset($merged['html'])) {
+                try {
+                    if (!empty($header->path)) {
+                        $viewPath = $header->path; // stored like 'templates/headers/hero-header.blade.php' or similar
+                        // Normalize path (strip .blade.php if passed to view())
+                        $relative = str_replace(['..'], '', ltrim($viewPath, '/'));
+                        // Accept both with/without resources/views prefix
+                        $fullPath = str_starts_with($relative, 'resources/views')
+                            ? base_path($relative)
+                            : resource_path('views/' . $relative);
+                        if (is_file($fullPath)) {
+                            $raw = file_get_contents($fullPath);
+                            $merged['html'] = $merged['html_original'] = $raw;
+                            Log::info('Injected original template HTML into header merged content.');
+                        } else {
+                            Log::warning('Header template file not found for fallback: ' . $fullPath);
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Failed to load original header template HTML: ' . $e->getMessage());
+                }
+            }
+
+            $header->content = $merged;
+            $saved = $header->save();
+            
+            Log::info('Save Result: ' . ($saved ? 'SUCCESS' : 'FAILED'));
+            Log::info('Updated Content: ' . json_encode($header->fresh()->content));
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Header content updated successfully',
+                'header' => [
+                    'id' => $header->id,
+                    'name' => $header->name,
+                    'content_data' => $header->content
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error updating header content: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating header content: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get footer content for editing
+     */
+    public function getFooterContent(Request $request, $id): JsonResponse
+    {
+        try {
+            $site = $this->getCurrentSite($request);
+            
+            // Verify this is the active footer for the site
+            if ($site->active_footer_id != $id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This footer is not active for the current site'
+                ], 403);
+            }
+            
+            $footer = TplLayout::where('id', $id)
+                ->where('layout_type', 'footer')
+                ->first();
+                
+            if (!$footer) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Footer not found'
+                ], 404);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'footer' => [
+                    'id' => $footer->id,
+                    'name' => $footer->name,
+                    'content_data' => $footer->content,
+                    'content' => $footer->content
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error getting footer content: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error getting footer content: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update footer content
+     */
+    public function updateFooterContent(Request $request, $id): JsonResponse
+    {
+        try {
+            Log::info('=== Footer Content Update Request ===');
+            Log::info('Footer ID: ' . $id);
+            Log::info('Request Data: ' . json_encode($request->all()));
+            
+            $site = $this->getCurrentSite($request);
+            Log::info('Current Site ID: ' . $site->id);
+            Log::info('Site Active Footer ID: ' . $site->active_footer_id);
+            
+            // Verify this is the active footer for the site
+            $force = $request->boolean('force_override');
+            if ($site->active_footer_id != $id && !$force) {
+                Log::warning('Footer ID mismatch - requested: ' . $id . ', active: ' . $site->active_footer_id);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This footer is not active for the current site'
+                ], 403);
+            }
+            
+            $footer = TplLayout::where('id', $id)
+                ->where('layout_type', 'footer')
+                ->first();
+                
+            if (!$footer) {
+                Log::error('Footer not found with ID: ' . $id);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Footer not found'
+                ], 404);
+            }
+            
+            Log::info('Found Footer: ' . $footer->name);
+            Log::info('Original Content: ' . json_encode($footer->content));
+            
+            // Get content data from request
+            $contentData = $request->input('content_data', []);
+            Log::info('Incoming Content Data: ' . json_encode($contentData));
+
+            // Existing content
+            $existing = $footer->content ?? [];
+            Log::info('Existing Content (before merge): ' . json_encode($existing));
+
+            // Preserve html/template keys if present
+            $preserveKeys = ['html','template','template_html','raw_html'];
+            foreach ($preserveKeys as $k) {
+                if (isset($existing[$k]) && !isset($contentData[$k])) {
+                    $contentData[$k] = $existing[$k];
+                }
+            }
+
+            $merged = array_merge($existing, $contentData);
+            Log::info('Merged Content (about to save): ' . json_encode($merged));
+
+            if (empty($merged)) {
+                Log::warning('Merged content empty – aborting save to prevent footer disappearance');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Nothing to update'
+                ], 422);
+            }
+
+            // Ensure html key exists (fallback similar to header)
+            if (!isset($merged['html'])) {
+                try {
+                    if (!empty($footer->path)) {
+                        $viewPath = $footer->path;
+                        $relative = str_replace(['..'], '', ltrim($viewPath, '/'));
+                        $fullPath = str_starts_with($relative, 'resources/views')
+                            ? base_path($relative)
+                            : resource_path('views/' . $relative);
+                        if (is_file($fullPath)) {
+                            $raw = file_get_contents($fullPath);
+                            $merged['html'] = $merged['html_original'] = $raw;
+                            Log::info('Injected original template HTML into footer merged content.');
+                        } else {
+                            Log::warning('Footer template file not found for fallback: ' . $fullPath);
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Failed to load original footer template HTML: ' . $e->getMessage());
+                }
+            }
+
+            $footer->content = $merged;
+            $saved = $footer->save();
+            
+            Log::info('Save Result: ' . ($saved ? 'SUCCESS' : 'FAILED'));
+            Log::info('Updated Content: ' . json_encode($footer->fresh()->content));
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Footer content updated successfully',
+                'footer' => [
+                    'id' => $footer->id,
+                    'name' => $footer->name,
+                    'content_data' => $footer->content
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error updating footer content: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating footer content: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

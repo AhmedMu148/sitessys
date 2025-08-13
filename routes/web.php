@@ -115,6 +115,11 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function() 
         Route::get('/', [HeaderFooterController::class, 'index'])->name('index');
         
         // Enhanced features for global templates and navigation (before wildcard routes)
+        Route::get('/headers/{id}', [HeaderFooterController::class, 'getHeaderContent'])->name('headers.get');
+        Route::put('/headers/{id}', [HeaderFooterController::class, 'updateHeaderContent'])->name('headers.update');
+        Route::get('/footers/{id}', [HeaderFooterController::class, 'getFooterContent'])->name('footers.get');
+        Route::put('/footers/{id}', [HeaderFooterController::class, 'updateFooterContent'])->name('footers.update');
+        
         Route::post('/create-user-copy', [HeaderFooterController::class, 'createUserCopy'])->name('create-user-copy');
         Route::get('/get-navigation', [HeaderFooterController::class, 'getNavigation'])->name('get-navigation');
         Route::get('/get-social-media', [HeaderFooterController::class, 'getSocialMedia'])->name('get-social-media');

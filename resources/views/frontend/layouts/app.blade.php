@@ -230,24 +230,40 @@
             @php
                 $navContent = $navLayout->content;
                 if (is_array($navContent) && isset($navContent['html'])) {
-                    $navContent = $navContent['html'];
+                    $navContentHtml = $navContent['html'];
+                    // Use all updated config from content, fallback to default_config
+                    $navConfig = array_merge(
+                        json_decode($navLayout->default_config ?? '{}', true) ?: [],
+                        $navContent  // This contains the updated values from Edit Content
+                    );
+                    // Remove html key from config to avoid conflicts
+                    unset($navConfig['html']);
                 } elseif (is_string($navContent)) {
                     $decoded = json_decode($navContent, true);
                     if (is_array($decoded) && isset($decoded['html'])) {
-                        $navContent = $decoded['html'];
+                        $navContentHtml = $decoded['html'];
+                        $navConfig = array_merge(
+                            json_decode($navLayout->default_config ?? '{}', true) ?: [],
+                            $decoded
+                        );
+                        unset($navConfig['html']);
+                    } else {
+                        $navContentHtml = $navContent;
+                        $navConfig = json_decode($navLayout->default_config ?? '{}', true) ?: [];
                     }
+                } else {
+                    $navContentHtml = '<!-- Navigation content invalid -->';
+                    $navConfig = json_decode($navLayout->default_config ?? '{}', true) ?: [];
                 }
-                if (is_array($navContent)) {
-                    $navContent = '<!-- Navigation content is array, cannot display -->';
-                } elseif (!is_string($navContent)) {
-                    $navContent = '<!-- Navigation content invalid -->';
+                
+                if (is_array($navContentHtml)) {
+                    $navContentHtml = '<!-- Navigation content is array, cannot display -->';
+                } elseif (!is_string($navContentHtml)) {
+                    $navContentHtml = '<!-- Navigation content invalid -->';
                 }
-                $navConfig = $navLayout->default_config ?? [];
-                if (is_string($navConfig)) {
-                    $navConfig = json_decode($navConfig, true) ?: [];
-                }
+                
                 $bladeService = new \App\Services\BladeRenderingService();
-                $renderedNav = $bladeService->render($navContent, [ 'config' => $navConfig ]);
+                $renderedNav = $bladeService->render($navContentHtml, [ 'config' => $navConfig ]);
             @endphp
             {!! $renderedNav !!}
         @endif
@@ -364,24 +380,40 @@
             @php
                 $footerContent = $footerLayout->content;
                 if (is_array($footerContent) && isset($footerContent['html'])) {
-                    $footerContent = $footerContent['html'];
+                    $footerContentHtml = $footerContent['html'];
+                    // Use all updated config from content, fallback to default_config
+                    $footerConfig = array_merge(
+                        json_decode($footerLayout->default_config ?? '{}', true) ?: [],
+                        $footerContent  // This contains the updated values from Edit Content
+                    );
+                    // Remove html key from config to avoid conflicts
+                    unset($footerConfig['html']);
                 } elseif (is_string($footerContent)) {
                     $decoded = json_decode($footerContent, true);
                     if (is_array($decoded) && isset($decoded['html'])) {
-                        $footerContent = $decoded['html'];
+                        $footerContentHtml = $decoded['html'];
+                        $footerConfig = array_merge(
+                            json_decode($footerLayout->default_config ?? '{}', true) ?: [],
+                            $decoded
+                        );
+                        unset($footerConfig['html']);
+                    } else {
+                        $footerContentHtml = $footerContent;
+                        $footerConfig = json_decode($footerLayout->default_config ?? '{}', true) ?: [];
                     }
+                } else {
+                    $footerContentHtml = '<!-- Footer content invalid -->';
+                    $footerConfig = json_decode($footerLayout->default_config ?? '{}', true) ?: [];
                 }
-                if (is_array($footerContent)) {
-                    $footerContent = '<!-- Footer content is array, cannot display -->';
-                } elseif (!is_string($footerContent)) {
-                    $footerContent = '<!-- Footer content invalid -->';
+                
+                if (is_array($footerContentHtml)) {
+                    $footerContentHtml = '<!-- Footer content is array, cannot display -->';
+                } elseif (!is_string($footerContentHtml)) {
+                    $footerContentHtml = '<!-- Footer content invalid -->';
                 }
-                $footerConfig = $footerLayout->default_config ?? [];
-                if (is_string($footerConfig)) {
-                    $footerConfig = json_decode($footerConfig, true) ?: [];
-                }
+                
                 $bladeService = new \App\Services\BladeRenderingService();
-                $renderedFooter = $bladeService->render($footerContent, [ 'config' => $footerConfig ]);
+                $renderedFooter = $bladeService->render($footerContentHtml, [ 'config' => $footerConfig ]);
             @endphp
             {!! $renderedFooter !!}
         @endif
