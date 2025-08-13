@@ -154,28 +154,28 @@ class DevelopmentSeeder extends Seeder
         $headers = [
             [
                 'tpl_id' => 'global-modern-header-1',
-                'name' => 'Modern Business Header',
-                'description' => 'Clean modern header with gradient background'
+                'name' => 'Elevated Business Header',
+                'description' => 'Professional header with floating navigation and dynamic shadows'
             ],
             [
                 'tpl_id' => 'global-classic-header-2', 
-                'name' => 'Classic Corporate Header',
-                'description' => 'Traditional corporate header design'
+                'name' => 'Corporate Elite Header',
+                'description' => 'Sophisticated corporate header with premium styling'
             ],
             [
                 'tpl_id' => 'global-creative-header-3',
-                'name' => 'Creative Portfolio Header', 
-                'description' => 'Creative header for portfolios and agencies'
+                'name' => 'Creative Studio Header', 
+                'description' => 'Artistic header with bold typography and creative layouts'
             ],
             [
                 'tpl_id' => 'global-minimal-header-4',
-                'name' => 'Minimal Clean Header',
-                'description' => 'Minimalist header with clean typography'
+                'name' => 'Ultra-Clean Header',
+                'description' => 'Minimalist approach with perfect spacing and typography'
             ],
             [
                 'tpl_id' => 'global-dynamic-header-5',
-                'name' => 'Dynamic Interactive Header',
-                'description' => 'Header with interactive elements and animations'
+                'name' => 'Interactive Pro Header',
+                'description' => 'Advanced header with micro-interactions and modern effects'
             ]
         ];
 
@@ -524,57 +524,69 @@ class DevelopmentSeeder extends Seeder
 
     private function getHeaderHTML($variant): string
     {
-        return '<nav class="navbar navbar-expand-lg navbar-modern navbar-variant-' . $variant . '" id="mainNavbar">
-    <div class="container">
-        <a class="navbar-brand d-flex align-items-center fw-bold" href="/">
-            @if(!empty($config[\'logo_url\']))
-                <img src="{{ $config[\'logo_url\'] }}" alt="{{ $config[\'site_name\'] ?? \'Logo\' }}" height="40" class="me-2">
-            @endif
-            <span class="brand-text">{{ $config[\'site_name\'] ?? \'Your Site\' }}</span>
-        </a>
+        $htmlVariants = [
+            1 => '<!-- Elevated Business Header -->
+<nav class="navbar navbar-expand-lg navbar-elevated navbar-variant-' . $variant . '" id="mainNavbar">
+    <div class="container-fluid px-4">
+        <div class="navbar-brand-container">
+            <a class="navbar-brand elevated-brand" href="/">
+                @if(!empty($config[\'logo_url\']))
+                    <div class="logo-wrapper">
+                        <img src="{{ $config[\'logo_url\'] }}" alt="{{ $config[\'site_name\'] ?? \'Logo\' }}" class="brand-logo">
+                    </div>
+                @endif
+                <span class="brand-title">{{ $config[\'site_name\'] ?? \'Your Business\' }}</span>
+            </a>
+        </div>
         
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
+        <button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span></span><span></span><span></span>
         </button>
         
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto">
+            <ul class="navbar-nav navigation-menu mx-auto">
                 @foreach($config[\'menu_items\'] ?? [] as $item)
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ $item[\'url\'] }}" 
+                    <li class="nav-item dropdown-hover">
+                        <a class="nav-link nav-button" href="{{ $item[\'url\'] }}" 
                            @if($item[\'external\'] ?? false) target="_blank" @endif>
-                            {{ $item[\'label\'] ?? $item[\'name\'] }}
+                            <span class="link-text">{{ $item[\'label\'] ?? $item[\'name\'] }}</span>
+                            <span class="link-underline"></span>
                         </a>
                     </li>
                 @endforeach
             </ul>
             
-            <div class="navbar-actions d-flex align-items-center gap-3">
-                <!-- Auth Section - Always visible -->
+            <div class="navbar-actions action-panel">
                 @guest
-                    <a href="/login" class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-sign-in-alt me-1"></i>Login
+                    <a href="/login" class="btn btn-outline-light btn-elevated">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Sign In</span>
                     </a>
-                    <a href="/register" class="btn btn-primary btn-sm">
-                        <i class="fas fa-user-plus me-1"></i>Register
+                    <a href="/register" class="btn btn-primary btn-elevated">
+                        <i class="fas fa-rocket"></i>
+                        <span>Get Started</span>
                     </a>
                 @else
-                    <div class="dropdown">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user-circle me-1"></i>{{ auth()->user()->name }}
+                    <div class="user-dropdown">
+                        <a class="user-profile-link" href="#" data-bs-toggle="dropdown">
+                            <div class="user-avatar">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <span class="user-name">{{ auth()->user()->name }}</span>
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/profile"><i class="fas fa-user me-2"></i>Profile</a></li>
-                            <li><a class="dropdown-item" href="/dashboard"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+                        <ul class="dropdown-menu user-menu">
+                            <li><a class="dropdown-item" href="/profile"><i class="fas fa-user"></i>My Profile</a></li>
+                            <li><a class="dropdown-item" href="/dashboard"><i class="fas fa-chart-bar"></i>Dashboard</a></li>
                             @if(auth()->user()->hasAnyRole([\'admin\', \'super-admin\']))
-                                <li><a class="dropdown-item" href="/admin"><i class="fas fa-cog me-2"></i>Admin Panel</a></li>
+                                <li><a class="dropdown-item" href="/admin"><i class="fas fa-shield-alt"></i>Admin Center</a></li>
                             @endif
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <form method="POST" action="/logout" class="d-inline w-100">
+                                <form method="POST" action="/logout">
                                     @csrf
-                                    <button type="submit" class="dropdown-item">
-                                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                    <button type="submit" class="dropdown-item logout-btn">
+                                        <i class="fas fa-power-off"></i>Sign Out
                                     </button>
                                 </form>
                             </li>
@@ -583,95 +595,1669 @@ class DevelopmentSeeder extends Seeder
                 @endguest
                 
                 @if(!empty($config[\'cta_button\'][\'text\']))
-                    <a href="{{ $config[\'cta_button\'][\'url\'] ?? \'#\' }}" 
-                       class="btn btn-gradient btn-sm rounded-pill px-3">
-                        {{ $config[\'cta_button\'][\'text\'] }}
+                    <a href="{{ $config[\'cta_button\'][\'url\'] ?? \'#\' }}" class="btn btn-cta-elevated">
+                        <span>{{ $config[\'cta_button\'][\'text\'] }}</span>
+                        <i class="fas fa-arrow-right"></i>
                     </a>
                 @endif
             </div>
         </div>
     </div>
-</nav>';
+</nav>',
+
+            2 => '<!-- Corporate Elite Header -->
+<header class="corporate-header header-variant-' . $variant . '" id="mainNavbar">
+    <div class="header-top-bar">
+        <div class="container">
+            <div class="top-bar-content">
+                <div class="contact-info">
+                    <span><i class="fas fa-envelope"></i> info@company.com</span>
+                    <span><i class="fas fa-phone"></i> +1 (555) 123-4567</span>
+                </div>
+                <div class="header-social">
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <nav class="navbar navbar-expand-lg main-navigation">
+        <div class="container">
+            <a class="navbar-brand corporate-brand" href="/">
+                @if(!empty($config[\'logo_url\']))
+                    <img src="{{ $config[\'logo_url\'] }}" alt="{{ $config[\'site_name\'] ?? \'Logo\' }}" class="corporate-logo">
+                @endif
+                <div class="brand-info">
+                    <h1 class="company-name">{{ $config[\'site_name\'] ?? \'Corporation\' }}</h1>
+                    <p class="company-tagline">Excellence in Business</p>
+                </div>
+            </a>
+            
+            <button class="navbar-toggler corporate-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="toggler-line"></span>
+                <span class="toggler-line"></span>
+                <span class="toggler-line"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav corporate-nav ms-auto">
+                    @foreach($config[\'menu_items\'] ?? [] as $item)
+                        <li class="nav-item">
+                            <a class="nav-link corporate-link" href="{{ $item[\'url\'] }}" 
+                               @if($item[\'external\'] ?? false) target="_blank" @endif>
+                                {{ $item[\'label\'] ?? $item[\'name\'] }}
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+                
+                <div class="corporate-actions">
+                    @guest
+                        <a href="/login" class="corporate-btn btn-secondary">
+                            <i class="fas fa-user"></i> Client Portal
+                        </a>
+                        <a href="/register" class="corporate-btn btn-primary">
+                            <i class="fas fa-briefcase"></i> Partnership
+                        </a>
+                    @else
+                        <div class="corporate-user-menu">
+                            <a class="corporate-user-btn" href="#" data-bs-toggle="dropdown">
+                                <span class="user-initial">{{ substr(auth()->user()->name, 0, 1) }}</span>
+                                <span>{{ auth()->user()->name }}</span>
+                            </a>
+                            <ul class="dropdown-menu corporate-dropdown">
+                                <li><a class="dropdown-item" href="/profile">Account Settings</a></li>
+                                <li><a class="dropdown-item" href="/dashboard">Control Panel</a></li>
+                                @if(auth()->user()->hasAnyRole([\'admin\', \'super-admin\']))
+                                    <li><a class="dropdown-item" href="/admin">Management Suite</a></li>
+                                @endif
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="POST" action="/logout">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item">Sign Out</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    @endguest
+                    
+                    @if(!empty($config[\'cta_button\'][\'text\']))
+                        <a href="{{ $config[\'cta_button\'][\'url\'] ?? \'#\' }}" class="corporate-cta">
+                            {{ $config[\'cta_button\'][\'text\'] }}
+                        </a>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>',
+
+            3 => '<!-- Creative Studio Header -->
+<div class="creative-header header-variant-' . $variant . '" id="mainNavbar">
+    <div class="creative-background">
+        <div class="background-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+        </div>
+    </div>
+    
+    <nav class="navbar navbar-expand-lg creative-nav">
+        <div class="container-fluid">
+            <a class="navbar-brand creative-brand" href="/">
+                @if(!empty($config[\'logo_url\']))
+                    <div class="creative-logo-container">
+                        <img src="{{ $config[\'logo_url\'] }}" alt="{{ $config[\'site_name\'] ?? \'Logo\' }}" class="creative-logo">
+                        <div class="logo-glow"></div>
+                    </div>
+                @endif
+                <div class="brand-text-creative">
+                    <span class="brand-main">{{ $config[\'site_name\'] ?? \'Creative Studio\' }}</span>
+                    <span class="brand-sub">Design & Innovation</span>
+                </div>
+            </a>
+            
+            <button class="navbar-toggler creative-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <div class="burger-lines">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav creative-menu">
+                    @foreach($config[\'menu_items\'] ?? [] as $item)
+                        <li class="nav-item creative-item">
+                            <a class="nav-link creative-link" href="{{ $item[\'url\'] }}" 
+                               @if($item[\'external\'] ?? false) target="_blank" @endif>
+                                <span class="link-content">{{ $item[\'label\'] ?? $item[\'name\'] }}</span>
+                                <span class="link-hover-effect"></span>
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+                
+                <div class="creative-user-section">
+                    @guest
+                        <div class="auth-buttons-creative">
+                            <a href="/login" class="btn-creative btn-login">
+                                <span>Enter</span>
+                                <div class="btn-bg"></div>
+                            </a>
+                            <a href="/register" class="btn-creative btn-signup">
+                                <span>Join Us</span>
+                                <div class="btn-bg"></div>
+                            </a>
+                        </div>
+                    @else
+                        <div class="creative-profile">
+                            <a class="profile-trigger" href="#" data-bs-toggle="dropdown">
+                                <div class="profile-avatar">
+                                    <span>{{ substr(auth()->user()->name, 0, 2) }}</span>
+                                </div>
+                                <span class="profile-name">{{ auth()->user()->name }}</span>
+                            </a>
+                            <ul class="dropdown-menu creative-dropdown">
+                                <li><a class="dropdown-item" href="/profile"><i class="fas fa-palette"></i> Creative Profile</a></li>
+                                <li><a class="dropdown-item" href="/dashboard"><i class="fas fa-layer-group"></i> Projects</a></li>
+                                @if(auth()->user()->hasAnyRole([\'admin\', \'super-admin\']))
+                                    <li><a class="dropdown-item" href="/admin"><i class="fas fa-magic"></i> Studio Admin</a></li>
+                                @endif
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="POST" action="/logout">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> Exit</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    @endguest
+                    
+                    @if(!empty($config[\'cta_button\'][\'text\']))
+                        <a href="{{ $config[\'cta_button\'][\'url\'] ?? \'#\' }}" class="creative-cta">
+                            <span>{{ $config[\'cta_button\'][\'text\'] }}</span>
+                            <div class="cta-particles"></div>
+                        </a>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </nav>
+</div>',
+
+            4 => '<!-- Ultra-Clean Header -->
+<header class="minimal-header header-variant-' . $variant . '" id="mainNavbar">
+    <nav class="navbar navbar-expand-lg minimal-nav">
+        <div class="container">
+            <div class="navbar-content">
+                <a class="navbar-brand minimal-brand" href="/">
+                    @if(!empty($config[\'logo_url\']))
+                        <img src="{{ $config[\'logo_url\'] }}" alt="{{ $config[\'site_name\'] ?? \'Logo\' }}" class="minimal-logo">
+                    @endif
+                    <span class="brand-text-minimal">{{ $config[\'site_name\'] ?? \'Minimal\' }}</span>
+                </a>
+                
+                <button class="navbar-toggler minimal-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="line"></span>
+                    <span class="line"></span>
+                </button>
+                
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav minimal-menu">
+                        @foreach($config[\'menu_items\'] ?? [] as $item)
+                            <li class="nav-item">
+                                <a class="nav-link minimal-link" href="{{ $item[\'url\'] }}" 
+                                   @if($item[\'external\'] ?? false) target="_blank" @endif>
+                                    {{ $item[\'label\'] ?? $item[\'name\'] }}
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                    
+                    <div class="minimal-actions">
+                        @guest
+                            <a href="/login" class="minimal-btn">Sign In</a>
+                            <a href="/register" class="minimal-btn minimal-btn-primary">Start</a>
+                        @else
+                            <div class="minimal-user">
+                                <a class="minimal-user-link" href="#" data-bs-toggle="dropdown">
+                                    {{ auth()->user()->name }}
+                                    <span class="user-dot"></span>
+                                </a>
+                                <ul class="dropdown-menu minimal-dropdown">
+                                    <li><a class="dropdown-item" href="/profile">Profile</a></li>
+                                    <li><a class="dropdown-item" href="/dashboard">Dashboard</a></li>
+                                    @if(auth()->user()->hasAnyRole([\'admin\', \'super-admin\']))
+                                        <li><a class="dropdown-item" href="/admin">Admin</a></li>
+                                    @endif
+                                    <li>
+                                        <form method="POST" action="/logout">
+                                            @csrf
+                                            <button type="submit" class="dropdown-item">Logout</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        @endguest
+                        
+                        @if(!empty($config[\'cta_button\'][\'text\']))
+                            <a href="{{ $config[\'cta_button\'][\'url\'] ?? \'#\' }}" class="minimal-cta">
+                                {{ $config[\'cta_button\'][\'text\'] }}
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>',
+
+            5 => '<!-- Interactive Pro Header -->
+<div class="interactive-header header-variant-' . $variant . '" id="mainNavbar">
+    <div class="header-effects">
+        <div class="particle-system" id="headerParticles"></div>
+        <div class="gradient-orbs">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            <div class="orb orb-3"></div>
+        </div>
+    </div>
+    
+    <nav class="navbar navbar-expand-lg interactive-nav">
+        <div class="container-fluid">
+            <a class="navbar-brand interactive-brand" href="/">
+                @if(!empty($config[\'logo_url\']))
+                    <div class="logo-interactive">
+                        <img src="{{ $config[\'logo_url\'] }}" alt="{{ $config[\'site_name\'] ?? \'Logo\' }}" class="brand-logo-interactive">
+                        <div class="logo-pulse"></div>
+                    </div>
+                @endif
+                <div class="brand-text-interactive">
+                    <span class="brand-primary">{{ $config[\'site_name\'] ?? \'Interactive\' }}</span>
+                    <span class="brand-secondary">Experience</span>
+                </div>
+            </a>
+            
+            <button class="navbar-toggler interactive-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <div class="toggler-icon">
+                    <span class="bar bar-1"></span>
+                    <span class="bar bar-2"></span>
+                    <span class="bar bar-3"></span>
+                </div>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav interactive-menu mx-auto">
+                    @foreach($config[\'menu_items\'] ?? [] as $item)
+                        <li class="nav-item interactive-item">
+                            <a class="nav-link interactive-link" href="{{ $item[\'url\'] }}" 
+                               @if($item[\'external\'] ?? false) target="_blank" @endif data-text="{{ $item[\'label\'] ?? $item[\'name\'] }}">
+                                <span class="link-text">{{ $item[\'label\'] ?? $item[\'name\'] }}</span>
+                                <span class="link-background"></span>
+                                <span class="link-particles"></span>
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+                
+                <div class="interactive-user-zone">
+                    @guest
+                        <div class="auth-interactive">
+                            <a href="/login" class="interactive-btn btn-ghost">
+                                <span class="btn-text">Login</span>
+                                <div class="btn-ripple"></div>
+                            </a>
+                            <a href="/register" class="interactive-btn btn-solid">
+                                <span class="btn-text">Join</span>
+                                <div class="btn-glow"></div>
+                            </a>
+                        </div>
+                    @else
+                        <div class="user-interactive">
+                            <a class="user-trigger" href="#" data-bs-toggle="dropdown">
+                                <div class="user-avatar-interactive">
+                                    <span class="avatar-text">{{ substr(auth()->user()->name, 0, 1) }}</span>
+                                    <div class="avatar-ring"></div>
+                                </div>
+                                <span class="user-name-interactive">{{ auth()->user()->name }}</span>
+                                <div class="dropdown-indicator"></div>
+                            </a>
+                            <ul class="dropdown-menu interactive-dropdown">
+                                <li><a class="dropdown-item" href="/profile"><i class="fas fa-user-astronaut"></i> Profile</a></li>
+                                <li><a class="dropdown-item" href="/dashboard"><i class="fas fa-rocket"></i> Control Center</a></li>
+                                @if(auth()->user()->hasAnyRole([\'admin\', \'super-admin\']))
+                                    <li><a class="dropdown-item" href="/admin"><i class="fas fa-satellite"></i> Command Center</a></li>
+                                @endif
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="POST" action="/logout">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item"><i class="fas fa-power-off"></i> Power Down</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    @endguest
+                    
+                    @if(!empty($config[\'cta_button\'][\'text\']))
+                        <a href="{{ $config[\'cta_button\'][\'url\'] ?? \'#\' }}" class="cta-interactive">
+                            <span class="cta-text">{{ $config[\'cta_button\'][\'text\'] }}</span>
+                            <div class="cta-energy"></div>
+                        </a>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </nav>
+</div>'
+        ];
+
+        return $htmlVariants[$variant] ?? $htmlVariants[1];
     }
 
     private function getHeaderCSS($variant): string
     {
-        $variants = [
-            1 => 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);',
-            2 => 'background: #ffffff; border-bottom: 2px solid #e9ecef;',
-            3 => 'background: rgba(0,0,0,0.9); backdrop-filter: blur(10px);',
-            4 => 'background: #f8f9fa; border-bottom: 1px solid #dee2e6;',
-            5 => 'background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);'
-        ];
-
-        return '.navbar-variant-' . $variant . ' {
-    ' . ($variants[$variant] ?? $variants[1]) . '
-    transition: all 0.3s ease;
+        $cssVariants = [
+            1 => '/* Elevated Business Header */
+.navbar-elevated {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    transition: all 0.4s ease;
     padding: 1rem 0;
 }
 
-.navbar-modern {
-    z-index: 1050;
+.navbar-elevated.scrolled {
+    padding: 0.5rem 0;
+    box-shadow: 0 5px 30px rgba(0, 0, 0, 0.15);
 }
 
-.brand-text {
-    font-size: 1.5rem;
+.elevated-brand {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.logo-wrapper {
+    margin-right: 1rem;
+    position: relative;
+}
+
+.brand-logo {
+    height: 45px;
+    transition: transform 0.3s ease;
+}
+
+.brand-logo:hover {
+    transform: scale(1.05);
+}
+
+.brand-title {
+    font-size: 1.8rem;
     font-weight: 700;
-    color: ' . ($variant == 2 || $variant == 4 ? '#333' : '#fff') . ';
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
 }
 
-.nav-link {
-    color: ' . ($variant == 2 || $variant == 4 ? '#333' : '#fff') . ' !important;
+.custom-toggler {
+    border: none;
+    background: none;
+    padding: 0.5rem;
+}
+
+.custom-toggler span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background: #333;
+    margin: 5px 0;
+    transition: 0.3s;
+}
+
+.navigation-menu {
+    gap: 2rem;
+}
+
+.nav-button {
+    position: relative;
+    color: #333 !important;
     font-weight: 500;
-    padding: 0.75rem 1rem !important;
-    border-radius: 25px;
+    padding: 0.75rem 1.5rem;
+    text-decoration: none;
+    border-radius: 50px;
     transition: all 0.3s ease;
 }
 
-.nav-link:hover {
-    background: rgba(255,255,255,' . ($variant == 2 || $variant == 4 ? '0.1' : '0.2') . ');
-    transform: translateY(-2px);
+.link-text {
+    position: relative;
+    z-index: 2;
 }
 
-.btn-gradient {
+.link-underline {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
     background: linear-gradient(135deg, #667eea, #764ba2);
-    border: none;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.nav-button:hover .link-underline {
+    width: 100%;
+}
+
+.action-panel {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.btn-elevated {
+    border-radius: 50px;
+    padding: 0.75rem 2rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn-elevated:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.btn-cta-elevated {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 0.75rem 2rem;
+    text-decoration: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     transition: all 0.3s ease;
 }
 
-.btn-gradient:hover {
+.btn-cta-elevated:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
     color: white;
 }
 
-.dropdown-menu {
+.user-dropdown .user-profile-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #333;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+}
+
+.user-avatar {
+    font-size: 1.5rem;
+    color: #667eea;
+}
+
+.user-menu {
     border: none;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    border-radius: 10px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    padding: 1rem 0;
+    margin-top: 0.5rem;
 }
 
 @media (max-width: 991px) {
-    .navbar-nav {
-        text-align: center;
-        margin: 1rem 0;
+    .navigation-menu {
+        margin: 2rem 0;
     }
     
-    .navbar-actions {
+    .action-panel {
         justify-content: center;
         margin-top: 1rem;
         padding-top: 1rem;
-        border-top: 1px solid rgba(255,255,255,0.2);
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
     }
-}';
+}',
+
+            2 => '/* Corporate Elite Header */
+.corporate-header {
+    background: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header-top-bar {
+    background: #2c3e50;
+    color: #ecf0f1;
+    padding: 0.5rem 0;
+    font-size: 0.875rem;
+}
+
+.top-bar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.contact-info span {
+    margin-right: 2rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.header-social a {
+    color: #ecf0f1;
+    margin-left: 1rem;
+    font-size: 1.1rem;
+    transition: color 0.3s ease;
+}
+
+.header-social a:hover {
+    color: #3498db;
+}
+
+.main-navigation {
+    background: #ffffff;
+    padding: 1.5rem 0;
+}
+
+.corporate-brand {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    gap: 1.5rem;
+}
+
+.corporate-logo {
+    height: 60px;
+}
+
+.brand-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.company-name {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+    line-height: 1.2;
+    letter-spacing: -1px;
+}
+
+.company-tagline {
+    font-size: 0.875rem;
+    color: #7f8c8d;
+    margin: 0;
+    font-style: italic;
+}
+
+.corporate-toggler {
+    border: none;
+    background: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0.5rem;
+}
+
+.toggler-line {
+    width: 30px;
+    height: 3px;
+    background: #2c3e50;
+    transition: 0.3s;
+}
+
+.corporate-nav {
+    gap: 2rem;
+}
+
+.corporate-link {
+    color: #2c3e50 !important;
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 1rem 1.5rem;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    position: relative;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.corporate-link::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 3px;
+    background: #3498db;
+    transition: width 0.3s ease;
+}
+
+.corporate-link:hover::before {
+    width: 100%;
+}
+
+.corporate-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.corporate-btn {
+    padding: 0.75rem 2rem;
+    border-radius: 5px;
+    font-weight: 600;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.corporate-btn.btn-secondary {
+    background: transparent;
+    border: 2px solid #7f8c8d;
+    color: #7f8c8d;
+}
+
+.corporate-btn.btn-secondary:hover {
+    background: #7f8c8d;
+    color: white;
+}
+
+.corporate-btn.btn-primary {
+    background: #3498db;
+    border: 2px solid #3498db;
+    color: white;
+}
+
+.corporate-btn.btn-primary:hover {
+    background: #2980b9;
+    border-color: #2980b9;
+}
+
+.corporate-cta {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    padding: 1rem 2.5rem;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    margin-left: 1rem;
+}
+
+.corporate-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
+    color: white;
+}
+
+.corporate-user-menu .corporate-user-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #2c3e50;
+    text-decoration: none;
+    padding: 0.75rem 1.5rem;
+    border: 2px solid #bdc3c7;
+    border-radius: 5px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.user-initial {
+    width: 35px;
+    height: 35px;
+    background: #3498db;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.corporate-dropdown {
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+    margin-top: 0.5rem;
+    padding: 1rem 0;
+}
+
+@media (max-width: 991px) {
+    .header-top-bar {
+        display: none;
+    }
+    
+    .company-name {
+        font-size: 1.5rem;
+    }
+    
+    .corporate-nav {
+        margin: 2rem 0;
+    }
+    
+    .corporate-actions {
+        justify-content: center;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 2px solid #ecf0f1;
+    }
+}',
+
+            3 => '/* Creative Studio Header */
+.creative-header {
+    position: relative;
+    background: radial-gradient(circle at 20% 80%, #ff6b6b 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, #4ecdc4 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, #45b7d1 0%, transparent 50%),
+                linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    overflow: hidden;
+    min-height: 80px;
+}
+
+.creative-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.background-shapes {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.shape {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.1;
+    animation: float 6s ease-in-out infinite;
+}
+
+.shape-1 {
+    width: 100px;
+    height: 100px;
+    background: #ff6b6b;
+    top: 20%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.shape-2 {
+    width: 150px;
+    height: 150px;
+    background: #4ecdc4;
+    top: 60%;
+    right: 20%;
+    animation-delay: 2s;
+}
+
+.shape-3 {
+    width: 80px;
+    height: 80px;
+    background: #45b7d1;
+    bottom: 30%;
+    left: 70%;
+    animation-delay: 4s;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+}
+
+.creative-nav {
+    position: relative;
+    z-index: 10;
+    padding: 1.5rem 0;
+}
+
+.creative-brand {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    gap: 1.5rem;
+}
+
+.creative-logo-container {
+    position: relative;
+}
+
+.creative-logo {
+    height: 50px;
+    filter: brightness(0) invert(1);
+    transition: all 0.3s ease;
+}
+
+.logo-glow {
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.creative-brand:hover .logo-glow {
+    opacity: 1;
+}
+
+.brand-text-creative {
+    display: flex;
+    flex-direction: column;
+}
+
+.brand-main {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: white;
+    line-height: 1;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.brand-sub {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 300;
+    font-style: italic;
+}
+
+.creative-toggler {
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+}
+
+.burger-lines span {
+    display: block;
+    width: 25px;
+    height: 2px;
+    background: white;
+    margin: 5px 0;
+    transition: 0.3s;
+}
+
+.creative-menu {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.creative-item {
+    position: relative;
+}
+
+.creative-link {
+    position: relative;
+    color: white !important;
+    font-weight: 600;
+    padding: 1rem 2rem;
+    text-decoration: none;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    text-transform: capitalize;
+    letter-spacing: 0.5px;
+}
+
+.link-content {
+    position: relative;
+    z-index: 2;
+}
+
+.link-hover-effect {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.creative-link:hover .link-hover-effect {
+    left: 100%;
+}
+
+.creative-user-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.auth-buttons-creative {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-creative {
+    position: relative;
+    padding: 0.75rem 2rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50px;
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.btn-bg {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.2);
+    transition: left 0.3s ease;
+}
+
+.btn-creative:hover .btn-bg {
+    left: 0;
+}
+
+.btn-creative:hover {
+    color: white;
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+.creative-profile .profile-trigger {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: white;
+    text-decoration: none;
+    padding: 0.75rem 1.5rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.profile-avatar {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.creative-cta {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    color: white;
+    padding: 1rem 2.5rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 700;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.creative-cta:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(255, 107, 107, 0.4);
+    color: white;
+}
+
+.cta-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url("data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'10\' cy=\'20\' r=\'1\' fill=\'white\' opacity=\'0.3\'><animate attributeName=\'opacity\' values=\'0.3;1;0.3\' dur=\'2s\' repeatCount=\'indefinite\'/></circle><circle cx=\'80\' cy=\'80\' r=\'1.5\' fill=\'white\' opacity=\'0.5\'><animate attributeName=\'opacity\' values=\'0.5;1;0.5\' dur=\'1.5s\' repeatCount=\'indefinite\'/></circle></svg>") repeat;
+    pointer-events: none;
+}
+
+@media (max-width: 991px) {
+    .creative-header {
+        min-height: auto;
+    }
+    
+    .creative-menu {
+        flex-direction: column;
+        margin: 2rem 0;
+        text-align: center;
+    }
+    
+    .creative-user-section {
+        justify-content: center;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+}',
+
+            4 => '/* Ultra-Clean Header */
+.minimal-header {
+    background: #ffffff;
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+}
+
+.minimal-nav {
+    padding: 2rem 0;
+}
+
+.minimal-header.scrolled {
+    border-bottom-color: #e0e0e0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.navbar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.minimal-brand {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    gap: 1rem;
+}
+
+.minimal-logo {
+    height: 32px;
+    opacity: 0.9;
+    transition: opacity 0.3s ease;
+}
+
+.minimal-logo:hover {
+    opacity: 1;
+}
+
+.brand-text-minimal {
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: #333;
+    letter-spacing: 2px;
+}
+
+.minimal-toggler {
+    border: none;
+    background: none;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.line {
+    width: 20px;
+    height: 1px;
+    background: #333;
+    transition: 0.3s;
+}
+
+.minimal-menu {
+    display: flex;
+    gap: 3rem;
+    margin: 0;
+    padding: 0;
+}
+
+.minimal-link {
+    color: #666 !important;
+    font-weight: 400;
+    font-size: 0.95rem;
+    text-decoration: none;
+    padding: 0.5rem 0;
+    position: relative;
+    transition: color 0.3s ease;
+    letter-spacing: 0.5px;
+}
+
+.minimal-link::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: #333;
+    transition: width 0.3s ease;
+}
+
+.minimal-link:hover {
+    color: #333 !important;
+}
+
+.minimal-link:hover::after {
+    width: 100%;
+}
+
+.minimal-actions {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.minimal-btn {
+    color: #666;
+    text-decoration: none;
+    font-weight: 400;
+    padding: 0.5rem 1.5rem;
+    border-radius: 2px;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+
+.minimal-btn:hover {
+    color: #333;
+}
+
+.minimal-btn-primary {
+    background: #333;
+    color: white !important;
+}
+
+.minimal-btn-primary:hover {
+    background: #000;
+    color: white !important;
+}
+
+.minimal-user {
+    position: relative;
+}
+
+.minimal-user-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #666;
+    text-decoration: none;
+    font-weight: 400;
+    padding: 0.5rem 1rem;
+    transition: color 0.3s ease;
+    letter-spacing: 0.5px;
+}
+
+.user-dot {
+    width: 6px;
+    height: 6px;
+    background: #333;
+    border-radius: 50%;
+}
+
+.minimal-dropdown {
+    border: 1px solid #f0f0f0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    margin-top: 0.5rem;
+    padding: 0.5rem 0;
+    min-width: 160px;
+}
+
+.minimal-dropdown .dropdown-item {
+    color: #666;
+    font-weight: 400;
+    padding: 0.5rem 1.5rem;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    letter-spacing: 0.25px;
+}
+
+.minimal-dropdown .dropdown-item:hover {
+    background: #f8f8f8;
+    color: #333;
+}
+
+.minimal-cta {
+    background: #333;
+    color: white;
+    padding: 0.75rem 2rem;
+    text-decoration: none;
+    font-weight: 400;
+    transition: background 0.3s ease;
+    letter-spacing: 1px;
+}
+
+.minimal-cta:hover {
+    background: #000;
+    color: white;
+}
+
+@media (max-width: 991px) {
+    .minimal-nav {
+        padding: 1.5rem 0;
+    }
+    
+    .minimal-menu {
+        flex-direction: column;
+        gap: 1rem;
+        margin: 2rem 0;
+        text-align: center;
+    }
+    
+    .minimal-actions {
+        justify-content: center;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid #f0f0f0;
+    }
+    
+    .navbar-content {
+        flex-direction: column;
+    }
+}',
+
+            5 => '/* Interactive Pro Header */
+.interactive-header {
+    position: relative;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    overflow: hidden;
+    min-height: 90px;
+}
+
+.header-effects {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.particle-system {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.gradient-orbs {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.orb {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: orbit 20s linear infinite;
+    filter: blur(1px);
+}
+
+.orb-1 {
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle, #ff6b6b, #ee5a24);
+    top: 20%;
+    left: 10%;
+    animation-duration: 15s;
+}
+
+.orb-2 {
+    width: 40px;
+    height: 40px;
+    background: radial-gradient(circle, #4ecdc4, #44bd87);
+    top: 70%;
+    right: 15%;
+    animation-duration: 25s;
+    animation-direction: reverse;
+}
+
+.orb-3 {
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle, #a8e6cf, #88d8a3);
+    bottom: 40%;
+    left: 60%;
+    animation-duration: 18s;
+}
+
+@keyframes orbit {
+    from { transform: rotate(0deg) translateX(50px) rotate(0deg); }
+    to { transform: rotate(360deg) translateX(50px) rotate(-360deg); }
+}
+
+.interactive-nav {
+    position: relative;
+    z-index: 10;
+    padding: 1.5rem 0;
+}
+
+.interactive-brand {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    gap: 1.5rem;
+}
+
+.logo-interactive {
+    position: relative;
+}
+
+.brand-logo-interactive {
+    height: 50px;
+    filter: brightness(0) invert(1);
+    transition: all 0.3s ease;
+}
+
+.logo-pulse {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60px;
+    height: 60px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.4; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+}
+
+.brand-text-interactive {
+    display: flex;
+    flex-direction: column;
+}
+
+.brand-primary {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+    line-height: 1;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.brand-secondary {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 300;
+    margin-top: 0.2rem;
+}
+
+.interactive-toggler {
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+}
+
+.toggler-icon {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.bar {
+    width: 25px;
+    height: 2px;
+    background: white;
+    transition: 0.3s;
+}
+
+.interactive-menu {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.interactive-link {
+    position: relative;
+    color: white !important;
+    font-weight: 500;
+    padding: 1rem 2rem;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.link-text {
+    position: relative;
+    z-index: 3;
+}
+
+.link-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+
+.interactive-link:hover .link-background {
+    transform: translateX(0);
+}
+
+.link-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.interactive-link:hover .link-particles {
+    opacity: 1;
+}
+
+.interactive-user-zone {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.auth-interactive {
+    display: flex;
+    gap: 1rem;
+}
+
+.interactive-btn {
+    position: relative;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.btn-ghost {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: transparent;
+}
+
+.btn-solid {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-ripple, .btn-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.3s ease;
+}
+
+.btn-ripple {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-glow {
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent);
+}
+
+.interactive-btn:hover .btn-ripple,
+.interactive-btn:hover .btn-glow {
+    width: 300px;
+    height: 300px;
+}
+
+.user-interactive .user-trigger {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: white;
+    text-decoration: none;
+    padding: 0.75rem 1.5rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.user-avatar-interactive {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.avatar-ring {
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    animation: rotate 3s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.dropdown-indicator {
+    width: 8px;
+    height: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-left: transparent;
+    border-top: transparent;
+    transform: rotate(45deg);
+    transition: transform 0.3s ease;
+}
+
+.cta-interactive {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    color: white;
+    padding: 1rem 2.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.cta-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+    color: white;
+}
+
+.cta-energy {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.cta-interactive:hover .cta-energy {
+    left: 100%;
+}
+
+@media (max-width: 991px) {
+    .interactive-header {
+        min-height: auto;
+    }
+    
+    .interactive-menu {
+        flex-direction: column;
+        margin: 2rem 0;
+        text-align: center;
+        gap: 0.5rem;
+    }
+    
+    .interactive-user-zone {
+        justify-content: center;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        flex-wrap: wrap;
+    }
+    
+    .auth-interactive {
+        order: 2;
+        margin-top: 1rem;
+    }
+}'
+        ];
+
+        return $cssVariants[$variant] ?? $cssVariants[1];
     }
 
     private function getHeaderJS($variant): string
     {
-        return 'document.addEventListener("DOMContentLoaded", function() {
+        $jsVariants = [
+            1 => '// Elevated Business Header JS
+document.addEventListener("DOMContentLoaded", function() {
     const navbar = document.getElementById("mainNavbar");
     if (navbar) {
+        // Scroll effect
         window.addEventListener("scroll", function() {
             if (window.scrollY > 50) {
                 navbar.classList.add("scrolled");
@@ -679,9 +2265,31 @@ class DevelopmentSeeder extends Seeder
                 navbar.classList.remove("scrolled");
             }
         });
+
+        // Smooth hover effects for navigation
+        const navLinks = document.querySelectorAll(".nav-button");
+        navLinks.forEach(link => {
+            link.addEventListener("mouseenter", function() {
+                this.style.transform = "translateY(-2px)";
+            });
+            link.addEventListener("mouseleave", function() {
+                this.style.transform = "translateY(0)";
+            });
+        });
+
+        // Interactive CTA button
+        const ctaBtn = document.querySelector(".btn-cta-elevated");
+        if (ctaBtn) {
+            ctaBtn.addEventListener("mouseenter", function() {
+                this.style.transform = "translateY(-2px) scale(1.05)";
+            });
+            ctaBtn.addEventListener("mouseleave", function() {
+                this.style.transform = "translateY(0) scale(1)";
+            });
+        }
     }
     
-    // Auto-close mobile menu on link click
+    // Auto-close mobile menu
     document.querySelectorAll(".navbar-nav .nav-link").forEach(link => {
         link.addEventListener("click", function() {
             const navbarCollapse = document.getElementById("navbarNav");
@@ -691,7 +2299,356 @@ class DevelopmentSeeder extends Seeder
             }
         });
     });
-});';
+});',
+
+            2 => '// Corporate Elite Header JS
+document.addEventListener("DOMContentLoaded", function() {
+    const navbar = document.getElementById("mainNavbar");
+    if (navbar) {
+        // Professional scroll behavior
+        window.addEventListener("scroll", function() {
+            const header = document.querySelector(".corporate-header");
+            if (window.scrollY > 100) {
+                header.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.15)";
+            } else {
+                header.style.boxShadow = "0 2px 10px rgba(0, 0, 0, 0.1)";
+            }
+        });
+
+        // Corporate link animations
+        const corporateLinks = document.querySelectorAll(".corporate-link");
+        corporateLinks.forEach(link => {
+            link.addEventListener("mouseenter", function() {
+                this.style.color = "#3498db";
+                this.style.transform = "translateY(-1px)";
+            });
+            link.addEventListener("mouseleave", function() {
+                this.style.color = "#2c3e50";
+                this.style.transform = "translateY(0)";
+            });
+        });
+
+        // Professional button effects
+        const corporateButtons = document.querySelectorAll(".corporate-btn");
+        corporateButtons.forEach(btn => {
+            btn.addEventListener("mouseenter", function() {
+                this.style.transform = "translateY(-2px)";
+                this.style.boxShadow = "0 8px 20px rgba(52, 152, 219, 0.3)";
+            });
+            btn.addEventListener("mouseleave", function() {
+                this.style.transform = "translateY(0)";
+                this.style.boxShadow = "none";
+            });
+        });
+    }
+
+    // Mobile menu behavior
+    document.querySelectorAll(".navbar-nav .nav-link").forEach(link => {
+        link.addEventListener("click", function() {
+            const navbarCollapse = document.getElementById("navbarNav");
+            if (navbarCollapse && window.bootstrap) {
+                const bsCollapse = new bootstrap.Collapse(navbarCollapse, {toggle: false});
+                bsCollapse.hide();
+            }
+        });
+    });
+});',
+
+            3 => '// Creative Studio Header JS
+document.addEventListener("DOMContentLoaded", function() {
+    const navbar = document.getElementById("mainNavbar");
+    if (navbar) {
+        // Creative scroll effects
+        window.addEventListener("scroll", function() {
+            const header = document.querySelector(".creative-header");
+            const scrolled = window.scrollY;
+            
+            // Parallax effect for background shapes
+            const shapes = document.querySelectorAll(".shape");
+            shapes.forEach((shape, index) => {
+                const speed = 0.5 + (index * 0.2);
+                const yPos = -(scrolled * speed);
+                shape.style.transform = `translateY(${yPos}px)`;
+            });
+            
+            if (scrolled > 50) {
+                header.style.transform = "translateY(-5px)";
+                header.style.boxShadow = "0 10px 40px rgba(0, 0, 0, 0.3)";
+            } else {
+                header.style.transform = "translateY(0)";
+                header.style.boxShadow = "none";
+            }
+        });
+
+        // Creative link hover effects
+        const creativeLinks = document.querySelectorAll(".creative-link");
+        creativeLinks.forEach(link => {
+            link.addEventListener("mouseenter", function() {
+                this.style.background = "rgba(255, 255, 255, 0.1)";
+                this.style.backdropFilter = "blur(10px)";
+                this.style.transform = "scale(1.05)";
+            });
+            link.addEventListener("mouseleave", function() {
+                this.style.background = "transparent";
+                this.style.backdropFilter = "none";
+                this.style.transform = "scale(1)";
+            });
+        });
+
+        // Animated particles effect
+        function createParticle() {
+            const particle = document.createElement("div");
+            particle.style.cssText = `
+                position: absolute;
+                width: 2px;
+                height: 2px;
+                background: rgba(255, 255, 255, 0.6);
+                border-radius: 50%;
+                pointer-events: none;
+                animation: float 3s ease-out forwards;
+            `;
+            
+            particle.style.left = Math.random() * 100 + "%";
+            particle.style.top = "100%";
+            
+            const headerEffects = document.querySelector(".header-effects");
+            if (headerEffects) {
+                headerEffects.appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, 3000);
+            }
+        }
+
+        // Create particles periodically
+        setInterval(createParticle, 500);
+    }
+
+    // Mobile menu
+    document.querySelectorAll(".navbar-nav .nav-link").forEach(link => {
+        link.addEventListener("click", function() {
+            const navbarCollapse = document.getElementById("navbarNav");
+            if (navbarCollapse && window.bootstrap) {
+                const bsCollapse = new bootstrap.Collapse(navbarCollapse, {toggle: false});
+                bsCollapse.hide();
+            }
+        });
+    });
+});
+
+// Add floating animation keyframes
+const style = document.createElement("style");
+style.textContent = `
+    @keyframes float {
+        0% { transform: translateY(0px) scale(0); opacity: 0; }
+        50% { opacity: 1; }
+        100% { transform: translateY(-100px) scale(1); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);',
+
+            4 => '// Ultra-Clean Header JS
+document.addEventListener("DOMContentLoaded", function() {
+    const navbar = document.getElementById("mainNavbar");
+    if (navbar) {
+        // Minimal scroll behavior
+        window.addEventListener("scroll", function() {
+            const header = document.querySelector(".minimal-header");
+            if (window.scrollY > 50) {
+                header.classList.add("scrolled");
+            } else {
+                header.classList.remove("scrolled");
+            }
+        });
+
+        // Subtle hover effects
+        const minimalLinks = document.querySelectorAll(".minimal-link");
+        minimalLinks.forEach(link => {
+            link.addEventListener("mouseenter", function() {
+                this.style.transform = "translateY(-1px)";
+            });
+            link.addEventListener("mouseleave", function() {
+                this.style.transform = "translateY(0)";
+            });
+        });
+
+        // Clean button interactions
+        const minimalButtons = document.querySelectorAll(".minimal-btn");
+        minimalButtons.forEach(btn => {
+            btn.addEventListener("mouseenter", function() {
+                if (this.classList.contains("minimal-btn-primary")) {
+                    this.style.transform = "scale(1.02)";
+                }
+            });
+            btn.addEventListener("mouseleave", function() {
+                this.style.transform = "scale(1)";
+            });
+        });
+
+        // Minimal dropdown behavior
+        const userLink = document.querySelector(".minimal-user-link");
+        if (userLink) {
+            userLink.addEventListener("click", function(e) {
+                e.preventDefault();
+                const dropdown = this.nextElementSibling;
+                if (dropdown) {
+                    dropdown.style.opacity = dropdown.style.display === "block" ? "0" : "1";
+                    dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+                }
+            });
+        }
+    }
+
+    // Mobile menu
+    document.querySelectorAll(".navbar-nav .nav-link").forEach(link => {
+        link.addEventListener("click", function() {
+            const navbarCollapse = document.getElementById("navbarNav");
+            if (navbarCollapse && window.bootstrap) {
+                const bsCollapse = new bootstrap.Collapse(navbarCollapse, {toggle: false});
+                bsCollapse.hide();
+            }
+        });
+    });
+});',
+
+            5 => '// Interactive Pro Header JS
+document.addEventListener("DOMContentLoaded", function() {
+    const navbar = document.getElementById("mainNavbar");
+    if (navbar) {
+        // Advanced scroll effects
+        window.addEventListener("scroll", function() {
+            const header = document.querySelector(".interactive-header");
+            const scrolled = window.scrollY;
+            
+            // Dynamic background gradient based on scroll
+            const opacity = Math.min(scrolled / 300, 0.9);
+            header.style.background = `linear-gradient(135deg, 
+                rgba(30, 60, 114, ${0.8 + opacity}) 0%, 
+                rgba(42, 82, 152, ${0.8 + opacity}) 100%)`;
+            
+            // Orb movements
+            const orbs = document.querySelectorAll(".orb");
+            orbs.forEach((orb, index) => {
+                const speed = 0.3 + (index * 0.1);
+                const yPos = -(scrolled * speed);
+                orb.style.transform = `translateY(${yPos}px) rotate(${scrolled * 0.5}deg)`;
+            });
+            
+            if (scrolled > 50) {
+                header.style.boxShadow = "0 10px 50px rgba(0, 0, 0, 0.3)";
+            } else {
+                header.style.boxShadow = "none";
+            }
+        });
+
+        // Interactive link effects
+        const interactiveLinks = document.querySelectorAll(".interactive-link");
+        interactiveLinks.forEach(link => {
+            link.addEventListener("mouseenter", function() {
+                // Create ripple effect
+                const ripple = document.createElement("div");
+                ripple.style.cssText = `
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    width: 0;
+                    height: 0;
+                    background: rgba(255, 255, 255, 0.3);
+                    border-radius: 50%;
+                    transform: translate(-50%, -50%);
+                    animation: ripple 0.6s ease-out;
+                    pointer-events: none;
+                `;
+                this.appendChild(ripple);
+                
+                setTimeout(() => ripple.remove(), 600);
+                
+                this.style.transform = "scale(1.05)";
+                this.style.zIndex = "5";
+            });
+            
+            link.addEventListener("mouseleave", function() {
+                this.style.transform = "scale(1)";
+                this.style.zIndex = "auto";
+            });
+        });
+
+        // Particle system
+        function createInteractiveParticle(x, y) {
+            const particle = document.createElement("div");
+            particle.style.cssText = `
+                position: absolute;
+                width: 4px;
+                height: 4px;
+                background: radial-gradient(circle, #fff, transparent);
+                border-radius: 50%;
+                pointer-events: none;
+                left: ${x}px;
+                top: ${y}px;
+                animation: particleFloat 2s ease-out forwards;
+            `;
+            
+            const particleSystem = document.getElementById("headerParticles");
+            if (particleSystem) {
+                particleSystem.appendChild(particle);
+                setTimeout(() => particle.remove(), 2000);
+            }
+        }
+
+        // Mouse move particle generation
+        navbar.addEventListener("mousemove", function(e) {
+            if (Math.random() > 0.9) {
+                const rect = this.getBoundingClientRect();
+                createInteractiveParticle(
+                    e.clientX - rect.left,
+                    e.clientY - rect.top
+                );
+            }
+        });
+
+        // Interactive buttons
+        const interactiveButtons = document.querySelectorAll(".interactive-btn, .cta-interactive");
+        interactiveButtons.forEach(btn => {
+            btn.addEventListener("mouseenter", function() {
+                this.style.transform = "translateY(-3px) scale(1.05)";
+                this.style.filter = "brightness(1.1)";
+            });
+            btn.addEventListener("mouseleave", function() {
+                this.style.transform = "translateY(0) scale(1)";
+                this.style.filter = "brightness(1)";
+            });
+        });
+    }
+
+    // Mobile menu
+    document.querySelectorAll(".navbar-nav .nav-link").forEach(link => {
+        link.addEventListener("click", function() {
+            const navbarCollapse = document.getElementById("navbarNav");
+            if (navbarCollapse && window.bootstrap) {
+                const bsCollapse = new bootstrap.Collapse(navbarCollapse, {toggle: false});
+                bsCollapse.hide();
+            }
+        });
+    });
+});
+
+// Add animation keyframes
+const interactiveStyle = document.createElement("style");
+interactiveStyle.textContent = `
+    @keyframes ripple {
+        to { width: 300px; height: 300px; opacity: 0; }
+    }
+    @keyframes particleFloat {
+        0% { transform: translateY(0) scale(0); opacity: 1; }
+        50% { opacity: 0.8; }
+        100% { transform: translateY(-50px) scale(1); opacity: 0; }
+    }
+`;
+document.head.appendChild(interactiveStyle);'
+        ];
+
+        return $jsVariants[$variant] ?? $jsVariants[1];
     }
 
     private function getFooterHTML($variant): string

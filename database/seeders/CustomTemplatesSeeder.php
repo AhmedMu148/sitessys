@@ -25,16 +25,16 @@ class CustomTemplatesSeeder extends Seeder
     private function seedNavs(): void
     {
         $navs = [
-            // 1) Modern Gradient (Baseline but polished)
-            ['tpl_id' => 'nav-modern-gradient', 'name' => 'Nav • Modern Gradient', 'variant' => 'modern'],
-            // 2) Glass Blur (centered menu, glassmorphism)
-            ['tpl_id' => 'nav-glass-blur', 'name' => 'Nav • Glass Blur', 'variant' => 'glass'],
-            // 3) Split Menu (logo center, menus يمين/شمال)
-            ['tpl_id' => 'nav-split-center', 'name' => 'Nav • Split Center', 'variant' => 'split'],
-            // 4) Underline Hover (minimal, underline animation)
-            ['tpl_id' => 'nav-underline', 'name' => 'Nav • Underline Hover', 'variant' => 'underline'],
-            // 5) Pills & Shadow (rounded pills, shadow on hover)
-            ['tpl_id' => 'nav-pills', 'name' => 'Nav • Pills Menu', 'variant' => 'pills'],
+            // 1) Modern Gradient Navigation
+            ['tpl_id' => 'nav-modern-gradient', 'name' => 'Navigation • Modern Gradient', 'variant' => 'modern'],
+            // 2) Glass Blur Navigation with Glassmorphism Effect
+            ['tpl_id' => 'nav-glass-blur', 'name' => 'Navigation • Glass Blur', 'variant' => 'glass'],
+            // 3) Split Center Logo Navigation
+            ['tpl_id' => 'nav-split-center', 'name' => 'Navigation • Split Center Logo', 'variant' => 'split'],
+            // 4) Minimal Underline Animation Navigation
+            ['tpl_id' => 'nav-minimal-underline', 'name' => 'Navigation • Minimal Underline', 'variant' => 'underline'],
+            // 5) Rounded Pills Style Navigation
+            ['tpl_id' => 'nav-rounded-pills', 'name' => 'Navigation • Rounded Pills', 'variant' => 'pills'],
         ];
 
         foreach ($navs as $i => $n) {
@@ -45,7 +45,7 @@ class CustomTemplatesSeeder extends Seeder
                     'tpl_id' => $n['tpl_id'],
                     'layout_type' => 'header',
                     'name' => $n['name'],
-                    'description' => 'Distinct header theme: ' . $n['variant'],
+                    'description' => 'Professional navigation theme: ' . $n['variant'],
                     'preview_image' => "/img/templates/{$n['tpl_id']}-preview.jpg",
                     'path' => "frontend.templates.headers.{$n['tpl_id']}",
                     'content' => $content['content'],
@@ -310,11 +310,11 @@ class CustomTemplatesSeeder extends Seeder
     private function seedFooters(): void
     {
         $footers = [
-            ['tpl_id'=>'footer-classic-columns','name'=>'Footer • Classic Columns','variant'=>'classic'],
-            ['tpl_id'=>'footer-slim-bar','name'=>'Footer • Slim Bar (Top Newsletter)','variant'=>'slim'],
-            ['tpl_id'=>'footer-minimal-centered','name'=>'Footer • Minimal Centered','variant'=>'minimal'],
-            ['tpl_id'=>'footer-dark-social','name'=>'Footer • Dark + Social Strip','variant'=>'darksocial'],
-            ['tpl_id'=>'footer-link-grid','name'=>'Footer • Link Grid','variant'=>'grid'],
+            ['tpl_id'=>'footer-corporate-columns','name'=>'Footer • Corporate Columns','variant'=>'corporate'],
+            ['tpl_id'=>'footer-newsletter-bar','name'=>'Footer • Newsletter Bar','variant'=>'newsletter'],
+            ['tpl_id'=>'footer-minimal-center','name'=>'Footer • Minimal Centered','variant'=>'minimal'],
+            ['tpl_id'=>'footer-dark-social','name'=>'Footer • Dark with Social','variant'=>'social'],
+            ['tpl_id'=>'footer-mega-grid','name'=>'Footer • Mega Link Grid','variant'=>'mega'],
         ];
 
         foreach ($footers as $i => $f) {
@@ -325,7 +325,7 @@ class CustomTemplatesSeeder extends Seeder
                     'tpl_id' => $f['tpl_id'],
                     'layout_type' => 'footer',
                     'name' => $f['name'],
-                    'description' => 'Distinct footer theme: ' . $f['variant'],
+                    'description' => 'Professional footer theme: ' . $f['variant'],
                     'preview_image' => "/img/templates/{$f['tpl_id']}-preview.jpg",
                     'path' => "frontend.templates.footers.{$f['tpl_id']}",
                     'content' => $content['content'],
@@ -341,7 +341,7 @@ class CustomTemplatesSeeder extends Seeder
     private function getFooterVariant(string $variant): array
     {
         switch ($variant) {
-            case 'slim':
+            case 'newsletter':
                 return [
                     'defaults' => [
                         'bg' => '#0f172a','text' => '#e5e7eb','accent' => '#22c55e',
@@ -403,7 +403,7 @@ class CustomTemplatesSeeder extends Seeder
                         'js' => '',
                     ],
                 ];
-            case 'darksocial':
+            case 'social':
                 return [
                     'defaults' => ['bg'=>'#111827','text'=>'#e5e7eb','social_bg'=>'#0b1220'],
                     'fields' => [
@@ -442,7 +442,7 @@ class CustomTemplatesSeeder extends Seeder
                         'js' => '',
                     ],
                 ];
-            case 'grid':
+            case 'mega':
                 return [
                     'defaults' => ['bg'=>'#0b0f19','text'=>'#cbd5e1','grid_cols'=>4],
                     'fields' => [
@@ -466,7 +466,7 @@ class CustomTemplatesSeeder extends Seeder
                         'js' => '',
                     ],
                 ];
-            case 'classic':
+            case 'corporate':
             default:
                 return [
                     'defaults' => ['bg'=>'#1f2937','text'=>'#ffffff', 'company'=>'Your Company'],
@@ -503,26 +503,26 @@ class CustomTemplatesSeeder extends Seeder
     private function seedSections(): void
     {
         $sections = [
-            ['tpl_id'=>'hero-video-background','name'=>'Hero • Video Background','builder'=>'heroVideo'],
-            ['tpl_id'=>'hero-split-image','name'=>'Hero • Split Image','builder'=>'heroSplit'],
-            ['tpl_id'=>'features-grid-modern','name'=>'Features • Modern Grid','builder'=>'featuresGrid'],
-            ['tpl_id'=>'features-zigzag','name'=>'Features • ZigZag','builder'=>'featuresZigzag'],
-            ['tpl_id'=>'testimonials-carousel','name'=>'Testimonials • Carousel','builder'=>'testimonialsCarousel'],
-            ['tpl_id'=>'testimonials-grid','name'=>'Testimonials • Grid','builder'=>'testimonialsGrid'],
-            ['tpl_id'=>'pricing-table-modern','name'=>'Pricing • Cards','builder'=>'pricingCards'],
-            ['tpl_id'=>'pricing-compare-table','name'=>'Pricing • Compare Table','builder'=>'pricingTable'],
-            ['tpl_id'=>'cta-section-gradient','name'=>'CTA • Gradient','builder'=>'ctaGradient'],
-            ['tpl_id'=>'cta-solid-left','name'=>'CTA • Solid Left','builder'=>'ctaSolid'],
-            ['tpl_id'=>'faq-accordion','name'=>'FAQ • Accordion','builder'=>'faq'],
-            ['tpl_id'=>'steps-process','name'=>'Process • Steps','builder'=>'steps'],
-            ['tpl_id'=>'stats-counters','name'=>'Stats • Counters','builder'=>'stats'],
-            ['tpl_id'=>'gallery-masonry','name'=>'Gallery • Masonry','builder'=>'gallery'],
-            ['tpl_id'=>'team-cards','name'=>'Team • Cards','builder'=>'team'],
-            ['tpl_id'=>'blog-list','name'=>'Blog • List','builder'=>'blog'],
-            ['tpl_id'=>'contact-form','name'=>'Contact • Form','builder'=>'contact'],
-            ['tpl_id'=>'video-with-text','name'=>'Video • With Text','builder'=>'videoText'],
-            ['tpl_id'=>'timeline','name'=>'Timeline','builder'=>'timeline'],
-            ['tpl_id'=>'partners-logos','name'=>'Partners • Logos Strip','builder'=>'partners'],
+            ['tpl_id'=>'section-hero-video','name'=>'Hero • Video Background','builder'=>'heroVideo'],
+            ['tpl_id'=>'section-hero-split','name'=>'Hero • Split Image Layout','builder'=>'heroSplit'],
+            ['tpl_id'=>'section-features-grid','name'=>'Features • Modern Grid','builder'=>'featuresGrid'],
+            ['tpl_id'=>'section-features-zigzag','name'=>'Features • Zigzag Layout','builder'=>'featuresZigzag'],
+            ['tpl_id'=>'section-testimonials-carousel','name'=>'Testimonials • Carousel Slider','builder'=>'testimonialsCarousel'],
+            ['tpl_id'=>'section-testimonials-grid','name'=>'Testimonials • Card Grid','builder'=>'testimonialsGrid'],
+            ['tpl_id'=>'section-pricing-cards','name'=>'Pricing • Plan Cards','builder'=>'pricingCards'],
+            ['tpl_id'=>'section-pricing-table','name'=>'Pricing • Comparison Table','builder'=>'pricingTable'],
+            ['tpl_id'=>'section-cta-gradient','name'=>'CTA • Gradient Background','builder'=>'ctaGradient'],
+            ['tpl_id'=>'section-cta-solid','name'=>'CTA • Solid Color','builder'=>'ctaSolid'],
+            ['tpl_id'=>'section-faq-accordion','name'=>'FAQ • Accordion Style','builder'=>'faq'],
+            ['tpl_id'=>'section-process-steps','name'=>'Process • Step by Step','builder'=>'steps'],
+            ['tpl_id'=>'section-stats-counters','name'=>'Statistics • Counter Numbers','builder'=>'stats'],
+            ['tpl_id'=>'section-gallery-masonry','name'=>'Gallery • Masonry Layout','builder'=>'gallery'],
+            ['tpl_id'=>'section-team-cards','name'=>'Team • Member Cards','builder'=>'team'],
+            ['tpl_id'=>'section-blog-posts','name'=>'Blog • Article List','builder'=>'blog'],
+            ['tpl_id'=>'section-contact-form','name'=>'Contact • Form with Info','builder'=>'contact'],
+            ['tpl_id'=>'section-video-text','name'=>'Video • With Text Content','builder'=>'videoText'],
+            ['tpl_id'=>'section-timeline-events','name'=>'Timeline • Event History','builder'=>'timeline'],
+            ['tpl_id'=>'section-partners-logos','name'=>'Partners • Logo Strip','builder'=>'partners'],
         ];
 
         foreach ($sections as $i => $s) {

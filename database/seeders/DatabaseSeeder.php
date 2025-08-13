@@ -12,8 +12,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            // CleanSetupSeeder::class,
-            // EnhancedDataSeeder::class,
+            // Only run DevelopmentSeeder which includes its own templates
             DevelopmentSeeder::class
         ]);
     }

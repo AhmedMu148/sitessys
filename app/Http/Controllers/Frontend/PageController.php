@@ -218,7 +218,14 @@ class PageController extends Controller
                         // If content_data is empty or invalid, use content field
                         if (!$contentData || !is_array($contentData)) {
                             if (is_string($section->content)) {
-                                $contentData = json_decode($section->content, true) ?? [];
+                                // Try to decode as JSON first
+                                $decoded = json_decode($section->content, true);
+                                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                                    $contentData = $decoded;
+                                } else {
+                                    // If not valid JSON, treat as plain text content
+                                    $contentData = ['content' => $section->content];
+                                }
                             } elseif (is_array($section->content)) {
                                 $contentData = $section->content;
                             } else {
@@ -240,9 +247,18 @@ class PageController extends Controller
                             $contentData = [];
                         }
                         
+                        // Support nested locale structure (e.g., content['en'])
+                        if (isset($contentData['en']) && is_array($contentData['en'])) {
+                            $flat = array_merge($contentData, $contentData['en']);
+                            $contentData = $flat; // flatten for simplicity
+                        }
+
+                        // Debug output (remove in production)
+                        // \Log::info('Section ' . $section->id . ' content_data: ', $contentData);
+
                         $section->parsed_content = [
                             'title' => $contentData['title'] ?? $contentData['hero_title'] ?? $section->name,
-                            'content' => $contentData['content'] ?? $contentData['hero_description'] ?? $contentData['subtitle'] ?? '',
+                            'content' => $contentData['content'] ?? $contentData['hero_description'] ?? $contentData['subtitle'] ?? $contentData['description'] ?? '',
                             'button_text' => $contentData['button_text'] ?? $contentData['cta_text'] ?? '',
                             'button_url' => $contentData['button_url'] ?? $contentData['cta_url'] ?? '#',
                             'html' => $contentData['html'] ?? '', // Add processed HTML
@@ -572,6 +588,11 @@ class PageController extends Controller
             '{BUTTON_TEXT}' => $data['button_text'] ?? '',
             '{BUTTON_URL}' => $data['button_url'] ?? '#',
             '{IMAGE}' => $data['image'] ?? '',
+            // Hero / CTA legacy explicit placeholders
+            '{HERO_TITLE}' => $data['title'] ?? '',
+            '{HERO_DESCRIPTION}' => !empty($data['content']) ? nl2br(e($data['content'])) : '',
+            '{CTA_TEXT}' => $data['button_text'] ?? '',
+            '{CTA_URL}' => $data['button_url'] ?? '#',
         ];
         
         // Apply replacements

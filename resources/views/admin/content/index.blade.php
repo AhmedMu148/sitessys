@@ -232,6 +232,34 @@
     border-color: #007bff !important;
     background: #f0f8ff;
 }
+
+/* Section Content Modal Styles */
+#sectionContentModal .modal-dialog {
+    max-width: 90%;
+}
+
+#sectionContentModal .feature-item {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6 !important;
+}
+
+#sectionContentModal .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+#sectionContentModal .btn-outline-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
+}
+
+@media (max-width: 768px) {
+    #sectionContentModal .modal-dialog {
+        max-width: 95%;
+        margin: 0.5rem;
+    }
+}
 </style>
 @endsection
 
@@ -327,9 +355,10 @@
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li>
-                                            <a class="dropdown-item" href="{{ route('admin.pages.sections.edit', [$page->id, $section->id]) }}">
+                                            <button class="dropdown-item border-0 bg-transparent" type="button" 
+                                                    onclick="openSectionContentEditor({{ $section->id }}, {{ $page->id }})">
                                                 <i class="align-middle me-2" data-feather="edit-3"></i>Edit Content
-                                            </a>
+                                            </button>
                                         </li>
                                         <li>
                                             <a class="dropdown-item" href="{{ route('admin.pages.sections.preview', [$page->id, $section->id]) }}">
@@ -698,9 +727,73 @@
         </div>
     </div>
 </div>
+
+{{-- Section Content Editor Modal --}}
+<div class="modal fade" id="sectionContentModal" tabindex="-1" aria-labelledby="sectionContentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sectionContentModalLabel">
+                    <i class="align-middle me-2" data-feather="edit-3"></i>Edit Section Content
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="sectionContentForm">
+                    @csrf
+                    <input type="hidden" id="section_id" name="section_id" value="">
+                    <input type="hidden" id="page_id" name="page_id" value="">
+                    
+                    <!-- Loading State -->
+                    <div id="sectionLoadingState" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div class="mt-3">Loading section data...</div>
+                    </div>
+                    
+                    <!-- Section Info -->
+                    <div id="sectionInfo" class="mb-4" style="display: none;">
+                        <div class="alert alert-info">
+                            <div class="d-flex align-items-center">
+                                <i class="align-middle me-2" data-feather="info"></i>
+                                <div>
+                                    <strong id="sectionName"></strong>
+                                    <div class="small text-muted" id="sectionDescription"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Dynamic Form Fields -->
+                    <div id="sectionFormFields" style="display: none;">
+                        <!-- Fields will be populated dynamically -->
+                    </div>
+                    
+                    <!-- Error Display -->
+                    <div id="sectionErrorAlert" class="alert alert-danger" style="display: none;" role="alert">
+                        <i class="align-middle me-2" data-feather="alert-circle"></i>
+                        <span id="sectionErrorMessage"></span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="align-middle me-1" data-feather="x"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-primary" id="saveSectionContent">
+                    <i class="align-middle me-1" data-feather="save"></i>Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
+<!-- Debug Script for Content Editor -->
+<script src="{{ asset('js/admin-content-debug.js') }}"></script>
+
 <script>
 // Pass navigation configuration to JavaScript
 window.navigationConfig = @json($navigationConfig ?? []);
@@ -1279,6 +1372,1112 @@ function updateSocialMedia() {
         // Restore button state
         saveButton.textContent = originalText;
         saveButton.disabled = false;
+    });
+}
+
+// Section Content Editor Functions
+function openSectionContentEditor(sectionId, pageId) {
+    // Set section and page IDs
+    document.getElementById('section_id').value = sectionId;
+    document.getElementById('page_id').value = pageId;
+    
+    // Reset modal state
+    resetSectionModal();
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('sectionContentModal'));
+    modal.show();
+    
+    // Load section data
+    loadSectionData(sectionId, pageId);
+}
+
+function resetSectionModal() {
+    // Hide all states
+    document.getElementById('sectionLoadingState').style.display = 'block';
+    document.getElementById('sectionInfo').style.display = 'none';
+    document.getElementById('sectionFormFields').style.display = 'none';
+    document.getElementById('sectionErrorAlert').style.display = 'none';
+    
+    // Clear form fields
+    document.getElementById('sectionFormFields').innerHTML = '';
+    
+    // Reset save button
+    const saveButton = document.getElementById('saveSectionContent');
+    saveButton.disabled = false;
+    saveButton.innerHTML = '<i class="align-middle me-1" data-feather="save"></i>Save Changes';
+}
+
+function loadSectionData(sectionId, pageId) {
+    console.log('Loading section data for:', { sectionId, pageId });
+    
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    fetch(`/admin/content/sections/${pageId}/${sectionId}`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        }
+    })
+    .then(response => {
+        console.log('LoadSectionData response status:', response.status);
+        if (!response.ok) {
+            throw new Error('Failed to fetch section data');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('LoadSectionData response data:', data);
+        if (data.success) {
+            populateSectionForm(data.section);
+        } else {
+            showSectionError(data.message || 'Failed to load section data');
+        }
+    })
+    .catch(error => {
+        console.error('LoadSectionData error:', error);
+        showSectionError('Failed to load section data. Please try again.');
+    });
+}
+
+        function populateSectionForm(sectionData) {
+            console.log('Populating section form with data:', sectionData);
+            
+            // Hide loading state
+            document.getElementById('sectionLoadingState').style.display = 'none';
+            
+            // Show section info
+            const sectionInfo = document.getElementById('sectionInfo');
+            document.getElementById('sectionName').textContent = sectionData.name || 'Section';
+            document.getElementById('sectionDescription').textContent = sectionData.layout?.description || 'Edit section content';
+            sectionInfo.style.display = 'block';
+            
+            // Build form fields based on template configuration
+            const formContainer = document.getElementById('sectionFormFields');
+            let formHtml = '';
+            
+            if (sectionData.layout?.configurable_fields) {
+                const configurableFields = sectionData.layout.configurable_fields;
+                let currentContent = sectionData.content_data || sectionData.content || {};
+                const defaultConfig = sectionData.layout.default_config || {};
+                
+                // Enhanced content parsing with debugging
+                console.log('Raw current content:', currentContent);
+                console.log('Default config:', defaultConfig);
+                console.log('Configurable fields:', configurableFields);
+                
+                // If content is a string (JSON), try to parse it
+                if (typeof currentContent === 'string') {
+                    try {
+                        currentContent = JSON.parse(currentContent);
+                        console.log('Parsed content from string:', currentContent);
+                    } catch (e) {
+                        console.warn('Failed to parse content string:', e);
+                        currentContent = {};
+                    }
+                }
+                
+                // Handle nested language structure (en, ar, etc.)
+                if (currentContent.en && typeof currentContent.en === 'object') {
+                    currentContent = { ...currentContent, ...currentContent.en };
+                    console.log('Merged language content:', currentContent);
+                }
+                
+                // Handle nested content structure (if content is wrapped in another object)
+                if (currentContent.content && typeof currentContent.content === 'object') {
+                    currentContent = { ...currentContent, ...currentContent.content };
+                    console.log('Merged nested content:', currentContent);
+                }
+                
+                Object.entries(configurableFields).forEach(([fieldName, fieldConfig]) => {
+                    // Try multiple fallback values
+                    let currentValue = currentContent[fieldName] || 
+                                     defaultConfig[fieldName] || 
+                                     fieldConfig.default || 
+                                     (fieldConfig.type === 'array' ? [] : 
+                                      fieldConfig.type === 'object' ? {} : '');
+                    
+                    // Special handling for common field mappings
+                    if (!currentValue || currentValue === '') {
+                        const aliases = {
+                            'title': ['hero_title', 'section_title', 'main_title'],
+                            'hero_title': ['title', 'section_title', 'main_title'],
+                            'subtitle': ['hero_subtitle', 'description', 'content'],
+                            'hero_subtitle': ['subtitle', 'description', 'content'],
+                            'button_text': ['cta_text', 'btn_text'],
+                            'button_url': ['cta_url', 'btn_url'],
+                            'features': ['items', 'list'],
+                            'stats': ['items', 'statistics', 'numbers'],
+                            'testimonials': ['reviews', 'feedback']
+                        };
+                        
+                        if (aliases[fieldName]) {
+                            for (const alias of aliases[fieldName]) {
+                                if (currentContent[alias] && currentContent[alias] !== '') {
+                                    currentValue = currentContent[alias];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    console.log(`Field ${fieldName}:`, currentValue, typeof currentValue);
+                    formHtml += generateFormField(fieldName, fieldConfig, currentValue);
+                });
+            }    if (!formHtml) {
+        formHtml = '<div class="alert alert-warning"><i class="align-middle me-2" data-feather="alert-triangle"></i>No editable fields found for this section template.</div>';
+    }
+    
+    formContainer.innerHTML = formHtml;
+    formContainer.style.display = 'block';
+    
+    // Re-initialize feather icons
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+}
+
+function generateFormField(fieldName, fieldConfig, currentValue) {
+    const label = fieldConfig.label || fieldName;
+    const type = fieldConfig.type || 'text';
+    const required = fieldConfig.required ? 'required' : '';
+    
+    let fieldHtml = `
+        <div class="mb-3">
+            <label for="field_${fieldName}" class="form-label">
+                ${label}
+                ${fieldConfig.required ? '<span class="text-danger">*</span>' : ''}
+            </label>
+    `;
+    
+    switch (type) {
+        case 'text':
+            fieldHtml += `<input type="text" class="form-control" id="field_${fieldName}" name="${fieldName}" value="${currentValue}" ${required}>`;
+            break;
+            
+        case 'textarea':
+            fieldHtml += `<textarea class="form-control" id="field_${fieldName}" name="${fieldName}" rows="4" ${required}>${currentValue}</textarea>`;
+            break;
+            
+        case 'url':
+            fieldHtml += `<input type="url" class="form-control" id="field_${fieldName}" name="${fieldName}" value="${currentValue}" placeholder="https://example.com" ${required}>`;
+            break;
+            
+        case 'email':
+            fieldHtml += `<input type="email" class="form-control" id="field_${fieldName}" name="${fieldName}" value="${currentValue}" ${required}>`;
+            break;
+            
+        case 'color':
+            fieldHtml += `<input type="color" class="form-control form-control-color" id="field_${fieldName}" name="${fieldName}" value="${currentValue || '#000000'}" ${required}>`;
+            break;
+            
+    // Removed color picker for end-user simplicity (request)
+            
+        case 'select':
+            fieldHtml += `<select class="form-select" id="field_${fieldName}" name="${fieldName}" ${required}>`;
+            if (fieldConfig.options) {
+                fieldConfig.options.forEach(option => {
+                    const selected = (currentValue == option) ? 'selected' : '';
+                    fieldHtml += `<option value="${option}" ${selected}>${option}</option>`;
+                });
+            }
+            fieldHtml += `</select>`;
+            break;
+            
+        case 'boolean':
+            const checked = currentValue ? 'checked' : '';
+            fieldHtml += `
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="field_${fieldName}" name="${fieldName}" value="1" ${checked}>
+                    <label class="form-check-label" for="field_${fieldName}">${label}</label>
+                </div>`;
+            break;
+            
+        case 'range':
+            const min = fieldConfig.min || 0;
+            const max = fieldConfig.max || 100;
+            const step = fieldConfig.step || 1;
+            fieldHtml += `
+                <div class="d-flex align-items-center gap-3">
+                    <input type="range" class="form-range flex-grow-1" id="field_${fieldName}" name="${fieldName}" 
+                           value="${currentValue}" min="${min}" max="${max}" step="${step}" 
+                           oninput="document.getElementById('field_${fieldName}_display').value = this.value">
+                    <input type="number" class="form-control" id="field_${fieldName}_display" 
+                           value="${currentValue}" min="${min}" max="${max}" step="${step}" style="width: 80px;"
+                           oninput="document.getElementById('field_${fieldName}').value = this.value">
+                </div>`;
+            break;
+            
+        case 'array':
+            // Ensure currentValue is properly parsed
+            let arrayValue = currentValue;
+            if (typeof arrayValue === 'string') {
+                try {
+                    arrayValue = JSON.parse(arrayValue);
+                } catch (e) {
+                    arrayValue = [];
+                }
+            }
+            if (!Array.isArray(arrayValue)) {
+                arrayValue = [];
+            }
+            
+            // Comprehensive array type detection
+            const lowerLabel = (fieldConfig.label||'').toLowerCase();
+            const lowerFieldName = (fieldName||'').toLowerCase();
+            
+            if (lowerLabel.includes('feature') || lowerFieldName === 'features') {
+                fieldHtml += generateArrayField(fieldName, arrayValue, 'features');
+            } else if (lowerLabel.includes('menu') || lowerFieldName.includes('menu')) {
+                fieldHtml += generateArrayField(fieldName, arrayValue, 'menu');
+            } else if (lowerLabel.includes('stat') || lowerFieldName.includes('stat') || lowerFieldName === 'items') {
+                fieldHtml += generateArrayField(fieldName, arrayValue, 'stats');
+            } else if (lowerLabel.includes('testimonial') || lowerFieldName.includes('testimonial')) {
+                fieldHtml += generateArrayField(fieldName, arrayValue, 'testimonials');
+            } else if (lowerLabel.includes('social') || lowerFieldName.includes('social')) {
+                fieldHtml += generateArrayField(fieldName, arrayValue, 'social');
+            } else if (lowerLabel.includes('plan') || lowerFieldName === 'plans') {
+                fieldHtml += generateArrayField(fieldName, arrayValue, 'plans');
+            } else if (lowerFieldName === 'services' || lowerLabel.includes('service')) {
+                fieldHtml += generateArrayField(fieldName, arrayValue, 'services');
+            } else if (lowerFieldName === 'cards' || lowerLabel.includes('card')) {
+                fieldHtml += generateArrayField(fieldName, arrayValue, 'cards');
+            } else if (lowerFieldName.includes('link') || lowerLabel.includes('link')) {
+                fieldHtml += generateArrayField(fieldName, arrayValue, 'links');
+            } else {
+                // Auto-detect from array content
+                if (arrayValue.length > 0) {
+                    const firstItem = arrayValue[0];
+                    if (firstItem && typeof firstItem === 'object') {
+                        if ('icon' in firstItem && 'title' in firstItem && 'description' in firstItem) {
+                            fieldHtml += generateArrayField(fieldName, arrayValue, 'features');
+                        } else if ('value' in firstItem && 'label' in firstItem) {
+                            fieldHtml += generateArrayField(fieldName, arrayValue, 'stats');
+                        } else if ('number' in firstItem && 'label' in firstItem) {
+                            fieldHtml += generateArrayField(fieldName, arrayValue, 'stats');
+                        } else if ('quote' in firstItem && 'name' in firstItem) {
+                            fieldHtml += generateArrayField(fieldName, arrayValue, 'testimonials');
+                        } else if ('icon' in firstItem && 'url' in firstItem) {
+                            fieldHtml += generateArrayField(fieldName, arrayValue, 'social');
+                        } else if ('label' in firstItem && 'url' in firstItem) {
+                            fieldHtml += generateArrayField(fieldName, arrayValue, 'links');
+                        } else if ('text' in firstItem || 'content' in firstItem) {
+                            fieldHtml += generateArrayField(fieldName, arrayValue, 'generic');
+                        } else {
+                            fieldHtml += generateArrayField(fieldName, arrayValue, 'generic');
+                        }
+                    } else {
+                        fieldHtml += generateArrayField(fieldName, arrayValue, 'simple');
+                    }
+                } else {
+                    // Default to simple array
+                    fieldHtml += generateArrayField(fieldName, arrayValue, 'simple');
+                }
+            }
+            break;
+            
+        case 'object':
+            // Handle object fields like buttons, complex configurations
+            let objectValue = currentValue;
+            if (typeof objectValue === 'string') {
+                try {
+                    objectValue = JSON.parse(objectValue);
+                } catch (e) {
+                    objectValue = {};
+                }
+            }
+            if (typeof objectValue !== 'object' || Array.isArray(objectValue)) {
+                objectValue = {};
+            }
+            
+            fieldHtml += `<div class="object-field border rounded p-3" id="${fieldName}_object">`;
+            
+            // Check if this looks like a button object
+            if (fieldName.includes('button') || lowerFieldName.includes('btn') || 
+                ('text' in objectValue && 'url' in objectValue)) {
+                fieldHtml += `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Button Text</label>
+                            <input type="text" class="form-control" name="${fieldName}_text" 
+                                   value="${objectValue.text || ''}" placeholder="Button text">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Button URL</label>
+                            <input type="url" class="form-control" name="${fieldName}_url" 
+                                   value="${objectValue.url || ''}" placeholder="https://...">
+                        </div>
+                    </div>`;
+            } else {
+                // Generic object handler - create fields for all object keys
+                const defaultKeys = fieldConfig.default ? Object.keys(fieldConfig.default) : [];
+                const currentKeys = Object.keys(objectValue);
+                const allKeys = [...new Set([...defaultKeys, ...currentKeys])];
+                
+                if (allKeys.length === 0) {
+                    allKeys.push('value'); // Default key
+                }
+                
+                allKeys.forEach(key => {
+                    fieldHtml += `
+                        <div class="mb-2">
+                            <label class="form-label">${key.charAt(0).toUpperCase() + key.slice(1)}</label>
+                            <input type="text" class="form-control" name="${fieldName}_${key}" 
+                                   value="${objectValue[key] || ''}" placeholder="${key}">
+                        </div>`;
+                });
+            }
+            
+            fieldHtml += `</div>`;
+            break;
+            
+        default:
+            fieldHtml += `<input type="text" class="form-control" id="field_${fieldName}" name="${fieldName}" value="${currentValue}" ${required}>`;
+    }
+    
+    if (fieldConfig.description) {
+        fieldHtml += `<div class="form-text">${fieldConfig.description}</div>`;
+    }
+    
+    fieldHtml += `</div>`;
+    return fieldHtml;
+}
+
+function generateArrayField(fieldName, arrayValue, arrayType) {
+    let html = `<div id="${fieldName}_container">`;
+    
+    // Initialize empty array if needed
+    if (!arrayValue || !Array.isArray(arrayValue) || arrayValue.length === 0) {
+        switch (arrayType) {
+            case 'features':
+                arrayValue = [{ icon: 'fas fa-star', title: '', description: '' }];
+                break;
+            case 'menu':
+                arrayValue = [{ label: 'Home', url: '/', external: false }];
+                break;
+            case 'stats':
+                arrayValue = [{ value: '', label: '', icon: 'fas fa-star' }];
+                break;
+            case 'testimonials':
+                arrayValue = [{ quote: '', name: '', company: '' }];
+                break;
+            case 'social':
+                arrayValue = [{ icon: 'fab fa-facebook', url: '' }];
+                break;
+            case 'plans':
+                arrayValue = [{ name: '', price: '', features: [] }];
+                break;
+            case 'services':
+                arrayValue = [{ icon: 'fas fa-cog', title: '', description: '' }];
+                break;
+            case 'cards':
+                arrayValue = [{ name: '', text: '' }];
+                break;
+            case 'links':
+                arrayValue = [{ label: '', url: '' }];
+                break;
+            case 'generic':
+                arrayValue = [{ name: '', value: '' }];
+                break;
+            case 'simple':
+                arrayValue = [''];
+                break;
+            default:
+                arrayValue = [{}];
+        }
+    }
+    
+    arrayValue.forEach((item, index) => {
+        html += `<div class="array-item border rounded p-3 mb-3" data-index="${index}">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">${getItemLabel(arrayType)} ${index + 1}</h6>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeArrayItem('${fieldName}', ${index}, '${arrayType}')">
+                    <i class="align-middle" data-feather="x"></i>
+                </button>
+            </div>`;
+            
+        switch (arrayType) {
+            case 'features':
+            case 'services':
+                html += `
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label">Icon</label>
+                            <input type="text" class="form-control" name="${fieldName}[${index}][icon]" 
+                                   value="${item.icon || 'fas fa-star'}" placeholder="fas fa-star">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Title</label>
+                            <input type="text" class="form-control" name="${fieldName}[${index}][title]" 
+                                   value="${item.title || ''}" placeholder="Title">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" name="${fieldName}[${index}][description]" 
+                                    placeholder="Description">${item.description || ''}</textarea>
+                        </div>
+                    </div>`;
+                break;
+                
+            case 'menu':
+                html += `
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label">Label</label>
+                            <input type="text" class="form-control" name="${fieldName}[${index}][label]" 
+                                   value="${item.label || ''}" placeholder="Menu label">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">URL</label>
+                            <input type="text" class="form-control" name="${fieldName}[${index}][url]" 
+                                   value="${item.url || ''}" placeholder="/page or https://...">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="${fieldName}[${index}][external]" 
+                                       value="1" ${item.external ? 'checked' : ''}>
+                                <label class="form-check-label">External Link</label>
+                            </div>
+                        </div>
+                    </div>`;
+                break;
+                
+            case 'stats':
+                html += `
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label">Value</label>
+                            <input type="text" class="form-control" name="${fieldName}[${index}][value]" 
+                                   value="${item.value || item.number || ''}" placeholder="12K+">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Label</label>
+                            <input type="text" class="form-control" name="${fieldName}[${index}][label]" 
+                                   value="${item.label || ''}" placeholder="Users">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Icon (optional)</label>
+                            <input type="text" class="form-control" name="${fieldName}[${index}][icon]" 
+                                   value="${item.icon || 'fas fa-star'}" placeholder="fas fa-users">
+                        </div>
+                    </div>`;
+                break;
+                
+            case 'testimonials':
+                html += `
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label class="form-label">Quote</label>
+                            <textarea class="form-control mb-2" name="${fieldName}[${index}][quote]" 
+                                    placeholder="Customer testimonial">${item.quote || ''}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Name</label>
+                            <input type="text" class="form-control" name="${fieldName}[${index}][name]" 
+                                   value="${item.name || ''}" placeholder="Customer name">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Company</label>
+                            <input type="text" class="form-control" name="${fieldName}[${index}][company]" 
+                                   value="${item.company || ''}" placeholder="Company name">
+                        </div>
+                    </div>`;
+                break;
+                
+            case 'social':
+                html += `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Icon</label>
+                            <input type="text" class="form-control" name="${fieldName}[${index}][icon]" 
+                                   value="${item.icon || 'fab fa-facebook'}" placeholder="fab fa-facebook">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">URL</label>
+                            <input type="url" class="form-control" name="${fieldName}[${index}][url]" 
+                                   value="${item.url || ''}" placeholder="https://facebook.com/yourpage">
+                        </div>
+                    </div>`;
+                break;
+                
+            case 'plans':
+                const features = Array.isArray(item.features) ? item.features.join('\n') : (item.features || '');
+                html += `
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label">Plan Name</label>
+                            <input type="text" class="form-control" name="${fieldName}[${index}][name]" 
+                                   value="${item.name || ''}" placeholder="Starter">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Price</label>
+                            <input type="text" class="form-control" name="${fieldName}[${index}][price]" 
+                                   value="${item.price || ''}" placeholder="29">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Featured</label>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" name="${fieldName}[${index}][featured]" 
+                                       value="1" ${item.featured ? 'checked' : ''}>
+                                <label class="form-check-label">Highlight this plan</label>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Features (one per line)</label>
+                            <textarea class="form-control" name="${fieldName}[${index}][features]" rows="3"
+                                    placeholder="Feature 1&#10;Feature 2&#10;Feature 3">${features}</textarea>
+                        </div>
+                    </div>`;
+                break;
+                
+            case 'cards':
+                html += `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Name</label>
+                            <input type="text" class="form-control" name="${fieldName}[${index}][name]" 
+                                   value="${item.name || ''}" placeholder="Card title">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Text</label>
+                            <textarea class="form-control" name="${fieldName}[${index}][text]" 
+                                    placeholder="Card content">${item.text || ''}</textarea>
+                        </div>
+                    </div>`;
+                break;
+                
+            case 'links':
+                html += `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Label</label>
+                            <input type="text" class="form-control" name="${fieldName}[${index}][label]" 
+                                   value="${item.label || ''}" placeholder="Link text">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">URL</label>
+                            <input type="url" class="form-control" name="${fieldName}[${index}][url]" 
+                                   value="${item.url || ''}" placeholder="/page or https://...">
+                        </div>
+                    </div>`;
+                break;
+                
+            case 'simple':
+                html += `<input type="text" class="form-control" name="${fieldName}[${index}]" 
+                               value="${typeof item === 'string' ? item : ''}" placeholder="Item value">`;
+                break;
+                
+            default:
+                // Generic object handler
+                if (typeof item === 'object' && item !== null) {
+                    html += `<div class="row">`;
+                    Object.keys(item).forEach(key => {
+                        html += `
+                            <div class="col-md-6">
+                                <label class="form-label">${key}</label>
+                                <input type="text" class="form-control" name="${fieldName}[${index}][${key}]" 
+                                       value="${item[key] || ''}" placeholder="${key}">
+                            </div>`;
+                    });
+                    html += `</div>`;
+                } else {
+                    html += `<input type="text" class="form-control" name="${fieldName}[${index}]" 
+                                   value="${item || ''}" placeholder="Value">`;
+                }
+        }
+        
+        html += `</div>`;
+    });
+    
+    html += `
+        </div>
+        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addArrayItem('${fieldName}', '${arrayType}')">
+            <i class="align-middle me-1" data-feather="plus"></i>Add ${getItemLabel(arrayType)}
+        </button>
+    `;
+    
+    return html;
+}
+
+function getItemLabel(arrayType) {
+    switch (arrayType) {
+        case 'features': return 'Feature';
+        case 'menu': return 'Menu Item';
+        case 'stats': return 'Stat';
+        case 'testimonials': return 'Testimonial';
+        case 'social': return 'Social Link';
+        case 'plans': return 'Plan';
+        case 'services': return 'Service';
+        case 'cards': return 'Card';
+        case 'links': return 'Link';
+        case 'generic': return 'Item';
+        case 'simple': return 'Item';
+        default: return 'Item';
+    }
+}
+
+function addArrayItem(fieldName, arrayType) {
+    const container = document.getElementById(fieldName + '_container');
+    if (!container) return;
+    
+    const index = container.querySelectorAll('.array-item').length;
+    let newItemHtml = `<div class="array-item border rounded p-3 mb-3" data-index="${index}">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">${getItemLabel(arrayType)} ${index + 1}</h6>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeArrayItem('${fieldName}', ${index}, '${arrayType}')">
+                <i class="align-middle" data-feather="x"></i>
+            </button>
+        </div>`;
+        
+    switch (arrayType) {
+        case 'features':
+        case 'services':
+            newItemHtml += `
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Icon</label>
+                        <input type="text" class="form-control" name="${fieldName}[${index}][icon]" 
+                               value="fas fa-star" placeholder="fas fa-star">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Title</label>
+                        <input type="text" class="form-control" name="${fieldName}[${index}][title]" 
+                               placeholder="Title">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="${fieldName}[${index}][description]" 
+                                placeholder="Description"></textarea>
+                    </div>
+                </div>`;
+            break;
+        case 'menu':
+            newItemHtml += `
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Label</label>
+                        <input type="text" class="form-control" name="${fieldName}[${index}][label]" placeholder="Menu label">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">URL</label>
+                        <input type="text" class="form-control" name="${fieldName}[${index}][url]" placeholder="/page">
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="${fieldName}[${index}][external]" value="1">
+                            <label class="form-check-label">External Link</label>
+                        </div>
+                    </div>
+                </div>`;
+            break;
+        case 'stats':
+            newItemHtml += `
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Value</label>
+                        <input type="text" class="form-control" name="${fieldName}[${index}][value]" placeholder="12K+">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Label</label>
+                        <input type="text" class="form-control" name="${fieldName}[${index}][label]" placeholder="Users">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Icon (optional)</label>
+                        <input type="text" class="form-control" name="${fieldName}[${index}][icon]" 
+                               value="fas fa-star" placeholder="fas fa-users">
+                    </div>
+                </div>`;
+            break;
+        case 'testimonials':
+            newItemHtml += `
+                <div class="row">
+                    <div class="col-md-12">
+                        <label class="form-label">Quote</label>
+                        <textarea class="form-control mb-2" name="${fieldName}[${index}][quote]" 
+                                placeholder="Customer testimonial"></textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" name="${fieldName}[${index}][name]" 
+                               placeholder="Customer name">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Company</label>
+                        <input type="text" class="form-control" name="${fieldName}[${index}][company]" 
+                               placeholder="Company name">
+                    </div>
+                </div>`;
+            break;
+        case 'social':
+            newItemHtml += `
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Icon</label>
+                        <input type="text" class="form-control" name="${fieldName}[${index}][icon]" 
+                               value="fab fa-facebook" placeholder="fab fa-facebook">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">URL</label>
+                        <input type="url" class="form-control" name="${fieldName}[${index}][url]" 
+                               placeholder="https://facebook.com/yourpage">
+                    </div>
+                </div>`;
+            break;
+        case 'plans':
+            newItemHtml += `
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Plan Name</label>
+                        <input type="text" class="form-control" name="${fieldName}[${index}][name]" 
+                               placeholder="Basic Plan">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Price</label>
+                        <input type="text" class="form-control" name="${fieldName}[${index}][price]" 
+                               placeholder="$29/month">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Features (one per line)</label>
+                        <textarea class="form-control" name="${fieldName}[${index}][features]" 
+                                placeholder="Feature 1&#10;Feature 2&#10;Feature 3"></textarea>
+                    </div>
+                </div>`;
+            break;
+        case 'cards':
+            newItemHtml += `
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Name/Title</label>
+                        <input type="text" class="form-control" name="${fieldName}[${index}][name]" 
+                               placeholder="Card title">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Text/Description</label>
+                        <textarea class="form-control" name="${fieldName}[${index}][text]" 
+                                placeholder="Card description"></textarea>
+                    </div>
+                </div>`;
+            break;
+        case 'links':
+            newItemHtml += `
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Label</label>
+                        <input type="text" class="form-control" name="${fieldName}[${index}][label]" 
+                               placeholder="Link text">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">URL</label>
+                        <input type="url" class="form-control" name="${fieldName}[${index}][url]" 
+                               placeholder="/page or https://...">
+                    </div>
+                </div>`;
+            break;
+        case 'generic':
+            newItemHtml += `
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" name="${fieldName}[${index}][name]" 
+                               placeholder="Name">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Value</label>
+                        <input type="text" class="form-control" name="${fieldName}[${index}][value]" 
+                               placeholder="Value">
+                    </div>
+                </div>`;
+            break;
+        case 'simple':
+            newItemHtml += `<input type="text" class="form-control" name="${fieldName}[${index}]" placeholder="Item value">`;
+            break;
+        // Add other cases as needed...
+        default:
+            newItemHtml += `<input type="text" class="form-control" name="${fieldName}[${index}]" placeholder="Value">`;
+    }
+    
+    newItemHtml += `</div>`;
+    
+    container.insertAdjacentHTML('beforeend', newItemHtml);
+    if (typeof feather !== 'undefined') feather.replace();
+}
+
+function removeArrayItem(fieldName, index, arrayType) {
+    const element = document.querySelector(`#${fieldName}_container .array-item[data-index="${index}"]`);
+    if (element) {
+        element.remove();
+        reindexArrayItems(fieldName, arrayType);
+    }
+}
+
+function reindexArrayItems(fieldName, arrayType) {
+    const container = document.getElementById(fieldName + '_container');
+    if (!container) return;
+    
+    container.querySelectorAll('.array-item').forEach((element, newIndex) => {
+        element.setAttribute('data-index', newIndex);
+        element.querySelector('h6').textContent = `${getItemLabel(arrayType)} ${newIndex + 1}`;
+        element.querySelector('button').setAttribute('onclick', `removeArrayItem('${fieldName}', ${newIndex}, '${arrayType}')`);
+        
+        // Update all input names
+        element.querySelectorAll('input, textarea').forEach(input => {
+            if (input.name.includes('[')) {
+                const namePattern = input.name.match(/^([^\[]+)\[\d+\](.*)$/);
+                if (namePattern) {
+                    input.name = `${namePattern[1]}[${newIndex}]${namePattern[2]}`;
+                }
+            }
+        });
+    });
+}
+
+function addMenuItem() {
+    const container = document.getElementById('menu_items_container');
+    const menuItems = container.querySelectorAll('.menu-item');
+    const newIndex = menuItems.length;
+    
+    const newItemHtml = `
+        <div class="menu-item border rounded p-3 mb-3" data-index="${newIndex}">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">Menu Item ${newIndex + 1}</h6>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeMenuItem(${newIndex})">
+                    <i class="align-middle" data-feather="x"></i>
+                </button>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="form-label">Label</label>
+                    <input type="text" class="form-control" name="menu_items[${newIndex}][label]" value="" placeholder="Menu label">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">URL</label>
+                    <input type="text" class="form-control" name="menu_items[${newIndex}][url]" value="/" placeholder="/page or https://...">
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check mt-4">
+                        <input class="form-check-input" type="checkbox" name="menu_items[${newIndex}][external]" value="1">
+                        <label class="form-check-label">External Link</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', newItemHtml);
+    
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+}
+
+function removeMenuItem(index) {
+    const menuItem = document.querySelector(`.menu-item[data-index="${index}"]`);
+    if (menuItem) {
+        menuItem.remove();
+        reindexMenuItems();
+    }
+}
+
+function reindexMenuItems() {
+    const menuItems = document.querySelectorAll('.menu-item');
+    menuItems.forEach((item, index) => {
+        item.setAttribute('data-index', index);
+        item.querySelector('h6').textContent = `Menu Item ${index + 1}`;
+        item.querySelector('button').setAttribute('onclick', `removeMenuItem(${index})`);
+        
+        // Update input names
+        const inputs = item.querySelectorAll('input[name^="menu_items["]');
+        inputs.forEach(input => {
+            const fieldName = input.name.match(/\[([^\]]+)\]$/)[1];
+            input.name = `menu_items[${index}][${fieldName}]`;
+        });
+    });
+}
+
+function showSectionError(message) {
+    document.getElementById('sectionLoadingState').style.display = 'none';
+    document.getElementById('sectionInfo').style.display = 'none';
+    document.getElementById('sectionFormFields').style.display = 'none';
+    
+    document.getElementById('sectionErrorMessage').textContent = message;
+    document.getElementById('sectionErrorAlert').style.display = 'block';
+    
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+}
+
+// Save section content
+document.addEventListener('DOMContentLoaded', function() {
+    const saveSectionButton = document.getElementById('saveSectionContent');
+    if (saveSectionButton) {
+        saveSectionButton.addEventListener('click', function() {
+            saveSectionContent();
+        });
+    }
+});
+
+function saveSectionContent() {
+    console.log('=== Starting Save Section Content ===');
+    
+    const form = document.getElementById('sectionContentForm');
+    const formData = new FormData(form);
+    
+    // Get section and page IDs
+    const sectionId = document.getElementById('section_id').value;
+    const pageId = document.getElementById('page_id').value;
+    
+    console.log('Save params:', { sectionId, pageId });
+    
+    if (!sectionId || !pageId) {
+        showSectionError('Missing section or page ID');
+        return;
+    }
+    
+    // Show loading state on save button
+    const saveButton = document.getElementById('saveSectionContent');
+    const originalText = saveButton.innerHTML;
+    saveButton.innerHTML = '<i class="align-middle me-1" data-feather="loader"></i>Saving...';
+    saveButton.disabled = true;
+    
+    // Convert FormData to JSON, handling special cases
+    const contentData = {};
+    
+    // Handle regular fields
+    for (let [key, value] of formData.entries()) {
+        if (key.includes('[')) {
+            // Skip array items, we'll handle them separately
+            continue;
+        }
+        
+        // Check if this is part of an object field
+        if (key.includes('_')) {
+            const parts = key.split('_');
+            if (parts.length >= 2) {
+                const potentialObjectField = parts[0];
+                const potentialObjectKey = parts.slice(1).join('_');
+                
+                // Check if there's an object field in the DOM with this name
+                const objectContainer = document.getElementById(potentialObjectField + '_object');
+                if (objectContainer) {
+                    if (!contentData[potentialObjectField]) {
+                        contentData[potentialObjectField] = {};
+                    }
+                    contentData[potentialObjectField][potentialObjectKey] = value;
+                    continue; // Skip adding this as a regular field
+                }
+            }
+        }
+        
+        // Handle boolean checkboxes
+        if (document.querySelector(`input[name="${key}"][type="checkbox"]`)) {
+            contentData[key] = value === '1' || value === 'on';
+        } else {
+            contentData[key] = value;
+        }
+    }
+    
+    // Handle all array fields using the new unified structure
+    document.querySelectorAll('[id$="_container"]').forEach(container => {
+        const fieldName = container.id.replace('_container', '');
+        const arrayData = [];
+        
+        container.querySelectorAll('.array-item').forEach((item, index) => {
+            const itemData = {};
+            
+            // Collect all inputs for this array item
+            item.querySelectorAll('input, textarea, select').forEach(input => {
+                if (input.name && input.name.includes(`[${index}]`)) {
+                    const fieldMatch = input.name.match(/\[(\w+)\]$/);
+                    if (fieldMatch) {
+                        const fieldKey = fieldMatch[1];
+                        
+                        if (input.type === 'checkbox') {
+                            itemData[fieldKey] = input.checked;
+                        } else if (input.type === 'number' || input.type === 'range') {
+                            itemData[fieldKey] = parseFloat(input.value) || 0;
+                        } else if (fieldKey === 'features' && input.value) {
+                            // Handle features as array (for plans)
+                            itemData[fieldKey] = input.value.split('\n').filter(f => f.trim());
+                        } else {
+                            itemData[fieldKey] = input.value || '';
+                        }
+                    }
+                }
+            });
+            
+            // Only add non-empty items
+            if (Object.keys(itemData).length > 0 && Object.values(itemData).some(v => v !== '' && v !== false)) {
+                arrayData.push(itemData);
+            }
+        });
+        
+        if (arrayData.length > 0) {
+            contentData[fieldName] = arrayData;
+        }
+    });
+    
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    // Debug: Log the data being sent
+    console.log('Form Data entries:');
+    for (let [key, value] of formData.entries()) {
+        console.log(`  ${key}: ${value}`);
+    }
+    console.log('Final content data:', contentData);
+    console.log('Section ID:', sectionId);
+    console.log('Page ID:', pageId);
+    
+    // Send update request
+    fetch(`/admin/content/sections/${pageId}/${sectionId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify({
+            content_data: contentData
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to save section content');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            alert('Section content updated successfully!');
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('sectionContentModal'));
+            if (modal) {
+                modal.hide();
+            }
+            
+            // Reload to reflect updated section card content / preview
+            setTimeout(()=>window.location.reload(), 400);
+            
+        } else {
+            showSectionError(data.message || 'Failed to save section content');
+        }
+    })
+    .catch(error => {
+        console.error('Error saving section content:', error);
+        showSectionError('Failed to save section content. Please try again.');
+    })
+    .finally(() => {
+        // Restore save button
+        saveButton.innerHTML = originalText;
+        saveButton.disabled = false;
+        
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
     });
 }
 </script>

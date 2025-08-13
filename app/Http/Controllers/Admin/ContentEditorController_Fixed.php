@@ -48,79 +48,205 @@ class ContentEditorController extends Controller
             ->orderBy('name')
             ->get();
 
-        // Get navigation configuration for the modals
-        $navigationConfig = $this->getNavigationConfig($site);
-        
-        // Get social media configuration
-        $socialMediaConfig = $this->getSocialMediaConfig($site);
-        
-        // Get available pages for navigation
-        $availablePages = $this->getAvailablePages($site);
-
-        return view('admin.content.index', compact(
-            'site', 
-            'activeHeader', 
-            'activeFooter', 
-            'pages', 
-            'navigationConfig', 
-            'socialMediaConfig', 
-            'availablePages'
-        ));
+        return view('admin.content.index', compact('activeHeader', 'activeFooter', 'pages'));
     }
 
     /**
-     * Get navigation configuration for the site
+     * Get header content for editing
      */
-    private function getNavigationConfig(Site $site): array
+    public function getHeaderContent(Request $request)
     {
-        $tplSite = $site->tplSite;
-        
-        if (!$tplSite) {
-            // Create a new TplSite record if it doesn't exist
-            $tplSite = TplSite::create([
-                'site_id' => $site->id,
-                'nav_data' => ['links' => [], 'show_auth' => false],
-                'footer_data' => ['links' => [], 'show_auth' => false],
+        try {
+            $user = Auth::user();
+            $site = Site::where('user_id', $user->id)->where('status_id', true)->first();
+
+            if (!$site || !$site->active_header_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No active header found'
+                ], 404);
+            }
+
+            $header = TplLayout::where('id', $site->active_header_id)->first();
+
+            if (!$header) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Header layout not found'
+                ], 404);
+            }
+
+            // Get current site configuration content
+            $tplSite = TplSite::where('site_id', $site->id)
+                ->where('tpl_layouts_id', $header->id)
+                ->first();
+
+            return response()->json([
+                'success' => true,
+                'header' => [
+                    'id' => $header->id,
+                    'name' => $header->name,
+                    'description' => $header->description,
+                    'configurable_fields' => $header->configurable_fields,
+                    'default_config' => $header->default_config,
+                    'current_content' => $tplSite ? $tplSite->content : null
+                ]
             ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading header data: ' . $e->getMessage()
+            ], 500);
         }
-        
-        return [
-            'header_links' => $tplSite->nav_data['links'] ?? [],
-            'footer_links' => $tplSite->footer_data['links'] ?? [],
-            'show_auth_in_header' => $tplSite->nav_data['show_auth'] ?? false,
-            'show_auth_in_footer' => $tplSite->footer_data['show_auth'] ?? false,
-        ];
     }
 
     /**
-     * Get social media configuration for the site
+     * Update header content
      */
-    private function getSocialMediaConfig(Site $site): array
+    public function updateHeaderContent(Request $request)
     {
-        $tplSite = $site->tplSite;
-        
-        if (!$tplSite) {
-            // Create a new TplSite record if it doesn't exist
-            $tplSite = TplSite::create([
-                'site_id' => $site->id,
-                'nav_data' => ['links' => [], 'show_auth' => false],
-                'footer_data' => ['links' => [], 'show_auth' => false, 'social_media' => []],
+        try {
+            $user = Auth::user();
+            $site = Site::where('user_id', $user->id)->where('status_id', true)->first();
+
+            if (!$site || !$site->active_header_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No active header found'
+                ], 404);
+            }
+
+            $header = TplLayout::where('id', $site->active_header_id)->first();
+
+            if (!$header) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Header layout not found'
+                ], 404);
+            }
+
+            // Update or create TplSite record
+            $tplSite = TplSite::updateOrCreate(
+                [
+                    'site_id' => $site->id,
+                    'tpl_layouts_id' => $header->id
+                ],
+                [
+                    'content' => $request->input('content_data', [])
+                ]
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Header content updated successfully'
             ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating header content: ' . $e->getMessage()
+            ], 500);
         }
-        
-        return $tplSite->footer_data['social_media'] ?? [];
     }
 
     /**
-     * Get available pages for navigation
+     * Get footer content for editing
      */
-    private function getAvailablePages(Site $site): array
+    public function getFooterContent(Request $request)
     {
-        return TplPage::where('site_id', $site->id)
-            ->where('status', true)
-            ->orderBy('name')
-            ->get(['id', 'name', 'slug', 'link'])
-            ->toArray();
+        try {
+            $user = Auth::user();
+            $site = Site::where('user_id', $user->id)->where('status_id', true)->first();
+
+            if (!$site || !$site->active_footer_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No active footer found'
+                ], 404);
+            }
+
+            $footer = TplLayout::where('id', $site->active_footer_id)->first();
+
+            if (!$footer) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Footer layout not found'
+                ], 404);
+            }
+
+            // Get current site configuration content
+            $tplSite = TplSite::where('site_id', $site->id)
+                ->where('tpl_layouts_id', $footer->id)
+                ->first();
+
+            return response()->json([
+                'success' => true,
+                'footer' => [
+                    'id' => $footer->id,
+                    'name' => $footer->name,
+                    'description' => $footer->description,
+                    'configurable_fields' => $footer->configurable_fields,
+                    'default_config' => $footer->default_config,
+                    'current_content' => $tplSite ? $tplSite->content : null
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading footer data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update footer content
+     */
+    public function updateFooterContent(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            $site = Site::where('user_id', $user->id)->where('status_id', true)->first();
+
+            if (!$site || !$site->active_footer_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No active footer found'
+                ], 404);
+            }
+
+            $footer = TplLayout::where('id', $site->active_footer_id)->first();
+
+            if (!$footer) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Footer layout not found'
+                ], 404);
+            }
+
+            // Update or create TplSite record
+            $tplSite = TplSite::updateOrCreate(
+                [
+                    'site_id' => $site->id,
+                    'tpl_layouts_id' => $footer->id
+                ],
+                [
+                    'content' => $request->input('content_data', [])
+                ]
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Footer content updated successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating footer content: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -169,13 +295,6 @@ class ContentEditorController extends Controller
             if (empty($contentData) && !empty($section->layout->default_config)) {
                 $contentData = $section->layout->default_config;
             }
-
-            Log::info('getSectionContent - returning data:', [
-                'section_id' => $sectionId,
-                'content_data' => $contentData,
-                'original_content' => $section->content,
-                'layout_name' => $section->layout->name
-            ]);
 
             return response()->json([
                 'success' => true,
@@ -283,8 +402,8 @@ class ContentEditorController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Section content updated successfully',
-                'content_data' => $section->content_data,
-                'content' => $section->content
+                'content_data' => $section->fresh()->content_data,
+                'content' => $section->fresh()->content
             ]);
 
         } catch (\Exception $e) {
