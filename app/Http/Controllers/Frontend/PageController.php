@@ -20,296 +20,249 @@ class PageController extends Controller
     {
         try {
             $request = request();
-            $domain = $request->getHost();
-            
-            // Try to find site by domain first
+            $domain  = $request->getHost();
+
+            // 1) حدد الـ Site
             $site = Site::findByDomain($domain);
-            
             if (!$site) {
-                // Fallback: check if we have a tenant from middleware
                 $tenant = $request->attributes->get('tenant');
-                if ($tenant) {
-                    $site = $tenant;
-                } else {
-                    // Final fallback: get the first active site (for development)
-                    $site = Site::where('status_id', true)->first();
-                }
+                $site   = $tenant ?: Site::where('status_id', true)->first();
             }
-            
             if (!$site) {
-                // Create a simple welcome page if no site is found
                 return $this->showWelcomePage();
             }
-            
-            // Convert slug to link format
+
+            // 2) هات الـ Page
             $link = $slug === 'home' ? '/' : '/' . $slug;
-            
-            // Get the page by link
-            $page = TplPage::where('site_id', $site->id)
-                ->where('link', $link)
-                ->first();
-                
+            $page = TplPage::where('site_id', $site->id)->where('link', $link)->first();
             if (!$page) {
-                // If specific page not found, try to get home page
-                $page = TplPage::where('site_id', $site->id)
-                    ->where('link', '/')
-                    ->first();
-                    
+                $page = TplPage::where('site_id', $site->id)->where('link', '/')->first();
                 if (!$page) {
-                    // Create a simple page if no pages are found
                     return $this->showSimplePage($slug, $site);
                 }
             }
-            
-            // Get site configuration
+
+            // 3) Config عام
             $siteConfig = SiteConfig::where('site_id', $site->id)->first();
-            $config = $siteConfig ? $siteConfig->data : [];
-        
-            // Get language settings
-            $lang = 'en'; // Default to English
-            $dir = 'ltr';  // Default to LTR
-            
-            // Get site template configuration
+            $config     = $siteConfig ? $siteConfig->data : [];
+            $lang = 'en';
+            $dir  = 'ltr';
+
+            // 4) بيانات tpl_site
             $tplSite = TplSite::where('site_id', $site->id)->first();
-            
-            // Get navigation layout - prioritize active_header_id, fallback to legacy tpl_site
+
+            // ====== HEADER (NAV) ======
             $navLayout = null;
             if ($site->active_header_id) {
                 $navLayout = TplLayout::where('id', $site->active_header_id)->where('status', true)->first();
             } elseif ($tplSite && $tplSite->nav) {
                 $navLayout = TplLayout::where('id', $tplSite->nav)->where('status', true)->first();
             }
-            
+
             if ($navLayout) {
-                $navConfig = $navLayout->default_config ?? [];
-                // Ensure it's an array
-                if (is_string($navConfig)) {
-                    $navConfig = json_decode($navConfig, true) ?? [];
-                }
-                // Add site-specific data
-                $navConfig['site_name'] = $site->site_name;
-                
-                // Override menu_items with nav_data if available
-                if ($tplSite && $tplSite->nav_data && isset($tplSite->nav_data['links'])) {
-                    $navConfig['menu_items'] = array_map(function($link) {
+                // ابدأ من content (المحفوظ بالتعديلات)
+                $navConfig  = [];
+                $contentArr = $navLayout->content;
+                if (is_string($contentArr)) $contentArr = json_decode($contentArr, true) ?: [];
+                if (is_array($contentArr))  $navConfig  = $contentArr;
+
+                // ادمج مع default_config كـ fallback
+                $default = $navLayout->default_config ?? [];
+                if (is_string($default)) $default = json_decode($default, true) ?: [];
+                if (is_array($default))  $navConfig = array_replace($default, $navConfig);
+
+                // قيم ديناميكية
+                $navConfig['site_name'] = $navConfig['site_name'] ?? $site->site_name;
+
+                // روابط المنيو من tpl_site.nav_data
+                if ($tplSite && is_array($tplSite->nav_data ?? null) && isset($tplSite->nav_data['links'])) {
+                    $navConfig['menu_items'] = array_map(function ($link) {
                         return [
-                            'label' => $link['title'] ?? $link['name'] ?? 'Untitled', // Support both title and name
-                            'url' => $link['url'],
-                            'active' => $link['active'] ?? true,
-                            'external' => $link['external'] ?? false
+                            'label'    => $link['title'] ?? $link['name'] ?? 'Untitled',
+                            'url'      => $link['url'] ?? '#',
+                            'active'   => $link['active'] ?? true,
+                            'external' => $link['external'] ?? false,
                         ];
-                    }, array_filter($tplSite->nav_data['links'], function($link) {
-                        return ($link['active'] ?? true); // Only include active links
-                    }));
+                    }, array_values(array_filter($tplSite->nav_data['links'], function ($link) {
+                        return ($link['active'] ?? true);
+                    })));
                 }
-                
-                // Handle content - check if it's JSON array or string
-                $contentToProcess = $navLayout->content;
-                if (is_array($contentToProcess) && isset($contentToProcess['html'])) {
-                    $contentToProcess = $contentToProcess['html'];
-                } elseif (is_string($contentToProcess)) {
-                    // Try to decode JSON
-                    $decoded = json_decode($contentToProcess, true);
-                    if (is_array($decoded) && isset($decoded['html'])) {
-                        $contentToProcess = $decoded['html'];
-                    }
+
+                // CTA تطبيع
+                if (!isset($navConfig['cta_button'])) {
+                    $navConfig['cta_button'] = [
+                        'text' => $navConfig['cta_button_text'] ?? ($navConfig['cta_button']['text'] ?? null),
+                        'url'  => $navConfig['cta_button_url']  ?? ($navConfig['cta_button']['url']  ?? '#'),
+                    ];
                 }
-                
-                $navLayout->processed_content = $this->processTemplate($contentToProcess, $navConfig);
+
+                // HTML
+                $navHtml = $navLayout->content;
+                if (is_array($navHtml) && isset($navHtml['html'])) {
+                    $navHtml = $navHtml['html'];
+                } elseif (is_string($navHtml)) {
+                    $decoded = json_decode($navHtml, true);
+                    if (is_array($decoded) && isset($decoded['html'])) $navHtml = $decoded['html'];
+                }
+                $navLayout->processed_content = $this->processTemplate($navHtml, $navConfig);
             }
-            
-            // Get footer layout - prioritize active_footer_id, fallback to legacy tpl_site  
+
+            // ====== FOOTER ======
             $footerLayout = null;
             if ($site->active_footer_id) {
                 $footerLayout = TplLayout::where('id', $site->active_footer_id)->where('status', true)->first();
             } elseif ($tplSite && $tplSite->footer) {
                 $footerLayout = TplLayout::where('id', $tplSite->footer)->where('status', true)->first();
             }
-            
+
             if ($footerLayout) {
-                $footerConfig = $footerLayout->default_config ?? [];
-                // Ensure it's an array
-                if (is_string($footerConfig)) {
-                    $footerConfig = json_decode($footerConfig, true) ?? [];
-                }
-                // Add dynamic data
+                // ابدأ من content (المحفوظ بالتعديلات)
+                $footerConfig = [];
+                $footerArr = $footerLayout->content;
+                if (is_string($footerArr)) $footerArr = json_decode($footerArr, true) ?: [];
+                if (is_array($footerArr))  $footerConfig = $footerArr;
+
+                // ادمج مع default_config
+                $defaultFooter = $footerLayout->default_config ?? [];
+                if (is_string($defaultFooter)) $defaultFooter = json_decode($defaultFooter, true) ?: [];
+                if (is_array($defaultFooter))  $footerConfig = array_replace($defaultFooter, $footerConfig);
+
+                // ديناميكي
                 $footerConfig['year'] = date('Y');
-                $footerConfig['site_name'] = $site->site_name;
-                
-                // Add footer-specific data from TplSite
-                if ($tplSite && $tplSite->footer_data) {
+                $footerConfig['site_name'] = $footerConfig['site_name'] ?? $site->site_name;
+
+                // Social & Links من tpl_site.footer_data
+                if ($tplSite && is_array($tplSite->footer_data ?? null)) {
                     if (isset($tplSite->footer_data['social_media'])) {
                         $footerConfig['social_links'] = [];
                         foreach ($tplSite->footer_data['social_media'] as $platform => $url) {
-                            if (!empty(trim($url))) { // Only include non-empty URLs
+                            if (!empty(trim($url ?? ''))) {
                                 $icons = [
-                                    'facebook' => 'fab fa-facebook-f',
-                                    'twitter' => 'fab fa-twitter',
-                                    'instagram' => 'fab fa-instagram', 
-                                    'linkedin' => 'fab fa-linkedin-in',
-                                    'youtube' => 'fab fa-youtube',
-                                    'github' => 'fab fa-github',
-                                    'discord' => 'fab fa-discord',
-                                    'tiktok' => 'fab fa-tiktok',
-                                    'pinterest' => 'fab fa-pinterest'
+                                    'facebook' => 'fab fa-facebook-f', 'twitter' => 'fab fa-twitter',
+                                    'instagram'=> 'fab fa-instagram',  'linkedin'=> 'fab fa-linkedin-in',
+                                    'youtube'  => 'fab fa-youtube',    'github'  => 'fab fa-github',
+                                    'discord'  => 'fab fa-discord',    'tiktok'  => 'fab fa-tiktok',
+                                    'pinterest'=> 'fab fa-pinterest',
                                 ];
                                 $footerConfig['social_links'][] = [
                                     'url' => $url,
                                     'icon' => $icons[$platform] ?? 'fas fa-link',
-                                    'platform' => $platform
+                                    'platform' => $platform,
                                 ];
                             }
                         }
                     }
+
                     if (isset($tplSite->footer_data['newsletter'])) {
                         $footerConfig['newsletter'] = $tplSite->footer_data['newsletter'];
                     }
+
                     if (isset($tplSite->footer_data['links'])) {
-                        $footerConfig['footer_links'] = array_map(function($link) {
+                        $footerConfig['footer_links'] = array_map(function ($link) {
                             return [
-                                'url' => $link['url'],
-                                'label' => $link['title'] ?? $link['name'] ?? 'Untitled', // Support both title and name
-                                'active' => $link['active'] ?? true,
-                                'external' => $link['external'] ?? false
+                                'url'      => $link['url'] ?? '#',
+                                'label'    => $link['title'] ?? $link['name'] ?? 'Untitled',
+                                'active'   => $link['active'] ?? true,
+                                'external' => $link['external'] ?? false,
                             ];
-                        }, array_filter($tplSite->footer_data['links'], function($link) {
-                            return ($link['active'] ?? true); // Only include active links
-                        }));
-                        
-                        // Also set as additional_pages for backward compatibility
+                        }, array_values(array_filter($tplSite->footer_data['links'], function ($link) {
+                            return ($link['active'] ?? true);
+                        })));
+                        // توافق خلفي
                         $footerConfig['additional_pages'] = $footerConfig['footer_links'];
                     }
                 }
-                
-                // Handle content - check if it's JSON array or string
-                $contentToProcess = $footerLayout->content;
-                if (is_array($contentToProcess) && isset($contentToProcess['html'])) {
-                    $contentToProcess = $contentToProcess['html'];
-                } elseif (is_string($contentToProcess)) {
-                    // Try to decode JSON
-                    $decoded = json_decode($contentToProcess, true);
-                    if (is_array($decoded) && isset($decoded['html'])) {
-                        $contentToProcess = $decoded['html'];
-                    }
+
+                // HTML
+                $footerHtml = $footerLayout->content;
+                if (is_array($footerHtml) && isset($footerHtml['html'])) {
+                    $footerHtml = $footerHtml['html'];
+                } elseif (is_string($footerHtml)) {
+                    $decoded = json_decode($footerHtml, true);
+                    if (is_array($decoded) && isset($decoded['html'])) $footerHtml = $decoded['html'];
                 }
-                
-                $footerLayout->processed_content = $this->processTemplate($contentToProcess, $footerConfig);
+                $footerLayout->processed_content = $this->processTemplate($footerHtml, $footerConfig);
             }
-            
-            // Get page sections with their layouts
+
+            // ====== Sections ======
             $sections = TplPageSection::where('page_id', $page->id)
                 ->where('status', 1)
                 ->with('layout')
                 ->orderBy('sort_order')
                 ->get()
                 ->map(function ($section) use ($lang) {
-                    // Parse JSON content from both content and content_data fields
                     try {
-                        // Try content_data first, then fallback to content
+                        // content_data أولاً
                         $contentData = null;
                         if ($section->content_data) {
-                            if (is_string($section->content_data)) {
-                                $contentData = json_decode($section->content_data, true);
-                            } elseif (is_array($section->content_data)) {
-                                $contentData = $section->content_data;
-                            }
+                            $contentData = is_string($section->content_data)
+                                ? (json_decode($section->content_data, true) ?: null)
+                                : (is_array($section->content_data) ? $section->content_data : null);
                         }
-                        
-                        // If content_data is empty or invalid, use content field
-                        if (!$contentData || !is_array($contentData)) {
+                        if (!$contentData) {
                             if (is_string($section->content)) {
-                                // Try to decode as JSON first
                                 $decoded = json_decode($section->content, true);
-                                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                                    $contentData = $decoded;
-                                } else {
-                                    // If not valid JSON, treat as plain text content
-                                    $contentData = ['content' => $section->content];
-                                }
+                                $contentData = (json_last_error() === JSON_ERROR_NONE && is_array($decoded))
+                                    ? $decoded
+                                    : ['content' => $section->content];
                             } elseif (is_array($section->content)) {
                                 $contentData = $section->content;
                             } else {
                                 $contentData = [];
                             }
                         }
-                        
-                        $settings = null;
-                        if ($section->settings) {
-                            if (is_string($section->settings)) {
-                                $settings = json_decode($section->settings, true);
-                            } elseif (is_array($section->settings)) {
-                                $settings = $section->settings;
-                            }
-                        }
-                        
-                        // Ensure we have valid content data
-                        if (!$contentData || !is_array($contentData)) {
-                            $contentData = [];
-                        }
-                        
-                        // Support nested locale structure (e.g., content['en'])
                         if (isset($contentData['en']) && is_array($contentData['en'])) {
-                            $flat = array_merge($contentData, $contentData['en']);
-                            $contentData = $flat; // flatten for simplicity
+                            $contentData = array_merge($contentData, $contentData['en']);
                         }
-
-                        // Debug output (remove in production)
-                        // \Log::info('Section ' . $section->id . ' content_data: ', $contentData);
 
                         $section->parsed_content = [
-                            'title' => $contentData['title'] ?? $contentData['hero_title'] ?? $section->name,
-                            'content' => $contentData['content'] ?? $contentData['hero_description'] ?? $contentData['subtitle'] ?? $contentData['description'] ?? '',
+                            'title'       => $contentData['title'] ?? $contentData['hero_title'] ?? $section->name,
+                            'content'     => $contentData['content'] ?? $contentData['hero_description'] ?? $contentData['subtitle'] ?? $contentData['description'] ?? '',
                             'button_text' => $contentData['button_text'] ?? $contentData['cta_text'] ?? '',
-                            'button_url' => $contentData['button_url'] ?? $contentData['cta_url'] ?? '#',
-                            'html' => $contentData['html'] ?? '', // Add processed HTML
+                            'button_url'  => $contentData['button_url'] ?? $contentData['cta_url'] ?? '#',
+                            'html'        => $contentData['html'] ?? '',
                         ];
-                        
+
+                        $settings = null;
+                        if ($section->settings) {
+                            $settings = is_string($section->settings)
+                                ? (json_decode($section->settings, true) ?: null)
+                                : (is_array($section->settings) ? $section->settings : null);
+                        }
                         $section->parsed_settings = $settings ?? [];
-                        
-                        // Use pre-processed HTML if available, otherwise process layout content
+
+                        // HTML النهائي
                         if (!empty($contentData['html'])) {
-                            // Use the pre-processed HTML from content_data
-                            $processedHTML = $contentData['html'];
-                            
-                            // Process any remaining placeholders with actual data
-                            $processedHTML = $this->processTemplatePlaceholders($processedHTML, [
-                                'title' => $section->parsed_content['title'],
-                                'content' => $section->parsed_content['content'],
+                            $processed = $this->processTemplatePlaceholders($contentData['html'], [
+                                'title'       => $section->parsed_content['title'],
+                                'content'     => $section->parsed_content['content'],
                                 'button_text' => $section->parsed_content['button_text'],
-                                'button_url' => $section->parsed_content['button_url'],
-                                'image' => $contentData['image'] ?? ''
+                                'button_url'  => $section->parsed_content['button_url'],
+                                'image'       => $contentData['image'] ?? '',
                             ]);
-                            
-                            $section->layout->processed_content = $processedHTML;
+                            $section->layout->processed_content = $processed;
                         } elseif ($section->layout && $section->layout->content) {
-                            // Process layout content with actual data
                             $layoutContent = $section->layout->content;
-                            
-                            // Extract HTML from array if needed
                             if (is_array($layoutContent) && isset($layoutContent['html'])) {
                                 $layoutContent = $layoutContent['html'];
                             } elseif (is_string($layoutContent)) {
-                                // Try to decode JSON
                                 $decoded = json_decode($layoutContent, true);
                                 if (is_array($decoded) && isset($decoded['html'])) {
                                     $layoutContent = $decoded['html'];
                                 }
                             }
-                            
-                            // Process placeholders in layout content with actual section data
-                            $processedHTML = $this->processTemplatePlaceholders($layoutContent, [
-                                'title' => $section->parsed_content['title'],
-                                'content' => $section->parsed_content['content'],
+                            $processed = $this->processTemplatePlaceholders($layoutContent, [
+                                'title'       => $section->parsed_content['title'],
+                                'content'     => $section->parsed_content['content'],
                                 'button_text' => $section->parsed_content['button_text'],
-                                'button_url' => $section->parsed_content['button_url'],
-                                'services' => $contentData['services'] ?? [],
-                                'image' => $contentData['image'] ?? ''
+                                'button_url'  => $section->parsed_content['button_url'],
+                                'services'    => $contentData['services'] ?? [],
+                                'image'       => $contentData['image'] ?? '',
                             ]);
-                            
-                            $section->layout->processed_content = $processedHTML;
+                            $section->layout->processed_content = $processed;
                         }
+
                     } catch (Exception $e) {
-                        // Fallback for parsing errors
                         $section->parsed_content = [
                             'title' => $section->name,
                             'content' => '',
@@ -317,28 +270,27 @@ class PageController extends Controller
                         ];
                         $section->parsed_settings = [];
                     }
-                    
+
                     return $section;
                 });
-            
+
             return view('frontend.layouts.app', compact(
-                'site', 
-                'page', 
-                'config', 
-                'lang', 
-                'dir', 
-                'navLayout', 
-                'footerLayout', 
+                'site',
+                'page',
+                'config',
+                'lang',
+                'dir',
+                'navLayout',
+                'footerLayout',
                 'sections'
             ));
-            
         } catch (Exception $e) {
             // Log the error and show a simple welcome page
             Log::error('Frontend page error: ' . $e->getMessage());
             return $this->showWelcomePage();
         }
     }
-    
+
     /**
      * Show a simple welcome page when no site is configured
      */
@@ -346,7 +298,7 @@ class PageController extends Controller
     {
         return view('frontend.welcome');
     }
-    
+
     /**
      * Show a simple page when site exists but no specific page is found
      */
@@ -354,7 +306,7 @@ class PageController extends Controller
     {
         return view('frontend.simple', compact('slug', 'site'));
     }
-    
+
     /**
      * Process template content by replacing placeholders with actual data
      */
@@ -363,17 +315,16 @@ class PageController extends Controller
         if (empty($content)) {
             return $content;
         }
-        
+
         // Handle array content - extract HTML if it's a structured array
         if (is_array($content)) {
             if (isset($content['html'])) {
                 $content = $content['html'];
             } else {
-                // If it's an array but no 'html' key, convert to JSON or return empty
                 return '<!-- Template content is array without html key: ' . json_encode(array_keys($content)) . ' -->';
             }
         }
-        
+
         // Ensure content is a string
         if (!is_string($content)) {
             return '<!-- Template content is not a string: ' . gettype($content) . ' -->';
@@ -382,10 +333,12 @@ class PageController extends Controller
         // If content contains PHP/Blade syntax, process it as Blade template
         if (strpos($content, '@') !== false || strpos($content, '$config') !== false) {
             return $this->processBladeLikeTemplate($content, $data);
-        }        // Replace simple placeholders {{field_name}}
+        }
+
+        // Replace simple placeholders {{field_name}}
         $content = preg_replace_callback('/\{\{([^}]+)\}\}/', function ($matches) use ($data) {
             $field = trim($matches[1]);
-            
+
             // Handle nested fields like contact_info.email
             if (strpos($field, '.') !== false) {
                 $parts = explode('.', $field);
@@ -400,27 +353,24 @@ class PageController extends Controller
                 }
                 return $value;
             }
-            
+
             return $data[$field] ?? '';
         }, $content);
-        
+
         // Handle Handlebars-style loops {{#each array}}
         $content = preg_replace_callback('/\{\{#each\s+([^}]+)\}\}(.*?)\{\{\/each\}\}/s', function ($matches) use ($data) {
             $arrayName = trim($matches[1]);
-            $template = $matches[2];
+            $template  = $matches[2];
             $output = '';
-            
+
             if (isset($data[$arrayName]) && is_array($data[$arrayName])) {
                 foreach ($data[$arrayName] as $item) {
                     $itemOutput = $template;
-                    // Replace {{this}} with the item value for simple arrays
                     $itemOutput = str_replace('{{this}}', $item, $itemOutput);
-                    
-                    // Replace {{field}} with item properties for object arrays
+
                     if (is_array($item)) {
                         foreach ($item as $key => $value) {
                             if (is_array($value)) {
-                                // Handle nested arrays (like social links)
                                 $nestedOutput = '';
                                 foreach ($value as $nestedItem) {
                                     if (is_array($nestedItem)) {
@@ -440,29 +390,28 @@ class PageController extends Controller
                     $output .= $itemOutput;
                 }
             }
-            
+
             return $output;
         }, $content);
-        
+
         // Handle conditional blocks {{#if condition}}
         $content = preg_replace_callback('/\{\{#if\s+([^}]+)\}\}(.*?)(?:\{\{else\}\}(.*?))?\{\{\/if\}\}/s', function ($matches) use ($data) {
-            $condition = trim($matches[1]);
-            $ifContent = $matches[2];
+            $condition  = trim($matches[1]);
+            $ifContent  = $matches[2];
             $elseContent = isset($matches[3]) ? $matches[3] : '';
-            
+
             $value = $data[$condition] ?? false;
-            
-            // Check if the condition is truthy
+
             if ($value && $value !== 'false' && $value !== '0') {
                 return $ifContent;
             } else {
                 return $elseContent;
             }
         }, $content);
-        
+
         return $content;
     }
-    
+
     /**
      * Process Blade-like template syntax
      */
@@ -472,46 +421,45 @@ class PageController extends Controller
             // Create a unique temporary view name
             $viewName = 'temp_' . md5($content . serialize($data));
             $viewPath = resource_path('views/temp');
-            
+
             // Ensure directory exists
             if (!is_dir($viewPath)) {
                 mkdir($viewPath, 0755, true);
             }
-            
+
             $fullPath = $viewPath . '/' . $viewName . '.blade.php';
-            
+
             // Write the blade content to a temporary file
             file_put_contents($fullPath, $content);
-            
+
             // Render the view with data
             $rendered = view('temp.' . $viewName, ['config' => $data])->render();
-            
+
             // Clean up the temporary file
             if (file_exists($fullPath)) {
                 unlink($fullPath);
             }
-            
+
             return $rendered;
-            
         } catch (Exception $e) {
             // Fallback to manual replacement if Blade processing fails
             Log::warning('Blade template processing failed, using fallback: ' . $e->getMessage());
             return $this->manualTemplateReplacement($content, $data);
         }
     }
-    
+
     /**
      * Manual template replacement as fallback
      */
     private function manualTemplateReplacement($content, $data = [])
     {
         // Replace basic variable access
-        $content = preg_replace_callback('/\$config\[\'([^\']+)\'\]/', function($matches) use ($data) {
+        $content = preg_replace_callback('/\$config\[\'([^\']+)\'\]/', function ($matches) use ($data) {
             return $data[$matches[1]] ?? '';
         }, $content);
-        
+
         // Handle @foreach loops for menu_items
-        $content = preg_replace_callback('/@foreach\(\$config\[\'menu_items\'\][^)]*\).*?@endforeach/s', function($matches) use ($data) {
+        $content = preg_replace_callback('/@foreach\(\$config\[\'menu_items\'\][^)]*\).*?@endforeach/s', function ($matches) use ($data) {
             $output = '';
             $menuItems = $data['menu_items'] ?? [];
             foreach ($menuItems as $item) {
@@ -520,9 +468,9 @@ class PageController extends Controller
             }
             return $output;
         }, $content);
-        
+
         // Handle @foreach loops for social_links
-        $content = preg_replace_callback('/@foreach\(\$config\[\'social_links\'\][^)]*\).*?@endforeach/s', function($matches) use ($data) {
+        $content = preg_replace_callback('/@foreach\(\$config\[\'social_links\'\][^)]*\).*?@endforeach/s', function ($matches) use ($data) {
             $output = '';
             $socialLinks = $data['social_links'] ?? [];
             foreach ($socialLinks as $social) {
@@ -533,9 +481,9 @@ class PageController extends Controller
             }
             return $output;
         }, $content);
-        
+
         // Handle @foreach loops for footer_links/additional_pages
-        $content = preg_replace_callback('/@foreach\(\$config\[\'footer_links\'\][^)]*\).*?@endforeach/s', function($matches) use ($data) {
+        $content = preg_replace_callback('/@foreach\(\$config\[\'footer_links\'\][^)]*\).*?@endforeach/s', function ($matches) use ($data) {
             $output = '';
             $footerLinks = $data['footer_links'] ?? $data['additional_pages'] ?? [];
             foreach ($footerLinks as $link) {
@@ -544,11 +492,11 @@ class PageController extends Controller
             }
             return $output;
         }, $content);
-        
+
         // Remove remaining Blade directives that couldn't be processed
         $content = preg_replace('/@[a-zA-Z]+.*?@end[a-zA-Z]+/s', '', $content);
         $content = preg_replace('/@[a-zA-Z]+\([^)]*\)/', '', $content);
-        
+
         return $content;
     }
 
@@ -560,13 +508,11 @@ class PageController extends Controller
         if (empty($content) || !is_string($content)) {
             return $content;
         }
-        
-        // Ensure data is an array
+
         if (!is_array($data)) {
             $data = [];
         }
-        
-        // Handle both old Handlebars syntax and new placeholder syntax
+
         $replacements = [
             // New placeholder syntax (recommended)
             '{TITLE_PLACEHOLDER}' => $data['title'] ?? '',
@@ -574,44 +520,42 @@ class PageController extends Controller
             '{BUTTON_TEXT_PLACEHOLDER}' => $data['button_text'] ?? '',
             '{BUTTON_URL_PLACEHOLDER}' => $data['button_url'] ?? '#',
             '{IMAGE_PLACEHOLDER}' => $data['image'] ?? '',
-            
+
             // Old Handlebars syntax (for backward compatibility)
             '{{title}}' => $data['title'] ?? '',
             '{{content}}' => !empty($data['content']) ? nl2br(e($data['content'])) : '',
             '{{button_text}}' => $data['button_text'] ?? '',
             '{{button_url}}' => $data['button_url'] ?? '#',
             '{{image}}' => $data['image'] ?? '',
-            
+
             // Additional common placeholders
             '{TITLE}' => $data['title'] ?? '',
             '{CONTENT}' => !empty($data['content']) ? nl2br(e($data['content'])) : '',
             '{BUTTON_TEXT}' => $data['button_text'] ?? '',
             '{BUTTON_URL}' => $data['button_url'] ?? '#',
             '{IMAGE}' => $data['image'] ?? '',
-            // Hero / CTA legacy explicit placeholders
             '{HERO_TITLE}' => $data['title'] ?? '',
             '{HERO_DESCRIPTION}' => !empty($data['content']) ? nl2br(e($data['content'])) : '',
             '{CTA_TEXT}' => $data['button_text'] ?? '',
             '{CTA_URL}' => $data['button_url'] ?? '#',
         ];
-        
-        // Apply replacements
+
         $processedContent = str_replace(array_keys($replacements), array_values($replacements), $content);
-        
+
         // Handle conditional statements for buttons
         if (!empty($data['button_text'])) {
             $processedContent = str_replace(['{{#if button_text}}', '{{/if}}'], '', $processedContent);
         } else {
             $processedContent = preg_replace('/\{\{#if button_text\}\}.*?\{\{\/if\}\}/s', '', $processedContent);
         }
-        
+
         // Handle conditional statements for images
         if (!empty($data['image'])) {
             $processedContent = str_replace(['{{#if image}}', '{{/if}}'], '', $processedContent);
         } else {
             $processedContent = preg_replace('/\{\{#if image\}\}.*?\{\{\/if\}\}/s', '', $processedContent);
         }
-        
+
         return $processedContent;
     }
 }

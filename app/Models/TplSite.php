@@ -16,12 +16,14 @@ class TplSite extends Model
         'nav',
         'footer',
         'nav_data',
-        'footer_data'
+        'footer_data',
+        'content'
     ];
     
     protected $casts = [
         'nav_data' => 'array',
-        'footer_data' => 'array'
+        'footer_data' => 'array',
+        'content' => 'array'
     ];
 
     /**

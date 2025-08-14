@@ -1,21 +1,13 @@
 // These variables should be set in a Blade template, not directly in a JS file.
 // Remove these lines from this JS file and instead add the following to your Blade view before including this JS file:
-
-
-
-// Then, remove these lines from this JS file:
-window.openSectionContentEditor = openSectionContentEditor;
-window.openHeaderContentEditor  = openHeaderContentEditor;
-window.openFooterContentEditor  = openFooterContentEditor;
-window.toggleLinkStatus         = toggleLinkStatus;
-window.removeLink               = removeLink;
-window.addArrayItem             = addArrayItem;
-window.removeArrayItem          = removeArrayItem;
-
-
 document.addEventListener('DOMContentLoaded', function(){
     if (typeof feather !== 'undefined') { feather.replace(); }
-    
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+if (!csrfMeta || !csrfMeta.content || csrfMeta.content.length < 10) {
+  console.error('CSRF token is missing or invalid.');
+  // ممكن تعرض Alert لطيف للمستخدم لو حابب
+}
+
     // Enhanced dropdown positioning
     setTimeout(() => {
         document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(el => {
@@ -234,7 +226,8 @@ function saveHeaderNavigation() {
         headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': csrfToken,
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
         },
         body: JSON.stringify(data)
     })
@@ -275,7 +268,8 @@ function saveFooterNavigation() {
         headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': csrfToken,
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
         },
         body: JSON.stringify(data)
     })
@@ -311,6 +305,7 @@ function toggleLinkStatus(type, index, status) {
     fetch('/admin/headers-footers/toggle-navigation-link', {
         method: 'PATCH',
         headers: {
+            'X-Requested-With': 'XMLHttpRequest',
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': csrfToken,
             'Accept': 'application/json'
@@ -348,6 +343,7 @@ function removeLink(type, index) {
         fetch('/admin/headers-footers/remove-navigation-link', {
             method: 'DELETE',
             headers: {
+                'X-Requested-With': 'XMLHttpRequest',
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': csrfToken,
                 'Accept': 'application/json'
@@ -423,6 +419,7 @@ function addHeaderLink() {
     fetch('/admin/headers-footers/add-navigation-link', {
         method: 'POST',
         headers: {
+            'X-Requested-With': 'XMLHttpRequest',
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': csrfToken,
             'Accept': 'application/json'
@@ -504,6 +501,7 @@ function addFooterLink() {
     fetch('/admin/headers-footers/add-navigation-link', {
         method: 'POST',
         headers: {
+            'X-Requested-With': 'XMLHttpRequest',
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': csrfToken,
             'Accept': 'application/json'
@@ -558,6 +556,7 @@ function updateSocialMedia() {
     fetch('/admin/headers-footers/social-media', {
         method: 'POST',
         headers: {
+            'X-Requested-With': 'XMLHttpRequest',
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': csrfToken,
             'Accept': 'application/json'
@@ -1672,7 +1671,7 @@ function saveSectionContent() {
     // Show loading state on save button
     const saveButton = document.getElementById('saveSectionContent');
     const originalText = saveButton.innerHTML;
-    saveButton.innerHTML = '<i class="align-middle me-1" data-feather="loader"></i>Saving...';
+   saveButton.innerHTML = '<i class="align-middle me-1" data-feather="refresh-cw"></i>Saving...';
     saveButton.disabled = true;
     
     // Convert FormData to JSON, handling special cases
@@ -1830,46 +1829,56 @@ function saveSectionContent() {
     console.log('========================');
     
     // Send update request
-    fetch(endpoint, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': csrfToken,
-            'X-Requested-With': 'XMLHttpRequest'
-        },
-        credentials: 'same-origin',
-        cache: 'no-store',
-        body: JSON.stringify(Object.assign({
-            content_data: contentData
-        }, (pageId === 'header' || pageId === 'footer') ? { force_override: true } : {}))
-    })
-    .then(async response => {
-        console.log('Response received:', response);
-        console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
+   // (الجديدة) Send update request باستخدام FormData + _method=PUT
+const payload = new FormData();
+payload.append('_token', csrfToken);
+payload.append('_method', 'PUT');
+payload.append('content_data', JSON.stringify(contentData));
+if (pageId === 'header' || pageId === 'footer') {
+  payload.append('force_override', '1');
+}
 
-        const contentType = response.headers.get('content-type') || '';
-        let rawText = '';
-        let jsonData = null;
-        try {
-            rawText = await response.text();
-            console.log('Raw response text:', rawText);
-            if (contentType.includes('application/json')) {
-                jsonData = JSON.parse(rawText);
-            }
-        } catch (e) {
-            console.warn('Failed to parse JSON:', e.message);
-        }
+fetch(endpoint, {
+  method: 'POST',
+  headers: {
+    'Accept': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest'
+    // مهم: ما نحددش Content-Type هنا — المتصفح هيظبط multipart boundary
+  },
+  credentials: 'same-origin',
+  cache: 'no-store',
+  body: payload
+})
+.then(async response => {
+  console.log('Response received:', response);
+  console.log('Response status:', response.status);
+  console.log('Response headers:', response.headers);
 
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${rawText}`);
-        }
-        if (!jsonData) {
-            throw new Error('Unexpected non-JSON response');
-        }
-        return jsonData;
-    })
+  const contentType = response.headers.get('content-type') || '';
+  let rawText = '';
+  let jsonData = null;
+  try {
+    rawText = await response.text();
+    console.log('Raw response text:', rawText);
+    if (contentType.includes('application/json')) {
+      jsonData = JSON.parse(rawText);
+    } else {
+      // بعض الكنترولرز بترجع JSON مع content-type غلط
+      try { jsonData = JSON.parse(rawText); } catch (e) {}
+    }
+  } catch (e) {
+    console.warn('Failed to parse JSON:', e.message);
+  }
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${rawText}`);
+  }
+  if (!jsonData) {
+    throw new Error('Unexpected non-JSON response');
+  }
+  return jsonData;
+})
+
     .then(data => {
         if (data.success) {
             // Show success message
@@ -2421,4 +2430,13 @@ function extractVariablesFromHTML(htmlContent) {
     
     console.log('Extracted data from HTML:', extractedData);
     return extractedData;
+    // لازم دول لو عندك onclick/ onchange في الـ HTML
+window.openSectionContentEditor = openSectionContentEditor;
+window.openHeaderContentEditor  = openHeaderContentEditor;
+window.openFooterContentEditor  = openFooterContentEditor;
+window.toggleLinkStatus         = toggleLinkStatus;
+window.removeLink               = removeLink;
+window.addArrayItem             = addArrayItem;
+window.removeArrayItem          = removeArrayItem;
+
 }
