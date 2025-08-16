@@ -5,6 +5,14 @@
 @section('css')
     {{-- Include shared admin panel styles --}}
     <link rel="stylesheet" href="{{ asset('css/admin/contant.css') }}">
+    {{-- <style>
+        /* Slightly taller preview area and centered image to avoid awkward crops */
+        .card-top-media img { display:block; width:100%; height:160px; object-fit:cover; object-position:center; border-top-left-radius: .375rem; border-top-right-radius: .375rem; }
+        .card-top-section { position:relative; overflow:hidden; }
+        .card-top-fallback { display:flex; align-items:center; justify-content:center; height:160px; }
+        /* When an actual preview image is present we hide any decorative background on the section */
+        .card-top-section.with-media { background: none !important; }
+    </style> --}}
 @endsection
 
 @section('content')
@@ -63,11 +71,37 @@
                                     </li>
                                 </ul>
                             </div>
-                            <div class="card-top-section">
-                                <div class="card-top-text">
-                                    <i class="align-middle me-2" data-feather="layout"></i>
-                                    Active Header
-                                </div>
+                            <div class="card-top-section {{ !empty($headerPreviewUrl) ? 'with-media' : '' }}">
+                                @php
+                                    $headerPreview = $activeHeader->preview_image ?? optional($activeHeader->layout)->preview_image ?? null;
+                                    // Normalize preview image URL formats saved across the app:
+                                    // - full URLs (http:// or https://) are used as-is
+                                    // - starting with /storage or storage/ or img/ or /img are treated as public assets
+                                    // - otherwise assume it's a storage disk path (stored in storage/app/public) and prefix with /storage/
+                                    $headerPreviewUrl = null;
+                                    if ($headerPreview) {
+                                        $p = trim($headerPreview);
+                                        if (preg_match('#^https?://#i', $p)) {
+                                            $headerPreviewUrl = $p;
+                                        } elseif (\preg_match('#^(?:/storage/|storage/|/img/|img/|/)#i', $p)) {
+                                            $headerPreviewUrl = asset(ltrim($p, '/'));
+                                        } else {
+                                            $headerPreviewUrl = asset('storage/' . ltrim($p, '/'));
+                                        }
+                                    }
+                                @endphp
+                                @if(!empty($headerPreviewUrl))
+                                    <div class="card-top-media">
+                                        <img src="{{ $headerPreviewUrl }}" alt="Header preview" onerror="this.style.display='none'; this.parentElement.querySelector('.card-top-fallback').style.display='flex';" />
+                                    </div>
+                                @else
+                                    <div class="card-top-fallback">
+                                        <div class="card-top-text">
+                                            <i class="align-middle me-2" data-feather="layout"></i>
+                                            Active Header
+                                        </div>
+                                    </div>
+                                @endif
                                 <i class="card-icon" data-feather="star"></i>
                             </div>
                             <div class="card-bottom-section">
@@ -117,17 +151,40 @@
                                         </li>
                                     </ul>
                                 </div>
-                                <div class="card-top-section" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);">
-                                    <div class="card-top-text">
-                                        <i class="align-middle me-2" data-feather="grid"></i>
-                                        {{ $section->name }}
-                                    </div>
+                                @php
+                                    $sectionPreview = $section->preview_image ?? optional($section->layout)->preview_image ?? null;
+                                    $sectionPreviewUrl = null;
+                                    if ($sectionPreview) {
+                                        $p = trim($sectionPreview);
+                                        if (preg_match('#^https?://#i', $p)) {
+                                            $sectionPreviewUrl = $p;
+                                        } elseif (\preg_match('#^(?:/storage/|storage/|/img/|img/|/)#i', $p)) {
+                                            $sectionPreviewUrl = asset(ltrim($p, '/'));
+                                        } else {
+                                            $sectionPreviewUrl = asset('storage/' . ltrim($p, '/'));
+                                        }
+                                    }
+                                @endphp
+                                <div class="card-top-section {{ !empty($sectionPreviewUrl) ? 'with-media' : '' }}" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);">
+                                    @if(!empty($sectionPreviewUrl))
+                                        <div class="card-top-media">
+                                            <img src="{{ $sectionPreviewUrl }}" alt="Section preview" onerror="this.style.display='none'; this.parentElement.querySelector('.card-top-fallback').style.display='flex';" />
+                                        </div>
+                                    @else
+                                        <div class="card-top-fallback">
+                                            <div class="card-top-text">
+                                                <i class="align-middle me-2" data-feather="grid"></i>
+                                                {{ $section->name }}
+                                            </div>
+                                        </div>
+                                    @endif
                                     <i class="card-icon" data-feather="activity"></i>
                                 </div>
                                 <div class="card-bottom-section">
                                     <div>
                                         <span class="badge bg-success badge-pill">Active</span>
                                         <span class="ms-2 text-muted small">Order: {{ $section->sort_order }}</span>
+                                        <div class="fw-semibold">{{ $section->name }}</div>
                                     </div>
                                     
                                 </div>
@@ -169,11 +226,33 @@
                                     </li>
                                 </ul>
                             </div>
-                            <div class="card-top-section" style="background: linear-gradient(135deg, #06b6d4 0%, #0ea5e9 100%);">
-                                <div class="card-top-text">
-                                    <i class="align-middle me-2" data-feather="layers"></i>
-                                    Active Footer
-                                </div>
+                            <div class="card-top-section {{ !empty($footerPreviewUrl) ? 'with-media' : '' }}" style="background: linear-gradient(135deg, #06b6d4 0%, #0ea5e9 100%);">
+                                @php
+                                    $footerPreview = $activeFooter->preview_image ?? optional($activeFooter->layout)->preview_image ?? null;
+                                    $footerPreviewUrl = null;
+                                    if ($footerPreview) {
+                                        $p = trim($footerPreview);
+                                        if (preg_match('#^https?://#i', $p)) {
+                                            $footerPreviewUrl = $p;
+                                        } elseif (\preg_match('#^(?:/storage/|storage/|/img/|img/|/)#i', $p)) {
+                                            $footerPreviewUrl = asset(ltrim($p, '/'));
+                                        } else {
+                                            $footerPreviewUrl = asset('storage/' . ltrim($p, '/'));
+                                        }
+                                    }
+                                @endphp
+                                @if(!empty($footerPreviewUrl))
+                                    <div class="card-top-media">
+                                        <img src="{{ $footerPreviewUrl }}" alt="Footer preview" onerror="this.style.display='none'; this.parentElement.querySelector('.card-top-fallback').style.display='flex';" />
+                                    </div>
+                                @else
+                                    <div class="card-top-fallback">
+                                        <div class="card-top-text">
+                                            <i class="align-middle me-2" data-feather="layers"></i>
+                                            Active Footer
+                                        </div>
+                                    </div>
+                                @endif
                                 <i class="card-icon" data-feather="check-circle"></i>
                             </div>
                             <div class="card-bottom-section">
