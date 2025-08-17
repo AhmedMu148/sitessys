@@ -136,53 +136,18 @@
                             <a class="nav-icon dropdown-toggle" href="#" id="alertsDropdown" data-bs-toggle="dropdown">
                                 <div class="position-relative">
                                     <i class="align-middle" data-feather="bell"></i>
-                                    <span class="indicator">3</span>
+                                    <span class="indicator" id="alertsIndicator"><span id="alertsIndicatorCount">3</span></span>
                                 </div>
                             </a>
                             <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end py-0" aria-labelledby="alertsDropdown">
-                                <div class="dropdown-menu-header">
+                                <div class="dropdown-menu-header" id="alertsDropdownHeader">
                                     3 New Notifications
                                 </div>
-                                <div class="list-group">
-                                    <a href="#" class="list-group-item">
-                                        <div class="row g-0 align-items-center">
-                                            <div class="col-2">
-                                                <i class="text-success" data-feather="check-circle"></i>
-                                            </div>
-                                            <div class="col-10">
-                                                <div class="text-dark">Page updated</div>
-                                                <div class="text-muted small mt-1">Home page has been updated successfully.</div>
-                                                <div class="text-muted small mt-1">2m ago</div>
-                                            </div>
-                                        </div>
-                                    </a>
-                                    <a href="#" class="list-group-item">
-                                        <div class="row g-0 align-items-center">
-                                            <div class="col-2">
-                                                <i class="text-warning" data-feather="alert-triangle"></i>
-                                            </div>
-                                            <div class="col-10">
-                                                <div class="text-dark">Layout modified</div>
-                                                <div class="text-muted small mt-1">Header layout has been changed.</div>
-                                                <div class="text-muted small mt-1">1h ago</div>
-                                            </div>
-                                        </div>
-                                    </a>
-                                    <a href="#" class="list-group-item">
-                                        <div class="row g-0 align-items-center">
-                                            <div class="col-2">
-                                                <i class="text-primary" data-feather="user-plus"></i>
-                                            </div>
-                                            <div class="col-10">
-                                                <div class="text-dark">New user registered</div>
-                                                <div class="text-muted small mt-1">A new user has joined the system.</div>
-                                                <div class="text-muted small mt-1">3h ago</div>
-                                            </div>
-                                        </div>
-                                    </a>
+                                <div class="list-group" id="alertsList">
+                                    <!-- notifications will be injected here by JS -->
                                 </div>
                                 <div class="dropdown-menu-footer">
-                                    <a href="#" class="text-muted">Show all notifications</a>
+                                    <a href="#" class="text-muted" id="alertsShowAll">Show all notifications</a>
                                 </div>
                             </div>
                         </li>
@@ -333,6 +298,115 @@
                 console.log('Dropdown clicked');
             }
         });
+    </script>
+    <script>
+        // Simulated notifications (client-only, stored in sessionStorage)
+        (function() {
+            const STORAGE_KEY = 'sps_notifications_v1';
+
+            // Default notifications to show on first load
+            const defaultNotifications = [
+                { id: 'n1', title: 'Page updated', text: 'Home page has been updated successfully.', icon: 'check-circle', time: '2m', read: false },
+                { id: 'n2', title: 'Layout modified', text: 'Header layout has been changed.', icon: 'alert-triangle', time: '1h', read: false },
+                { id: 'n3', title: 'New user registered', text: 'A new user has joined the system.', icon: 'user-plus', time: '3h', read: false }
+            ];
+
+            function loadNotifications() {
+                try {
+                    const raw = sessionStorage.getItem(STORAGE_KEY);
+                    if (!raw) {
+                        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(defaultNotifications));
+                        return defaultNotifications.slice();
+                    }
+                    return JSON.parse(raw) || [];
+                } catch (e) {
+                    console.error('Failed to load notifications', e);
+                    return defaultNotifications.slice();
+                }
+            }
+
+            function saveNotifications(list) {
+                try {
+                    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+                } catch (e) { console.error('Failed to save notifications', e); }
+            }
+
+            function renderNotifications() {
+                const list = loadNotifications();
+                const container = document.getElementById('alertsList');
+                const header = document.getElementById('alertsDropdownHeader');
+                const indicatorCount = document.getElementById('alertsIndicatorCount');
+                if (!container || !header || !indicatorCount) return;
+
+                container.innerHTML = '';
+                const unread = list.filter(n => !n.read).length;
+                indicatorCount.textContent = unread;
+                header.textContent = unread + ' New Notifications';
+
+                if (list.length === 0) {
+                    container.innerHTML = '<div class="p-3 text-center text-muted">No notifications</div>';
+                    return;
+                }
+
+                list.forEach(n => {
+                    const a = document.createElement('a');
+                    a.href = '#';
+                    a.className = 'list-group-item list-group-item-action' + (n.read ? '' : ' bg-light');
+                    a.dataset.id = n.id;
+
+                    a.innerHTML = `
+                        <div class="row g-0 align-items-center">
+                            <div class="col-2">
+                                <i class="text-${n.read ? 'muted' : 'primary'}" data-feather="${n.icon}"></i>
+                            </div>
+                            <div class="col-10">
+                                <div class="text-dark">${escapeHtml(n.title)}</div>
+                                <div class="text-muted small mt-1">${escapeHtml(n.text)}</div>
+                                <div class="text-muted small mt-1">${escapeHtml(n.time)}</div>
+                            </div>
+                        </div>`;
+
+                    a.addEventListener('click', function(ev) {
+                        ev.preventDefault();
+                        markAsRead(n.id);
+                    });
+
+                    container.appendChild(a);
+                });
+
+                // Re-run feather replace to render icons in injected nodes
+                try { feather.replace(); } catch (e) { /* ignore */ }
+            }
+
+            function markAsRead(id) {
+                const list = loadNotifications();
+                const idx = list.findIndex(x => x.id === id);
+                if (idx === -1) return;
+                list[idx].read = true;
+                saveNotifications(list);
+                renderNotifications();
+            }
+
+            function escapeHtml(s) {
+                return String(s)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            // initialize on page load
+            document.addEventListener('DOMContentLoaded', function() { renderNotifications(); });
+
+            // Expose for debugging in console
+            window.__sps_notifications = {
+                load: loadNotifications,
+                save: saveNotifications,
+                render: renderNotifications,
+                markAsRead: markAsRead
+            };
+        })();
     </script>
     @yield('js')
     @stack('scripts')

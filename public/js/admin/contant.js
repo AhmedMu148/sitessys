@@ -755,6 +755,7 @@ function generateFormField(fieldName, fieldConfig, currentValue) {
     const type = fieldConfig.type || 'text';
     const required = fieldConfig.required ? 'required' : '';
     const lowerFieldName = (fieldName || '').toLowerCase();
+
     const lowerLabel = (label || '').toLowerCase();
     let fieldHtml = `
         <div class="mb-3">
@@ -2196,6 +2197,26 @@ function populateFooterForm(footerData) {
                 type: 'textarea', 
                 required: false,
                 value: extractedData.description || contentData.description || ''
+            }
+            ,
+            // Newsletter fields (editable in the footer editor)
+            'show_newsletter': {
+                label: 'Show Newsletter',
+                type: 'boolean',
+                required: false,
+                value: (typeof contentData.show_newsletter !== 'undefined') ? contentData.show_newsletter : (extractedData.show_newsletter || true)
+            },
+            'newsletter_title': {
+                label: 'Newsletter Title',
+                type: 'text',
+                required: false,
+                value: extractedData.newsletter_title || contentData.newsletter_title || ''
+            },
+            'newsletter_description': {
+                label: 'Newsletter Description',
+                type: 'textarea',
+                required: false,
+                value: extractedData.newsletter_description || contentData.newsletter_description || ''
             }
         };
         

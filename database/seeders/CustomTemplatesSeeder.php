@@ -24,18 +24,11 @@ class CustomTemplatesSeeder extends Seeder
 
     private function seedNavs(): void
     {
-        $navs = [
-            // 1) Modern Gradient Navigation
-            ['tpl_id' => 'nav-modern-gradient', 'name' => 'Navigation • Modern Gradient', 'variant' => 'modern'],
-            // 2) Glass Blur Navigation with Glassmorphism Effect
-            ['tpl_id' => 'nav-glass-blur', 'name' => 'Navigation • Glass Blur', 'variant' => 'glass'],
-            // 3) Split Center Logo Navigation
-            ['tpl_id' => 'nav-split-center', 'name' => 'Navigation • Split Center Logo', 'variant' => 'split'],
-            // 4) Minimal Underline Animation Navigation
-            ['tpl_id' => 'nav-minimal-underline', 'name' => 'Navigation • Minimal Underline', 'variant' => 'underline'],
-            // 5) Rounded Pills Style Navigation
-            ['tpl_id' => 'nav-rounded-pills', 'name' => 'Navigation • Rounded Pills', 'variant' => 'pills'],
-        ];
+    $navs = [
+      // Keep only the Split Center Logo and Minimal Underline navigations
+      ['tpl_id' => 'nav-split-center', 'name' => 'Navigation • Split Center Logo', 'variant' => 'split'],
+      ['tpl_id' => 'nav-minimal-underline', 'name' => 'Navigation • Minimal Underline', 'variant' => 'underline'],
+    ];
 
         foreach ($navs as $i => $n) {
             $content = $this->getNavVariant($n['variant']);
@@ -63,25 +56,43 @@ class CustomTemplatesSeeder extends Seeder
         switch ($variant) {
             case 'glass':
                 return [
-                    'defaults' => [
-                        'brand_text' => 'Your Brand',
-                        'text_color' => '#0f172a',
-                        'show_search' => false,
-                        'sticky' => true
-                    ],
-                    'fields' => [
-                        'brand_text' => ['type' => 'text','default' => 'Your Brand','label' => 'Brand'],
-                        'logo_url' => ['type' => 'url','default' => '','label' => 'Logo'],
-                        'text_color' => ['type' => 'color','default' => '#0f172a','label' => 'Text Color'],
-                        'sticky' => ['type' => 'boolean','default' => true,'label' => 'Sticky'],
-                        'menu' => ['type' => 'array','label' => 'Menu','default' => [
-                            ['label' => 'Home','url' => '/'],
-                            ['label' => 'Studio','url' => '/studio'],
-                            ['label' => 'Work','url' => '/work'],
-                            ['label' => 'Careers','url' => '/careers'],
-                            ['label' => 'Contact','url' => '/contact'],
-                        ]],
-                    ],
+          'defaults' => [
+            'brand_text' => 'Your Brand',
+            'text_color' => '#0f172a',
+            'show_search' => false,
+            'sticky' => true,
+            // Unified keys (match Elevated Business Header)
+            'site_name' => 'Development Site',
+            'logo_url' => '/img/logo.png',
+            'menu_items' => [
+              ['label' => 'Home', 'url' => '/', 'external' => false],
+              ['label' => 'About', 'url' => '/about', 'external' => false],
+              ['label' => 'Services', 'url' => '/services', 'external' => false],
+              ['label' => 'Contact', 'url' => '/contact', 'external' => false]
+            ],
+            'cta_button' => ['text' => 'Get Started', 'url' => '/contact']
+          ],
+          'fields' => [
+            'brand_text' => ['type' => 'text','default' => 'Your Brand','label' => 'Brand'],
+            'logo_url' => ['type' => 'url','default' => '','label' => 'Logo'],
+            'text_color' => ['type' => 'color','default' => '#0f172a','label' => 'Text Color'],
+            'sticky' => ['type' => 'boolean','default' => true,'label' => 'Sticky'],
+            'menu' => ['type' => 'array','label' => 'Menu','default' => [
+              ['label' => 'Home','url' => '/'],
+              ['label' => 'Studio','url' => '/studio'],
+              ['label' => 'Work','url' => '/work'],
+              ['label' => 'Careers','url' => '/careers'],
+              ['label' => 'Contact','url' => '/contact'],
+            ]],
+            // Editable unified fields
+            'menu_items' => ['type' => 'array', 'label' => 'Menu Items', 'default' => [
+              ['label' => 'Home', 'url' => '/', 'external' => false],
+              ['label' => 'About', 'url' => '/about', 'external' => false],
+              ['label' => 'Services', 'url' => '/services', 'external' => false],
+              ['label' => 'Contact', 'url' => '/contact', 'external' => false]
+            ]],
+            'cta_button' => ['type' => 'object', 'default' => ['text' => 'Get Started', 'url' => '/contact'], 'label' => 'CTA Button']
+          ],
                     'content' => [
                         'html' => '
 <nav class="nav-glass {{ ($config[\'sticky\']??true)?\'sticky-top\':\'\' }}">
@@ -110,29 +121,47 @@ class CustomTemplatesSeeder extends Seeder
                 ];
             case 'split':
                 return [
-                    'defaults' => [
-                        'text_color' => '#111827',
-                        'accent' => '#2563eb',
-                        'sticky' => true,
-                        'left_menu' => [
-                            ['label' => 'Home','url' => '/'],
-                            ['label' => 'Services','url' => '/services'],
-                            ['label' => 'Pricing','url' => '/pricing'],
-                        ],
-                        'right_menu' => [
-                            ['label' => 'Blog','url' => '/blog'],
-                            ['label' => 'About','url' => '/about'],
-                            ['label' => 'Contact','url' => '/contact'],
-                        ],
-                    ],
-                    'fields' => [
-                        'logo_url' => ['type'=>'url','default'=>'','label'=>'Logo'],
-                        'text_color' => ['type'=>'color','default'=>'#111827','label'=>'Text'],
-                        'accent' => ['type'=>'color','default'=>'#2563eb','label'=>'Accent'],
-                        'sticky' => ['type'=>'boolean','default'=>true,'label'=>'Sticky'],
-                        'left_menu' => ['type'=>'array','default'=>[],'label'=>'Left Menu'],
-                        'right_menu' => ['type'=>'array','default'=>[],'label'=>'Right Menu'],
-                    ],
+          'defaults' => [
+            'text_color' => '#111827',
+            'accent' => '#2563eb',
+            'sticky' => true,
+            'left_menu' => [
+              ['label' => 'Home','url' => '/'],
+              ['label' => 'Services','url' => '/services'],
+              ['label' => 'Pricing','url' => '/pricing'],
+            ],
+            'right_menu' => [
+              ['label' => 'Blog','url' => '/blog'],
+              ['label' => 'About','url' => '/about'],
+              ['label' => 'Contact','url' => '/contact'],
+            ],
+            // Unified keys
+            'site_name' => 'Development Site',
+            'logo_url' => '/img/logo.png',
+            'menu_items' => [
+              ['label' => 'Home', 'url' => '/', 'external' => false],
+              ['label' => 'About', 'url' => '/about', 'external' => false],
+              ['label' => 'Services', 'url' => '/services', 'external' => false],
+              ['label' => 'Contact', 'url' => '/contact', 'external' => false]
+            ],
+            'cta_button' => ['text' => 'Get Started', 'url' => '/contact']
+          ],
+          'fields' => [
+            'logo_url' => ['type'=>'url','default'=>'','label'=>'Logo'],
+            'text_color' => ['type'=>'color','default'=>'#111827','label'=>'Text'],
+            'accent' => ['type'=>'color','default'=>'#2563eb','label'=>'Accent'],
+            'sticky' => ['type'=>'boolean','default'=>true,'label'=>'Sticky'],
+            'left_menu' => ['type'=>'array','default'=>[],'label'=>'Left Menu'],
+            'right_menu' => ['type'=>'array','default'=>[],'label'=>'Right Menu'],
+            // Editable unified fields
+            'menu_items' => ['type' => 'array', 'label' => 'Menu Items', 'default' => [
+              ['label' => 'Home', 'url' => '/', 'external' => false],
+              ['label' => 'About', 'url' => '/about', 'external' => false],
+              ['label' => 'Services', 'url' => '/services', 'external' => false],
+              ['label' => 'Contact', 'url' => '/contact', 'external' => false]
+            ]],
+            'cta_button' => ['type' => 'object', 'default' => ['text' => 'Get Started', 'url' => '/contact'], 'label' => 'CTA Button']
+          ],
                     'content' => [
                         'html' => '
 <nav class="nav-split {{ ($config[\'sticky\']??true)?\'sticky-top\':\'\' }}">
@@ -159,24 +188,42 @@ class CustomTemplatesSeeder extends Seeder
                 ];
             case 'underline':
                 return [
-                    'defaults' => [
-                        'bg' => '#ffffff',
-                        'text' => '#0f172a',
-                        'underline' => '#ef4444',
-                        'search' => true,
-                    ],
-                    'fields' => [
-                        'bg' => ['type'=>'color','default'=>'#ffffff','label'=>'Background'],
-                        'text' => ['type'=>'color','default'=>'#0f172a','label'=>'Text'],
-                        'underline' => ['type'=>'color','default'=>'#ef4444','label'=>'Underline'],
-                        'search' => ['type'=>'boolean','default'=>true,'label'=>'Show Search'],
-                        'menu' => ['type'=>'array','default'=>[
-                            ['label'=>'Docs','url'=>'/docs'],
-                            ['label'=>'API','url'=>'/api'],
-                            ['label'=>'Community','url'=>'/community'],
-                            ['label'=>'Support','url'=>'/support'],
-                        ],'label'=>'Menu'],
-                    ],
+          'defaults' => [
+            'bg' => '#ffffff',
+            'text' => '#0f172a',
+            'underline' => '#ef4444',
+            'search' => true,
+            // Unified keys
+            'site_name' => 'Development Site',
+            'logo_url' => '/img/logo.png',
+            'menu_items' => [
+              ['label' => 'Home', 'url' => '/', 'external' => false],
+              ['label' => 'About', 'url' => '/about', 'external' => false],
+              ['label' => 'Services', 'url' => '/services', 'external' => false],
+              ['label' => 'Contact', 'url' => '/contact', 'external' => false]
+            ],
+            'cta_button' => ['text' => 'Get Started', 'url' => '/contact']
+          ],
+          'fields' => [
+            'bg' => ['type'=>'color','default'=>'#ffffff','label'=>'Background'],
+            'text' => ['type'=>'color','default'=>'#0f172a','label'=>'Text'],
+            'underline' => ['type'=>'color','default'=>'#ef4444','label'=>'Underline'],
+            'search' => ['type'=>'boolean','default'=>true,'label'=>'Show Search'],
+            'menu' => ['type'=>'array','default'=>[
+              ['label'=>'Docs','url'=>'/docs'],
+              ['label'=>'API','url'=>'/api'],
+              ['label'=>'Community','url'=>'/community'],
+              ['label'=>'Support','url'=>'/support'],
+            ],'label'=>'Menu'],
+            // Editable unified fields
+            'menu_items' => ['type' => 'array', 'label' => 'Menu Items', 'default' => [
+              ['label' => 'Home', 'url' => '/', 'external' => false],
+              ['label' => 'About', 'url' => '/about', 'external' => false],
+              ['label' => 'Services', 'url' => '/services', 'external' => false],
+              ['label' => 'Contact', 'url' => '/contact', 'external' => false]
+            ]],
+            'cta_button' => ['type' => 'object', 'default' => ['text' => 'Get Started', 'url' => '/contact'], 'label' => 'CTA Button']
+          ],
                     'content' => [
                         'html' => '
 <nav class="nav-underline" style="background: {{ $config[\'bg\']??\'#fff\' }};">
@@ -202,26 +249,44 @@ class CustomTemplatesSeeder extends Seeder
                 ];
             case 'pills':
                 return [
-                    'defaults' => [
-                        'gradient_start' => '#14b8a6',
-                        'gradient_end' => '#3b82f6',
-                        'text_color' => '#ffffff',
-                        'cta' => ['text'=>'Start Free','url'=>'/signup','style'=>'btn-dark','show'=>true],
-                    ],
-                    'fields' => [
-                        'brand_text' => ['type'=>'text','default'=>'Suite','label'=>'Brand'],
-                        'logo_url' => ['type'=>'url','default'=>'','label'=>'Logo'],
-                        'gradient_start' => ['type'=>'color','default'=>'#14b8a6','label'=>'Gradient Start'],
-                        'gradient_end' => ['type'=>'color','default'=>'#3b82f6','label'=>'Gradient End'],
-                        'text_color' => ['type'=>'color','default'=>'#ffffff','label'=>'Text'],
-                        'menu' => ['type'=>'array','default'=>[
-                            ['label'=>'Overview','url'=>'/'],
-                            ['label'=>'Features','url'=>'/features'],
-                            ['label'=>'Templates','url'=>'/templates'],
-                            ['label'=>'Pricing','url'=>'/pricing'],
-                        ],'label'=>'Menu'],
-                        'cta' => ['type'=>'object','default'=>['text'=>'Start Free','url'=>'/signup','style'=>'btn-dark','show'=>true],'label'=>'CTA'],
-                    ],
+          'defaults' => [
+            'gradient_start' => '#14b8a6',
+            'gradient_end' => '#3b82f6',
+            'text_color' => '#ffffff',
+            'cta' => ['text'=>'Start Free','url'=>'/signup','style'=>'btn-dark','show'=>true],
+            // Unified keys
+            'site_name' => 'Development Site',
+            'logo_url' => '/img/logo.png',
+            'menu_items' => [
+              ['label' => 'Home', 'url' => '/', 'external' => false],
+              ['label' => 'About', 'url' => '/about', 'external' => false],
+              ['label' => 'Services', 'url' => '/services', 'external' => false],
+              ['label' => 'Contact', 'url' => '/contact', 'external' => false]
+            ],
+            'cta_button' => ['text' => 'Get Started', 'url' => '/contact']
+          ],
+          'fields' => [
+            'brand_text' => ['type'=>'text','default'=>'Suite','label'=>'Brand'],
+            'logo_url' => ['type'=>'url','default'=>'','label'=>'Logo'],
+            'gradient_start' => ['type'=>'color','default'=>'#14b8a6','label'=>'Gradient Start'],
+            'gradient_end' => ['type'=>'color','default'=>'#3b82f6','label'=>'Gradient End'],
+            'text_color' => ['type'=>'color','default'=>'#ffffff','label'=>'Text'],
+            'menu' => ['type'=>'array','default'=>[
+              ['label'=>'Overview','url'=>'/'],
+              ['label'=>'Features','url'=>'/features'],
+              ['label'=>'Templates','url'=>'/templates'],
+              ['label'=>'Pricing','url'=>'/pricing'],
+            ],'label'=>'Menu'],
+            'cta' => ['type'=>'object','default'=>['text'=>'Start Free','url'=>'/signup','style'=>'btn-dark','show'=>true],'label'=>'CTA'],
+            // Editable unified fields
+            'menu_items' => ['type' => 'array', 'label' => 'Menu Items', 'default' => [
+              ['label' => 'Home', 'url' => '/', 'external' => false],
+              ['label' => 'About', 'url' => '/about', 'external' => false],
+              ['label' => 'Services', 'url' => '/services', 'external' => false],
+              ['label' => 'Contact', 'url' => '/contact', 'external' => false]
+            ]],
+            'cta_button' => ['type' => 'object', 'default' => ['text' => 'Get Started', 'url' => '/contact'], 'label' => 'CTA Button']
+          ],
                     'content' => [
                         'html' => '
 <nav class="nav-pills" style="background: linear-gradient(90deg, {{ $config[\'gradient_start\']??\'#14b8a6\' }}, {{ $config[\'gradient_end\']??\'#3b82f6\' }});">
@@ -247,30 +312,48 @@ class CustomTemplatesSeeder extends Seeder
             case 'modern':
             default:
                 return [
-                    'defaults' => [
-                        'gradient_start' => '#667eea',
-                        'gradient_end' => '#764ba2',
-                        'text_color' => '#ffffff',
-                        'sticky' => true,
-                        'show_search' => true,
-                    ],
-                    'fields' => [
-                        'brand_text' => ['type'=>'text','default'=>'Your Brand','label'=>'Brand'],
-                        'logo_url' => ['type'=>'url','default'=>'','label'=>'Logo'],
-                        'gradient_start' => ['type'=>'color','default'=>'#667eea','label'=>'Gradient Start'],
-                        'gradient_end' => ['type'=>'color','default'=>'#764ba2','label'=>'Gradient End'],
-                        'text_color' => ['type'=>'color','default'=>'#ffffff','label'=>'Text'],
-                        'sticky' => ['type'=>'boolean','default'=>true,'label'=>'Sticky'],
-                        'show_search' => ['type'=>'boolean','default'=>true,'label'=>'Search'],
-                        'menu' => ['type'=>'array','default'=>[
-                            ['label'=>'Home','url'=>'/'],
-                            ['label'=>'About','url'=>'/about'],
-                            ['label'=>'Services','url'=>'/services'],
-                            ['label'=>'Portfolio','url'=>'/portfolio'],
-                            ['label'=>'Blog','url'=>'/blog'],
-                            ['label'=>'Contact','url'=>'/contact'],
-                        ],'label'=>'Menu'],
-                    ],
+          'defaults' => [
+            'gradient_start' => '#667eea',
+            'gradient_end' => '#764ba2',
+            'text_color' => '#ffffff',
+            'sticky' => true,
+            'show_search' => true,
+            // Unified keys
+            'site_name' => 'Development Site',
+            'logo_url' => '/img/logo.png',
+            'menu_items' => [
+              ['label' => 'Home', 'url' => '/', 'external' => false],
+              ['label' => 'About', 'url' => '/about', 'external' => false],
+              ['label' => 'Services', 'url' => '/services', 'external' => false],
+              ['label' => 'Contact', 'url' => '/contact', 'external' => false]
+            ],
+            'cta_button' => ['text' => 'Get Started', 'url' => '/contact']
+          ],
+          'fields' => [
+            'brand_text' => ['type'=>'text','default'=>'Your Brand','label'=>'Brand'],
+            'logo_url' => ['type'=>'url','default'=>'','label'=>'Logo'],
+            'gradient_start' => ['type'=>'color','default'=>'#667eea','label'=>'Gradient Start'],
+            'gradient_end' => ['type'=>'color','default'=>'#764ba2','label'=>'Gradient End'],
+            'text_color' => ['type'=>'color','default'=>'#ffffff','label'=>'Text'],
+            'sticky' => ['type'=>'boolean','default'=>true,'label'=>'Sticky'],
+            'show_search' => ['type'=>'boolean','default'=>true,'label'=>'Search'],
+            'menu' => ['type'=>'array','default'=>[
+              ['label'=>'Home','url'=>'/'],
+              ['label'=>'About','url'=>'/about'],
+              ['label'=>'Services','url'=>'/services'],
+              ['label'=>'Portfolio','url'=>'/portfolio'],
+              ['label'=>'Blog','url'=>'/blog'],
+              ['label'=>'Contact','url'=>'/contact'],
+            ],'label'=>'Menu'],
+            // Editable unified fields
+            'menu_items' => ['type' => 'array', 'label' => 'Menu Items', 'default' => [
+              ['label' => 'Home', 'url' => '/', 'external' => false],
+              ['label' => 'About', 'url' => '/about', 'external' => false],
+              ['label' => 'Services', 'url' => '/services', 'external' => false],
+              ['label' => 'Contact', 'url' => '/contact', 'external' => false]
+            ]],
+            'cta_button' => ['type' => 'object', 'default' => ['text' => 'Get Started', 'url' => '/contact'], 'label' => 'CTA Button']
+          ],
                     'content' => [
                         'html' => '
 <nav class="navbar navbar-expand-lg navbar-modern {{ ($config[\'sticky\']??true)?\'sticky-top\':\'\' }}"

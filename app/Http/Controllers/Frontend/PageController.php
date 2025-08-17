@@ -171,6 +171,34 @@ class PageController extends Controller
                         // توافق خلفي
                         $footerConfig['additional_pages'] = $footerConfig['footer_links'];
                     }
+
+                    // Merge simple stored footer_data keys (company_name, description, contact fields, etc.)
+                    // so values edited in the admin persist to the frontend template.
+                    $fd_simple = $tplSite->footer_data;
+                    if (is_array($fd_simple)) {
+                        // Exclude complex keys already handled above
+                        foreach (['links', 'social_media', 'newsletter', 'show_auth'] as $k) {
+                            if (array_key_exists($k, $fd_simple)) unset($fd_simple[$k]);
+                        }
+
+                        // Map flat contact fields into contact_info structure expected by templates
+                        $contactInfo = $footerConfig['contact_info'] ?? [];
+                        if (isset($fd_simple['contact_email']) || isset($fd_simple['email'])) {
+                            $contactInfo['email'] = $fd_simple['contact_email'] ?? $fd_simple['email'];
+                        }
+                        if (isset($fd_simple['contact_phone']) || isset($fd_simple['phone'])) {
+                            $contactInfo['phone'] = $fd_simple['contact_phone'] ?? $fd_simple['phone'];
+                        }
+                        if (isset($fd_simple['address']) || isset($fd_simple['contact_address'])) {
+                            $contactInfo['address'] = $fd_simple['address'] ?? $fd_simple['contact_address'];
+                        }
+                        if (!empty($contactInfo)) {
+                            $footerConfig['contact_info'] = array_replace($footerConfig['contact_info'] ?? [], $contactInfo);
+                        }
+
+                        // Merge remaining simple keys directly (company_name, description, copyright_text, etc.)
+                        $footerConfig = array_replace($footerConfig, $fd_simple);
+                    }
                 }
 
                 // HTML

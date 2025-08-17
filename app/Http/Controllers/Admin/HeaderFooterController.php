@@ -907,7 +907,9 @@ private function toArray($value): array
     /**
      * Get footer content for editing
      */
-    public function getFooterContent(Request $request, $id): JsonResponse
+    // App/Http/Controllers/Admin/HeaderFooterController.php
+
+public function getFooterContent(Request $request, $id): JsonResponse
 {
     try {
         $site = $this->getCurrentSite($request);
@@ -919,26 +921,63 @@ private function toArray($value): array
             ], 403);
         }
 
-        $footer = TplLayout::where('id', $id)->where('layout_type', 'footer')->first();
+        $footer = TplLayout::where('id', $id)
+            ->where('layout_type', 'footer')
+            ->first();
+
         if (!$footer) {
             return response()->json(['success' => false, 'message' => 'Footer not found'], 404);
         }
 
-        // رجّع دايمًا Array حتى لو العمود مخزّن كنص
-        $content = $footer->content;
-        if (is_string($content)) {
-            $content = json_decode($content, true) ?: [];
-        } elseif (!is_array($content)) {
-            $content = [];
+        $tplSite = TplSite::firstOrCreate(['site_id' => $site->id]);
+
+        // الكونفيج الفعلية المعروضة تيجي من footer_data
+        $fd = $tplSite->footer_data ?? [];
+
+        // نطبّع شويّة أسماء عشان الفورم يلاقي اللي متوقعه
+        // Merge default_config with any simple values saved in footer_data so editor shows persisted fields
+        $defaults = $footer->default_config ?? [];
+        // Prepare fd simple copy (exclude complex keys handled below)
+        $fd_simple = is_array($fd) ? $fd : [];
+        foreach (['links', 'social_media', 'newsletter', 'show_auth'] as $k) {
+            if (array_key_exists($k, $fd_simple)) unset($fd_simple[$k]);
         }
+
+        $config = array_merge($defaults, $fd_simple, [
+            // روابط الفوتر (قائمة)
+            'footer_links'           => $fd['links'] ?? [],
+            // النشرة
+            'show_newsletter'        => data_get($fd, 'newsletter.enabled', data_get($defaults, 'show_newsletter', true)),
+            'newsletter_title'       => data_get($fd, 'newsletter.title', data_get($defaults, 'newsletter_title', 'Newsletter')),
+            'newsletter_description' => data_get($fd, 'newsletter.description', data_get($defaults, 'newsletter_description', 'Stay updated')),
+            // السوشيال: حوّل من key=>url إلى [{icon,url}]
+            'social_links'           => collect($fd['social_media'] ?? [])->map(function($url, $platform) {
+                return ['icon' => 'fab fa-'.$platform, 'url' => $url];
+            })->values()->all(),
+            // إظهار روابط الدخول
+            'show_auth'              => $fd['show_auth'] ?? data_get($defaults, 'show_auth', true),
+        ]);
+
+    // Expose contact_info nested fields as top-level simple keys so the editor can render them
+    // Prioritize explicit flat values in footer_data, then fall back to defaults.contact_info
+    $config['contact_email'] = $fd['contact_email'] ?? data_get($defaults, 'contact_info.email', '');
+    $config['contact_phone'] = $fd['contact_phone'] ?? data_get($defaults, 'contact_info.phone', '');
+    $config['address']       = $fd['address']       ?? data_get($defaults, 'contact_info.address', '');
+
+        // محتوى القالب (HTML/CSS/JS) يبقى زي ما هو من TplLayout
+        $content = [
+            'html' => data_get($footer->content, 'html', ''),
+            'css'  => data_get($footer->content, 'css', ''),
+            'js'   => data_get($footer->content, 'js', ''),
+        ];
 
         return response()->json([
             'success' => true,
             'footer'  => [
                 'id'           => $footer->id,
                 'name'         => $footer->name,
-                'content_data' => $content,
-                'content'      => $content,
+                'content'      => $content,     // HTML/CSS/JS
+                'content_data' => $config,      // كونفيج الإدِتِر (من footer_data)
             ]
         ]);
     } catch (\Throwable $e) {
@@ -947,16 +986,14 @@ private function toArray($value): array
     }
 }
 
+
     /**
      * Update footer content
      */
 public function updateFooterContent(Request $request, $id): JsonResponse
 {
     try {
-        Log::info('=== Footer Content Update Request ===', [
-            'id' => $id,
-            'payload' => $request->all()
-        ]);
+        Log::info('=== Footer Content Update Request ===', ['id' => $id, 'payload' => $request->all()]);
 
         $site  = $this->getCurrentSite($request);
         $force = (bool) $request->boolean('force_override');
@@ -968,70 +1005,93 @@ public function updateFooterContent(Request $request, $id): JsonResponse
             ], 403);
         }
 
-        $footer = \App\Models\TplLayout::where('id', $id)
+        $footer = TplLayout::where('id', $id)
             ->where('layout_type', 'footer')
             ->first();
 
         if (!$footer) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Footer not found'
-            ], 404);
+            return response()->json(['success' => false, 'message' => 'Footer not found'], 404);
         }
 
         $incoming = $this->toArray($request->input('content_data', []));
-        $existing = $this->toArray($footer->content);
+        $tplSite  = TplSite::firstOrCreate(['site_id' => $site->id]);
+        $fd       = $tplSite->footer_data ?? [];
 
-        foreach (['html','template','template_html','raw_html'] as $k) {
-            if (array_key_exists($k, $existing) && !array_key_exists($k, $incoming)) {
-                $incoming[$k] = $existing[$k];
-            }
+        // 1) روابط الفوتر: اقبل footer_links أو links
+        if (isset($incoming['footer_links']) || isset($incoming['links'])) {
+            $fd['links'] = $incoming['footer_links'] ?? $incoming['links'];
         }
 
-        $merged = array_replace_recursive($existing, $incoming);
+        // 2) النشرة البريدية
+        $fd['newsletter'] = [
+            'enabled'     => $incoming['show_newsletter']        ?? data_get($fd, 'newsletter.enabled', true),
+            'title'       => $incoming['newsletter_title']       ?? data_get($fd, 'newsletter.title', 'Newsletter'),
+            'description' => $incoming['newsletter_description'] ?? data_get($fd, 'newsletter.description', 'Stay updated'),
+        ];
 
-        if (empty($merged)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Nothing to update'
-            ], 422);
-        }
-
-        if (!isset($merged['html']) && !empty($footer->path)) {
-            try {
-                $relative = str_replace(['..'], '', ltrim($footer->path, '/'));
-                $fullPath = str_starts_with($relative, 'resources/views')
-                    ? base_path($relative)
-                    : resource_path('views/'.$relative);
-
-                if (is_file($fullPath)) {
-                    $merged['html'] = $merged['html_original'] = file_get_contents($fullPath);
+        // 3) السوشيال: حول من [{icon,url}] إلى key=>url
+        if (isset($incoming['social_links']) && is_array($incoming['social_links'])) {
+            $fd['social_media'] = [];
+            foreach ($incoming['social_links'] as $row) {
+                $icon = (string)($row['icon'] ?? '');
+                $url  = (string)($row['url']  ?? '');
+                if ($url !== '') {
+                    // استخرج المنصّة من آخر كلمة في الأيكون (fab fa-twitter => twitter)
+                    $platform = trim(str_replace('fab fa-', '', strtolower($icon)));
+                    $platform = $platform ?: 'link';
+                    $fd['social_media'][$platform] = $url;
                 }
-            } catch (\Throwable $e) {
-                Log::warning('Footer HTML fallback failed: '.$e->getMessage());
             }
         }
 
-        $footer->content = $merged;
-        $footer->save();
+        // 4) show_auth لو جاية
+        if (array_key_exists('show_auth', $incoming)) {
+            $fd['show_auth'] = (bool)$incoming['show_auth'];
+        }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Footer content updated successfully',
-            'footer'  => [
-                'id'           => $footer->id,
-                'name'         => $footer->name,
-                'content_data' => $footer->content,
-            ]
-        ]);
+        // 5) Persist any additional incoming simple keys into footer_data
+        // This allows editing default_config fields like company_name, copyright, description, etc.
+        $handled = ['footer_links', 'links', 'show_newsletter', 'newsletter_title', 'newsletter_description', 'social_links', 'show_auth'];
+        foreach ($incoming as $k => $v) {
+            if (in_array($k, $handled, true)) continue;
+            // Only store scalar values or arrays (avoid storing objects with unexpected structure)
+            if (is_scalar($v) || is_array($v)) {
+                $fd[$k] = $v;
+            }
+        }
+
+    // Debug: log incoming payload and footer data before save
+    Log::info('Footer update incoming payload (debug):', ['incoming' => $incoming]);
+    Log::info('Footer data about to be saved (debug):', ['footer_data' => $fd]);
+
+    $tplSite->footer_data = $fd;
+    $tplSite->save();
+
+    // Refresh the model to ensure we have the persisted value and log it
+    try {
+        $tplSite->refresh();
+        Log::info('Footer data after save (debug):', ['footer_data' => $tplSite->footer_data]);
+    } catch (\Throwable $e) {
+        Log::warning('Failed to refresh tplSite after saving footer_data', ['error' => $e->getMessage()]);
+    }
+
+    $persisted = $tplSite->footer_data ?? $fd;
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Footer content updated successfully',
+        'footer'  => [
+            'id'           => $footer->id,
+            'name'         => $footer->name,
+            'content_data' => $persisted,
+        ]
+    ]);
     } catch (\Throwable $e) {
         Log::error('Error updating footer content: '.$e->getMessage(), ['trace'=>$e->getTraceAsString()]);
-        return response()->json([
-            'success' => false,
-            'message' => 'Error updating footer content: '.$e->getMessage()
-        ], 500);
+        return response()->json(['success' => false, 'message' => 'Error updating footer content: ' . $e->getMessage()], 500);
     }
 }
+
 
 
 
