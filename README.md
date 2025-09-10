@@ -41,267 +41,187 @@ The Laravel 10 Template Management System is **production-ready** with all featu
 ### 🛠 **Admin Management**
 - **Layouts**: Create/edit HTML templates for different sections
 - **Pages**: Manage page slugs, titles, and status
-- **Designs**: Link layouts to pages with custom data
-- **Site Config**: Configure site settings, language, and direction
-- **Color Palette**: Manage site color schemes
-- **Custom CSS**: Add custom styling
-- **Custom Scripts**: Manage JavaScript for head/footer
-- **Languages**: Multi-language support management
-- **Consistency**: Bulk update navbar/footer across all pages
+# SPS — Laravel Template & Page Management Platform
 
-## 🚀 **Installation**
+A production-capable Laravel 10 application for managing page templates, multi-language content, site-level configurations and reusable layout components (header, sections, footer). This README gives a practical developer-focused guide: setup, architecture, common tasks, debugging tips and where to look when header/footer or admin saves fail.
 
-### Prerequisites
+## Quick checklist (what this README will provide)
+- [x] Local setup & dependencies
+- [x] Run & build steps (dev + production)
+- [x] Project architecture and important files
+- [x] Admin & frontend data flow (header/footer saving)
+- [x] Debugging and troubleshooting tips
+- [x] Common tasks and commands
+
+## Requirements
 - PHP 8.1+
 - Composer
-- Node.js & NPM
-- MySQL/SQLite
+- Node.js (16+) and npm/yarn
+- MySQL (or compatible) or SQLite for quick local testing
+- XAMPP (optional) — project was developed in a Windows/XAMPP environment
 
-### Quick Setup
+## Quick start (development)
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/SEOeStore/sps.git
-   cd sps
-   ```
+1. Clone the repository and enter it:
 
-2. **Install dependencies**:
-   ```bash
-   composer install
-   npm install
-   ```
-
-3. **Environment setup**:
-   ```bash
-   cp .env.example .env
-   php artisan key:generate
-   ```
-
-4. **Database setup**:
-   ```bash
-   # Update .env with your database credentials
-   php artisan migrate:fresh --seed
-   ```
-
-5. **Storage link**:
-   ```bash
-   php artisan storage:link
-   ```
-
-6. **Compile assets**:
-   ```bash
-   npm run dev
-   # Or for production:
-   npm run build
-   ```
-
-7. **Start the server**:
-   ```bash
-   php artisan serve
-   ```
-
-Visit `http://localhost:8000` for the frontend and `http://localhost:8000/admin` for the admin panel.
-
-## 📊 **Database Structure**
-
-### Core Tables
-- **`sites`**: Site configuration and information
-- **`tpl_layout_types`**: Layout types (nav, section, footer)
-- **`tpl_layouts`**: HTML templates with preview images
-- **`tpl_pages`**: Page definitions with slugs and metadata
-- **`tpl_designs`**: Page-layout mappings with custom JSON data
-- **`tpl_lang`**: Language definitions (EN/AR with RTL/LTR)
-- **`site_config`**: Site language and direction settings
-
-### Additional Tables
-- **`tpl_custom_css`**: Custom CSS for sites
-- **`tpl_custom_scripts`**: Custom JavaScript (head/footer)
-- **`tpl_color_palette`**: Site color schemes
-
-## 🎨 **Frontend Architecture**
-
-### Template Structure
-```
-resources/views/frontend/
-├── layouts/
-│   └── app.blade.php          # Main layout template
-└── components/
-    ├── nav.blade.php          # Navigation component
-    ├── section.blade.php      # Content sections
-    └── footer.blade.php       # Footer component
+```powershell
+git clone https://github.com/SEOeStore/sps.git
+cd sps
 ```
 
-### Content Flow
-1. **PageController** loads page by slug
-2. **Designs** are fetched for the page (nav, sections, footer)
-3. **Components** render with dynamic data from designs
-4. **Consistent** navbar and footer across all pages
+2. Install PHP & Node dependencies:
 
-## 🔧 **Admin Interface**
+```powershell
+composer install --no-interaction --prefer-dist
+npm install
+```
 
-### Management Sections
-- **Dashboard**: Overview and quick actions
-- **Layouts**: Template management with preview
-- **Pages**: Page creation and management
-- **Designs**: Content-layout mapping
-- **Site Config**: Global site settings
-- **Color Palette**: Brand color management
-- **Custom CSS**: Additional styling
-- **Custom Scripts**: JavaScript management
-- **Languages**: Multi-language support
-- **Consistency**: Bulk update tools
+3. Copy environment and generate app key:
 
-### Key Features
-- **WYSIWYG**: Visual template management
-- **Validation**: Form validation and error handling
-- **Responsive**: Mobile-friendly admin interface
-- **Icons**: Proper Feather icons integration
-- **Navigation**: Intuitive sidebar with active states
+```powershell
+copy .env.example .env
+php artisan key:generate
+```
 
-## 🌐 **Multi-Language Support**
+4. Configure DB in `.env` (DB_DATABASE, DB_USERNAME, DB_PASSWORD). Then run migrations and seeders:
 
-### Supported Languages
-- **English (EN)**: Left-to-right (LTR)
-- **Arabic (AR)**: Right-to-left (RTL)
+```powershell
+php artisan migrate --seed
+```
 
-### Features
-- **Dynamic Direction**: Auto RTL/LTR based on language
-- **Content Translation**: Language-specific designs
-- **Admin Management**: Language CRUD operations
-- **Fallback Support**: Graceful degradation
+5. Link storage and build assets:
 
-## 🎯 **Technical Highlights**
+```powershell
+php artisan storage:link
+npm run dev
+```
 
-### Backend
-- **Laravel 10**: Latest PHP framework
-- **Eloquent ORM**: Database relationships and queries
-- **Blade Templates**: Component-based rendering
-- **Validation**: Comprehensive form validation
-- **Migrations**: Database version control
+6. Serve the app locally:
 
-### Frontend
-- **Bootstrap 5**: Modern responsive framework
-- **AdminLTE 3**: Professional admin template
-- **Feather Icons**: Consistent iconography
-- **Dynamic Content**: Database-driven rendering
-- **SEO Ready**: Proper meta tags and structure
+```powershell
+php artisan serve --port=8001
+```
 
-### Features
-- **CRUD Operations**: Complete data management
-- **File Uploads**: Image handling for layouts
-- **JSON Data**: Flexible content structure
-- **Soft Deletes**: Safe data removal
-- **Status Management**: Enable/disable functionality
+Visit the frontend at `http://localhost:8001` and the admin at `http://localhost:8001/admin` (or adjust port as needed).
 
+## Run tasks & scripts
+- Watch assets: `npm run dev` (Vite)
+- Build production assets: `npm run build`
+- Run phpunit tests: `vendor/bin/phpunit` or `php artisan test`
 
-## 📝 **Usage Examples**
+## Project layout & important files
 
-### Creating a New Page
-1. Go to Admin → Pages → Create New Page
-2. Set page name, slug, and sort order
-3. Go to Admin → Designs → Create New Design
-4. Link layout to the page with custom data
+- `app/Http/Controllers/Frontend/PageController.php` — builds page payloads and merges site-level `tpl_site` data with layout defaults.
+- `app/Http/Controllers/Admin/HeaderFooterController.php` — APIs used by the admin UI to read/update header/footer, social links and auth link toggles.
+- `app/Models/TplSite.php` — Eloquent model holding `nav_data` and `footer_data` (JSON casts).
+- `resources/views/admin/content/index.blade.php` — admin page that injects `window.navigationConfig` and `window.socialMediaConfig` used by the admin JS.
+- `public/js/admin/headers-footers.js` — consolidated admin JS that performs POSTs to `/admin/headers-footers/*` endpoints.
+- `public/js/admin/contant.js` — older/alternate admin JS (watch for duplicate inclusion).
+- `resources/views/frontend/components/nav.blade.php` and `resources/views/frontend/components/footer.blade.php` — frontend components that render header/footer.
 
-### Updating Navbar
-1. Go to Admin → Consistency
-2. Update navbar settings
-3. Apply to all pages automatically
+Use these files first when tracing admin save → DB → frontend rendering issues.
 
-### Adding Custom CSS
-1. Go to Admin → Custom CSS
-2. Add CSS rules
-3. Set sort order and status
+## Data flow: header/footer from admin to frontend
 
+1. Admin page renders and injects `window.navigationConfig` and `window.socialMediaConfig` from the server.
+2. Admin UI (modals) allow editing links, services, auth visibility and social links. The admin JS collects arrays like `header_links`, `footer_links`, `footer_services`, `social_media` and posts them to controller endpoints (e.g. `/admin/headers-footers/update-navigation`).
+3. `HeaderFooterController` validates and persists the values into `tpl_site.nav_data` and `tpl_site.footer_data` (JSON columns). `app/Models/TplSite.php` casts those to arrays.
+4. `PageController::show()` loads the active `TplLayout` and merges `tpl_site` nav/footer data with layout `default_config` when present. If `tpl_site` doesn't have corresponding keys, the controller may fall back to `TplLayout` defaults — this is a common source of confusion.
 
+If an admin save appears successful but the frontend doesn't reflect changes, check whether:
 
-## 🏗 **Built With**
+- the DB row in `tpl_site` actually contains the new values (nav_data/footer_data),
+- the active site_id used by the admin matches the site used by the frontend render,
+- the frontend component is reading `tpl_site` values or falling back to `TplLayout` defaults,
+- the admin page is loading the correct JS file (`public/js/admin/headers-footers.js`) instead of a stale duplicate.
 
-- **Laravel 10** - PHP Framework
-- **Bootstrap 5** - CSS Framework
-- **AdminLTE 3** - Admin Template
-- **Feather Icons** - Icon Library
-- **MySQL/SQLite** - Database
-- **Blade** - Template Engine
+## Common debugging steps
+
+1. Open browser DevTools → Network. Perform a save in the admin. Inspect the POST request body to `/admin/headers-footers/update-navigation` and the JSON response.
+2. Check the database row for the site: `select nav_data, footer_data from tpl_site where site_id = <your_site_id>;` Confirm the JSON contains the newly added links/services.
+3. Tail Laravel logs around the save time:
+
+```powershell
+Get-Content -Path storage/logs/laravel.log -Tail 200 -Wait
+```
+
+Look for exceptions or any debug logs from `HeaderFooterController`.
+
+4. Confirm admin JS inclusion: open the admin page source and ensure `public/js/admin/headers-footers.js` is included exactly once. Duplicate or older files like `public/js/admin/contant.js` can lead to unexpected behavior.
+
+5. If frontend doesn't show updates but DB has them: inspect `app/Http/Controllers/Frontend/PageController.php` and the `resources/views/frontend/components/footer.blade.php` to verify they read `tpl_site.footer_data` instead of template defaults.
+
+## Troubleshooting notes (specific issues seen during development)
+
+- Symptom: Admin modal accepts new footer services but they "do not save" (UI error: "An error occurred while saving footer navigation settings.")
+   - Check: Network request payload includes `footer_services` and CSRF token.
+   - Check: `HeaderFooterController::updateNavigation()` validates and persists `footer_services` into `tpl_site.footer_data['services']`.
+   - Check: After successful response, admin JS should update `window.navigationConfig` with the response payload so that UI refreshes reflect server state.
+
+- Symptom: Changes exist in DB but frontend still shows older footer.
+   - Cause: `PageController` fell back to `TplLayout` default_config because `tpl_site.footer_data` lacked the expected keys or the `site_id` didn't match.
+   - Fix: Ensure keys are saved with the correct structure and the code that reads them merges `tpl_site` data into the layout config.
+
+## Tests
+
+- Run unit & feature tests with:
+
+```powershell
+php artisan test
+vendor\bin\phpunit
+```
+
+- Add tests under `tests/Feature` for admin endpoints that update `tpl_site` (happy path + 2 edge cases: missing keys and malformed JSON).
+
+## Useful artisan commands
+
+- `php artisan migrate` — run migrations
+- `php artisan migrate:rollback` — rollback last batch
+- `php artisan db:seed` — run seeders
+- `php artisan storage:link` — symlink storage
+- `php artisan route:list` — view all routes
+- `php artisan config:cache` — cache config
+- `php artisan optimize` — optimize framework for deployment
+
+## Deployment (brief)
+
+1. Ensure `.env` is correct for production DB and cache.
+2. Build assets: `npm run build`.
+3. Deploy code to server, run migrations and seeders if necessary, ensure `storage` and `bootstrap/cache` are writable.
+4. Configure web server (Nginx/Apache) to point to `public/` and set up supervisor/cron for queue workers if used.
+
+## Where to look first for header/footer save problems
+
+1. `resources/views/admin/content/index.blade.php` — ensures server-side injected `window.navigationConfig` exists.
+2. `public/js/admin/headers-footers.js` and `public/js/admin/contant.js` — ensure the admin page includes the correct script and that the script sends the expected payload (header_links, footer_links, footer_services, social_media).
+3. `app/Http/Controllers/Admin/HeaderFooterController.php` — verify validation and persistence of `footer_services` and `footer_data`.
+4. `app/Models/TplSite.php` — check casts and helper methods for nav/footer data.
+5. `app/Http/Controllers/Frontend/PageController.php` and `resources/views/frontend/components/footer.blade.php` — where merged data is prepared and rendered.
+
+## Contribution
+
+Please open a pull request and include:
+
+- a clear description of the change
+- which endpoints or views are affected
+- tests for any logic change
+
+## License & credits
+
+This project follows the licensing terms included in the repository. Third-party libraries like AdminLTE, Bootstrap and Feather Icons keep their own licenses.
 
 ---
 
-**Template Management System (SPS)** © 2025 - Built with ❤️ using Laravel 10
-- **Designs**: Map layouts to pages with custom data
-- **Config**: Site configuration and customization
+If you'd like, I can also:
 
-## Layout System
+- add a short `DEVELOPMENT.md` with step-by-step debugging recipes (Network/DB/log checks) tailored to the header/footer problems you reported,
+- add an example PHPUnit feature test for the `HeaderFooterController` save endpoint.
 
-### Creating Layouts
+Summary of change: replaced README with a developer-focused, actionable guide (setup, architecture, debugging and common tasks).
+- **AdminLTE 3** - Admin Template
 
-1. Go to **Admin > Layouts**
-2. Click **Add Layout**
-3. Select layout type (nav, section, footer)
-4. Enter HTML template with dynamic variables
-5. Upload preview image
-6. Save layout
+- **Feather Icons** - Icon Library
 
-### Template Variables
+- **MySQL/SQLite** - Database
 
-Use `{{ $data["key"] }}` in your HTML templates:
-
-```html
-<h1>{{ $data["title"] ?? "Default Title" }}</h1>
-<p>{{ $data["subtitle"] ?? "Default subtitle" }}</p>
-```
-
-### Page Design
-
-1. Go to **Admin > Designs**
-2. Select a page
-3. Choose layout template
-4. Set sort order
-5. Configure JSON data for dynamic content
-
-## Multi-language Support
-
-The system supports multiple languages with direction handling:
-
-- **English**: LTR (Left-to-Right)
-- **Arabic**: RTL (Right-to-Left)
-
-Language settings are managed through the `tpl_lang` and `site_config` tables.
-
-## File Structure
-
-```
-app/
-├── Http/Controllers/
-│   ├── Frontend/
-│   │   └── PageController.php
-│   └── Admin/
-│       ├── LayoutController.php
-│       ├── PageController.php
-│       ├── DesignController.php
-│       └── ConfigController.php
-├── Models/
-│   ├── Site.php
-│   ├── TplLayout.php
-│   ├── TplPage.php
-│   ├── TplDesign.php
-│   └── ... (other models)
-resources/
-├── views/
-│   ├── frontend/
-│   │   └── layouts/
-│   │       └── app.blade.php
-│   └── admin/
-│       └── layouts/
-│           └── master.blade.php
-```
-
-## Development Guidelines
-
-- Use Blade components for reusable UI elements
-- Follow Laravel best practices for controllers and models
-- Implement proper validation and error handling
-- Use Bootstrap 5 classes for styling
-- Maintain clean, semantic HTML structure
-- Follow PSR standards for PHP code
-
-
-
+- **Blade** - Template Engine

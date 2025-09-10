@@ -545,3 +545,315 @@ function handleFormSubmission(form, button, url, data, successCallback) {
         button.disabled = false;
     });
 }
+// Pass available pages to JavaScript
+// window.availablePages should be set in your Blade template, for example:
+// <script>window.availablePages = @json($availablePages);</script>
+// Remove this line from the JS file to avoid syntax errors.
+
+// Section Templates Functions
+function addSectionToPage(templateId) {
+    // Set the template ID in the modal
+    document.getElementById('section-template-id').value = templateId;
+    
+    // Update the info text
+    const sectionInfo = document.getElementById('section-info');
+    sectionInfo.textContent = `Adding section template ID: ${templateId} to the selected page.`;
+    
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('addSectionModal'));
+    modal.show();
+}
+
+function confirmAddSection() {
+    const templateId = document.getElementById('section-template-id').value;
+    const pageId = document.getElementById('selected-page').value;
+    const position = document.getElementById('section-position').value;
+    const sortOrder = document.getElementById('sort-order').value;
+    
+    if (!templateId || !pageId) {
+        alert('Please select a page.');
+        return;
+    }
+    
+    // Show loading state
+    const submitButton = document.querySelector('#addSectionModal .btn-primary');
+    const originalText = submitButton.textContent;
+    submitButton.textContent = 'Adding...';
+    submitButton.disabled = true;
+    
+    // Get CSRF token from the form
+    const csrfToken = document.querySelector('#add-section-form input[name="_token"]').value;
+    
+    // Prepare data for API call
+    const data = {
+        _token: csrfToken,
+        template_id: parseInt(templateId),
+        page_id: parseInt(pageId),
+        position: position,
+        sort_order: position === 'custom' && sortOrder ? parseInt(sortOrder) : null
+    };
+    
+    console.log('Sending data:', data); // Debug log
+    
+    // Make API call to add section to page
+    fetch('/admin/sections/add-to-page', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        console.log('Response status:', response.status); // Debug log
+        console.log('Response headers:', response.headers); // Debug log
+        console.log('Response ok:', response.ok); // Debug log
+        
+        // Check if response is actually JSON
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+            return response.json();
+        } else {
+            console.log('Response is not JSON, returning text'); // Debug log
+            return response.text();
+        }
+    })
+    .then(responseData => {
+        console.log('Response data:', responseData); // Debug log
+        console.log('Response data type:', typeof responseData); // Debug log
+        
+        // Handle different response types
+        let data = responseData;
+        if (typeof responseData === 'string') {
+            try {
+                data = JSON.parse(responseData);
+            } catch (e) {
+                console.error('Failed to parse JSON:', e);
+                console.log('Raw response:', responseData);
+                alert('Server returned invalid response: ' + responseData.substring(0, 200));
+                return;
+            }
+        }
+        if (data.success) {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addSectionModal'));
+            modal.hide();
+            
+            // Show success message
+            alert(`Section "${data.data.template_name}" added to page "${data.data.page_name}" successfully!`);
+            
+            // Reset form
+            document.getElementById('add-section-form').reset();
+        } else {
+            alert('Error: ' + (data.message || 'Failed to add section to page'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while adding the section to the page.');
+    })
+    .finally(() => {
+        // Restore button state
+        submitButton.textContent = originalText;
+        submitButton.disabled = false;
+    });
+}
+
+// Handle position selection change
+document.addEventListener('DOMContentLoaded', function() {
+    const positionSelect = document.getElementById('section-position');
+    const customPositionField = document.getElementById('custom-position-field');
+    
+    if (positionSelect) {
+        positionSelect.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                customPositionField.style.display = 'block';
+            } else {
+                customPositionField.style.display = 'none';
+            }
+        });
+    }
+});
+
+function createNewSection() {
+    // Implementation for creating new section
+    console.log('Creating new section template');
+    
+    // Redirect to create page
+    window.location.href = '/admin/templates/create?type=section';
+}
+
+function refreshSections() {
+    // Implementation for refreshing sections
+    console.log('Refreshing sections');
+    location.reload();
+}
+
+// Initialize section functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize feather icons for any new icons
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+});
+
+// ============ Dropdown Functions for Template Cards ============
+
+// Show/Hide card actions on hover
+function showCardActions(card) {
+    const actions = card.querySelector('.card-actions');
+    if (actions) {
+        actions.style.opacity = '1';
+        actions.style.transform = 'translateY(0)';
+    }
+}
+
+function hideCardActions(card) {
+    const actions = card.querySelector('.card-actions');
+    if (actions) {
+        actions.style.opacity = '1'; // Keep visible for accessibility
+        actions.style.transform = 'translateY(0)';
+    }
+}
+
+// Activate template function
+function activateTemplate(templateId, type) {
+    if (confirm(`Are you sure you want to activate this ${type} template?`)) {
+        // Create a form and submit it
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/admin/headers-footers/activate/${templateId}`;
+        
+        // Add CSRF token
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        form.appendChild(csrfInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Edit template function
+function editTemplate(templateId) {
+    window.location.href = `/admin/templates/${templateId}/edit`;
+}
+
+// Preview template function
+function previewTemplate(templateId) {
+    window.open(`/admin/templates/${templateId}/preview`, '_blank');
+}
+
+// Duplicate template function
+function duplicateTemplate(templateId) {
+    if (confirm('Do you want to create a copy of this template?')) {
+        fetch(`/admin/templates/${templateId}/duplicate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Template duplicated successfully!');
+                location.reload();
+            } else {
+                alert('Error: ' + (data.message || 'Failed to duplicate template'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while duplicating the template.');
+        });
+    }
+}
+
+// Confirm delete template function
+function confirmDeleteTemplate(templateId) {
+    if (confirm('Are you sure you want to delete this template? This action cannot be undone.')) {
+        deleteTemplate(templateId);
+    }
+}
+
+// Delete template function
+function deleteTemplate(templateId) {
+    fetch(`/admin/headers-footers/${templateId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Template deleted successfully!');
+            location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'Failed to delete template'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while deleting the template.');
+    });
+}
+
+// View template details function
+function viewTemplateDetails(templateId) {
+    // You can implement a modal or redirect to details page
+    window.open(`/admin/templates/${templateId}`, '_blank');
+}
+
+// Initialize dropdown positioning (similar to shared admin scripts)
+document.addEventListener('DOMContentLoaded', function() {
+    // Enhanced dropdown positioning
+    setTimeout(() => {
+        document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(el => {
+            new bootstrap.Dropdown(el, {
+                popperConfig: {
+                    strategy: 'fixed',
+                    modifiers: [
+                        { name: 'preventOverflow', options: { boundary: document.body } }
+                    ]
+                }
+            });
+        });
+    }, 300);
+
+    // Enhanced positioning classes toggle
+    document.addEventListener('show.bs.dropdown', function(e) {
+        const menu = e.target.querySelector('.dropdown-menu');
+        if (!menu) return;
+        
+        menu.classList.remove('dropdown-menu-up', 'dropdown-menu-end');
+        
+        setTimeout(() => {
+            const btnRect = e.target.querySelector('[data-bs-toggle="dropdown"]').getBoundingClientRect();
+            const menuRect = menu.getBoundingClientRect();
+            const cardRect = e.target.closest('.template-card')?.getBoundingClientRect();
+            
+            if (btnRect.bottom + menuRect.height > window.innerHeight - 20) {
+                menu.classList.add('dropdown-menu-up');
+            }
+            
+            if (cardRect && (btnRect.left + menuRect.width > cardRect.right)) {
+                menu.classList.add('dropdown-menu-end');
+            }
+        }, 10);
+    });
+
+    document.addEventListener('hide.bs.dropdown', e => {
+        const menu = e.target.querySelector('.dropdown-menu');
+        if (menu) {
+            menu.classList.remove('dropdown-menu-up');
+        }
+    });
+});

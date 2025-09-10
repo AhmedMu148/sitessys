@@ -1,7 +1,7 @@
 <?php
 
 namespace Database\Seeders;
-
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Site;
@@ -336,73 +336,128 @@ class DevelopmentSeeder extends Seeder
      * Setup site configuration 
      */
     private function setupSiteConfiguration(Site $site): void
-    {
-        // Create site configuration
-        SiteConfig::create([
-            'site_id' => $site->id,
-            'settings' => [
-                'timezone' => 'UTC',
-                'meta' => [
-                    'description' => 'Development site for testing SPS system',
-                    'keywords' => 'development, sps, testing'
-                ]
-            ],
-            'data' => [
-                'logo' => '/img/logo.png',
-                'favicon' => '/img/favicon.ico'
-            ],
-            'language_code' => [
-                'languages' => ['en', 'ar'],
-                'primary' => 'en'
-            ],
-            'tpl_name' => 'business',
-            'tpl_colors' => [
-                'primary' => '#667eea',
-                'secondary' => '#764ba2',
-                'success' => '#28a745',
-                'danger' => '#dc3545'
-            ]
-        ]);
+{
+    // === قيم افتراضية مشتركة ===
+    $headerLinks = [
+        ['label' => 'Home', 'url' => '/',         'external' => false],
+        ['label' => 'About', 'url' => '/about',   'external' => false],
+        ['label' => 'Services', 'url' => '/services', 'external' => false],
+        ['label' => 'Portfolio', 'url' => '/portfolio', 'external' => false],
+        ['label' => 'Contact', 'url' => '/contact', 'external' => false],
+    ];
 
-        // Create TplSite with navigation and social data
-        TplSite::create([
-            'site_id' => $site->id,
-            'nav' => $site->active_header_id,
-            'footer' => $site->active_footer_id,
-            'nav_data' => [
-                'links' => [
-                    ['name' => 'Home', 'url' => '/', 'active' => true, 'external' => false],
-                    ['name' => 'About', 'url' => '/about', 'active' => true, 'external' => false],
-                    ['name' => 'Services', 'url' => '/services', 'active' => true, 'external' => false],
-                    ['name' => 'Portfolio', 'url' => '/portfolio', 'active' => true, 'external' => false],
-                    ['name' => 'Contact', 'url' => '/contact', 'active' => true, 'external' => false]
-                ],
-                'show_auth' => true
-            ],
-            'footer_data' => [
-                'links' => [
-                    ['name' => 'Privacy Policy', 'url' => '/privacy', 'active' => true, 'external' => false],
-                    ['name' => 'Terms of Service', 'url' => '/terms', 'active' => true, 'external' => false],
-                    ['name' => 'Support', 'url' => '/support', 'active' => true, 'external' => false]
-                ],
-                'social_media' => [
-                    'facebook' => 'https://facebook.com/yourcompany',
-                    'twitter' => 'https://twitter.com/yourcompany', 
-                    'linkedin' => 'https://linkedin.com/company/yourcompany',
-                    'instagram' => 'https://instagram.com/yourcompany',
-                    'youtube' => 'https://youtube.com/yourcompany'
-                ],
-                'newsletter' => [
-                    'enabled' => true,
-                    'title' => 'Stay Updated',
-                    'description' => 'Subscribe to our newsletter for updates'
-                ],
-                'show_auth' => true
-            ]
-        ]);
+    $footerQuick = [
+        ['label' => 'Privacy Policy', 'url' => '/privacy', 'external' => false],
+        ['label' => 'Terms of Service','url' => '/terms',  'external' => false],
+        ['label' => 'Support',         'url' => '/support','external' => false],
+    ];
 
-        echo "  ✓ Site configuration created\n";
+    $social = [
+        ['icon' => 'fab fa-facebook',  'url' => 'https://facebook.com/yourcompany'],
+        ['icon' => 'fab fa-twitter',   'url' => 'https://twitter.com/yourcompany'],
+        ['icon' => 'fab fa-linkedin',  'url' => 'https://linkedin.com/company/yourcompany'],
+        ['icon' => 'fab fa-instagram', 'url' => 'https://instagram.com/yourcompany'],
+        ['icon' => 'fab fa-youtube',   'url' => 'https://youtube.com/yourcompany'],
+    ];
+
+    // SiteConfig زي ما هي
+    SiteConfig::create([
+        'site_id' => $site->id,
+        'settings' => [
+            'timezone' => 'UTC',
+            'meta' => [
+                'description' => 'Development site for testing SPS system',
+                'keywords' => 'development, sps, testing'
+            ]
+        ],
+        'data' => [
+            'logo' => '/img/logo.png',
+            'favicon' => '/img/favicon.ico'
+        ],
+        'language_code' => [
+            'languages' => ['en', 'ar'],
+            'primary' => 'en'
+        ],
+        'tpl_name' => 'business',
+        'tpl_colors' => [
+            'primary' => '#667eea',
+            'secondary' => '#764ba2',
+            'success' => '#28a745',
+            'danger' => '#dc3545'
+        ]
+    ]);
+
+    // TplSite بمفاتيح متوافقة مع التمبلتس + حفظ المفاتيح القديمة
+    TplSite::create([
+        'site_id' => $site->id,
+        'nav'     => $site->active_header_id,
+        'footer'  => $site->active_footer_id,
+
+        'nav_data' => [
+            // قديم (للرجوع للخلف)
+            'links' => $this->mapToLegacyLinks($headerLinks),
+            'show_auth' => true,
+            // جديد (المطلوب من التمبلتس)
+            'menu_items' => $headerLinks,
+            'show_auth_in_header' => true,
+        ],
+
+        'footer_data' => [
+            // جديد (المطلوب من التمبلتس)
+            'footer_links'   => $footerQuick,
+            'services_links' => [
+                // مثال فاضي — لو عايز تضيف Services زود هنا
+                // ['label' => 'Web Development', 'url' => '/services#web'],
+            ],
+            'social_links'   => $social,
+            'show_newsletter' => true,
+            'newsletter_title' => 'Stay Updated',
+            'newsletter_description' => 'Subscribe to our newsletter for updates',
+            'newsletter_placeholder' => 'Enter email',
+            'copyright_text' => '© 2025 Development Company. All rights reserved.',
+            'show_auth_in_footer' => true,
+
+            // قديم (للرجوع للخلف)
+            'links' => $this->mapToLegacyLinks($footerQuick),
+            'social_media' => $this->mapToLegacySocial($social),
+        ],
+    ]);
+
+    echo "  ✓ Site configuration created (nav/footer keys normalized)\n";
+}
+
+private function mapToLegacyLinks(array $items): array
+{
+    return array_map(function ($i) {
+        return [
+            'name'     => $i['label'] ?? ($i['name'] ?? ''),
+            'url'      => $i['url'] ?? '#',
+            'active'   => $i['active'] ?? true,
+            'external' => $i['external'] ?? false,
+        ];
+    }, $items);
+}
+
+private function mapToLegacySocial(array $social): array
+{
+    $out = [];
+    foreach ($social as $s) {
+        $url = $s['url'] ?? '';
+        if (!$url) continue;
+
+        $key = 'other';
+        if (str_contains($url, 'facebook'))  $key = 'facebook';
+        elseif (str_contains($url, 'twitter'))   $key = 'twitter';
+        elseif (str_contains($url, 'instagram')) $key = 'instagram';
+        elseif (str_contains($url, 'linkedin'))  $key = 'linkedin';
+        elseif (str_contains($url, 'youtube'))   $key = 'youtube';
+
+        $out[$key] = $url;
     }
+    return $out;
+}
+
+
 
     /**
      * Create site pages
@@ -522,10 +577,10 @@ class DevelopmentSeeder extends Seeder
         ];
     }
 
-    private function getHeaderHTML($variant): string
-    {
-        $htmlVariants = [
-            1 => '<!-- Elevated Business Header -->
+   private function getHeaderHTML($variant): string
+{
+    $htmlVariants = [
+        1 => '<!-- Elevated Business Header -->
 <nav class="navbar navbar-expand-lg navbar-elevated navbar-variant-' . $variant . '" id="mainNavbar">
     <div class="container-fluid px-4">
         <div class="navbar-brand-container">
@@ -538,16 +593,16 @@ class DevelopmentSeeder extends Seeder
                 <span class="brand-title">{{ $config[\'site_name\'] ?? \'Your Business\' }}</span>
             </a>
         </div>
-        
+
         <button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span></span><span></span><span></span>
         </button>
-        
+
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav navigation-menu mx-auto">
                 @foreach($config[\'menu_items\'] ?? [] as $item)
                     <li class="nav-item dropdown-hover">
-                        <a class="nav-link nav-button" href="{{ $item[\'url\'] }}" 
+                        <a class="nav-link nav-button" href="{{ $item[\'url\'] }}"
                            @if($item[\'external\'] ?? false) target="_blank" @endif>
                             <span class="link-text">{{ $item[\'label\'] ?? $item[\'name\'] }}</span>
                             <span class="link-underline"></span>
@@ -555,49 +610,44 @@ class DevelopmentSeeder extends Seeder
                     </li>
                 @endforeach
             </ul>
-            
+
             <div class="navbar-actions action-panel">
-                @guest
-                    <a href="/login" class="btn btn-outline-light btn-elevated">
-                        <i class="fas fa-sign-in-alt"></i>
-                        <span>Sign In</span>
-                    </a>
-                    <a href="/register" class="btn btn-primary btn-elevated">
-                        <i class="fas fa-rocket"></i>
-                        <span>Get Started</span>
-                    </a>
-                @else
-                    <div class="user-dropdown">
-                        <a class="user-profile-link" href="#" data-bs-toggle="dropdown">
-                            <div class="user-avatar">
-                                <i class="fas fa-user-circle"></i>
-                            </div>
-                            <span class="user-name">{{ auth()->user()->name }}</span>
-                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                @if($config[\'show_auth_in_header\'] ?? true)
+                    @guest
+                        <a href="/login" class="btn btn-outline-light btn-elevated">
+                            <i class="fas fa-sign-in-alt"></i><span> Login</span>
                         </a>
-                        <ul class="dropdown-menu user-menu">
-                            <li><a class="dropdown-item" href="/profile"><i class="fas fa-user"></i>My Profile</a></li>
-                            <li><a class="dropdown-item" href="/dashboard"><i class="fas fa-chart-bar"></i>Dashboard</a></li>
-                            @if(auth()->user()->hasAnyRole([\'admin\', \'super-admin\']))
-                                <li><a class="dropdown-item" href="/admin"><i class="fas fa-shield-alt"></i>Admin Center</a></li>
-                            @endif
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <form method="POST" action="/logout">
-                                    @csrf
-                                    <button type="submit" class="dropdown-item logout-btn">
-                                        <i class="fas fa-power-off"></i>Sign Out
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
-                @endguest
-                
+                        <a href="/register" class="btn btn-primary btn-elevated">
+                            <i class="fas fa-user-plus"></i><span> Register</span>
+                        </a>
+                    @else
+                        @if(!auth()->user()->hasAnyRole([\'admin\', \'super-admin\']))
+                            <div class="user-dropdown">
+                                <a class="user-profile-link" href="#" data-bs-toggle="dropdown">
+                                    <div class="user-avatar"><i class="fas fa-user-circle"></i></div>
+                                    <span class="user-name">{{ auth()->user()->name }}</span>
+                                    <i class="fas fa-chevron-down dropdown-arrow"></i>
+                                </a>
+                                <ul class="dropdown-menu user-menu">
+                                    <li><a class="dropdown-item" href="/profile"><i class="fas fa-user"></i>My Profile</a></li>
+                                    <li><a class="dropdown-item" href="/dashboard"><i class="fas fa-chart-bar"></i>Dashboard</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form method="POST" action="/logout">@csrf
+                                            <button type="submit" class="dropdown-item logout-btn">
+                                                <i class="fas fa-power-off"></i>Sign Out
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        @endif
+                    @endguest
+                @endif
+
                 @if(!empty($config[\'cta_button\'][\'text\']))
                     <a href="{{ $config[\'cta_button\'][\'url\'] ?? \'#\' }}" class="btn btn-cta-elevated">
-                        <span>{{ $config[\'cta_button\'][\'text\'] }}</span>
-                        <i class="fas fa-arrow-right"></i>
+                        <span>{{ $config[\'cta_button\'][\'text\'] }}</span><i class="fas fa-arrow-right"></i>
                     </a>
                 @endif
             </div>
@@ -605,106 +655,82 @@ class DevelopmentSeeder extends Seeder
     </div>
 </nav>',
 
-            2 => '<!-- Corporate Elite Header -->
-<header class="corporate-header header-variant-' . $variant . '" id="mainNavbar">
-    <div class="header-top-bar">
-        <div class="container">
-            <div class="top-bar-content">
-                <div class="contact-info">
-                    <span><i class="fas fa-envelope"></i> info@company.com</span>
-                    <span><i class="fas fa-phone"></i> +1 (555) 123-4567</span>
-                </div>
-                <div class="header-social">
-                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <nav class="navbar navbar-expand-lg main-navigation">
-        <div class="container">
-            <a class="navbar-brand corporate-brand" href="/">
-                @if(!empty($config[\'logo_url\']))
-                    <img src="{{ $config[\'logo_url\'] }}" alt="{{ $config[\'site_name\'] ?? \'Logo\' }}" class="corporate-logo">
-                @endif
-                <div class="brand-info">
-                    <h1 class="company-name">{{ $config[\'site_name\'] ?? \'Corporation\' }}</h1>
-                    <p class="company-tagline">Excellence in Business</p>
-                </div>
-            </a>
-            
-            <button class="navbar-toggler corporate-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="toggler-line"></span>
-                <span class="toggler-line"></span>
-                <span class="toggler-line"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav corporate-nav ms-auto">
-                    @foreach($config[\'menu_items\'] ?? [] as $item)
-                        <li class="nav-item">
-                            <a class="nav-link corporate-link" href="{{ $item[\'url\'] }}" 
-                               @if($item[\'external\'] ?? false) target="_blank" @endif>
-                                {{ $item[\'label\'] ?? $item[\'name\'] }}
-                            </a>
-                        </li>
-                    @endforeach
-                </ul>
-                
-                <div class="corporate-actions">
-                    @guest
-                        <a href="/login" class="corporate-btn btn-secondary">
-                            <i class="fas fa-user"></i> Client Portal
-                        </a>
-                        <a href="/register" class="corporate-btn btn-primary">
-                            <i class="fas fa-briefcase"></i> Partnership
-                        </a>
-                    @else
-                        <div class="corporate-user-menu">
-                            <a class="corporate-user-btn" href="#" data-bs-toggle="dropdown">
-                                <span class="user-initial">{{ substr(auth()->user()->name, 0, 1) }}</span>
-                                <span>{{ auth()->user()->name }}</span>
-                            </a>
-                            <ul class="dropdown-menu corporate-dropdown">
-                                <li><a class="dropdown-item" href="/profile">Account Settings</a></li>
-                                <li><a class="dropdown-item" href="/dashboard">Control Panel</a></li>
-                                @if(auth()->user()->hasAnyRole([\'admin\', \'super-admin\']))
-                                    <li><a class="dropdown-item" href="/admin">Management Suite</a></li>
-                                @endif
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form method="POST" action="/logout">
-                                        @csrf
-                                        <button type="submit" class="dropdown-item">Sign Out</button>
-                                    </form>
-                                </li>
-                            </ul>
+                2 => '<!-- Corporate Elite Header (clean) -->
+        <header class="corporate-header header-variant-' . $variant . '" id="mainNavbar">
+            <nav class="navbar navbar-expand-lg main-navigation">
+                <div class="container">
+                    <a class="navbar-brand corporate-brand" href="/">
+                        @if(!empty($config[\'logo_url\']))
+                            <img src="{{ $config[\'logo_url\'] }}" alt="{{ $config[\'site_name\'] ?? \'Logo\' }}" class="corporate-logo">
+                        @endif
+                        <div class="brand-info">
+                            <h1 class="company-name">{{ $config[\'site_name\'] ?? \'Corporation\' }}</h1>
                         </div>
-                    @endguest
-                    
-                    @if(!empty($config[\'cta_button\'][\'text\']))
-                        <a href="{{ $config[\'cta_button\'][\'url\'] ?? \'#\' }}" class="corporate-cta">
-                            {{ $config[\'cta_button\'][\'text\'] }}
-                        </a>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </nav>
-</header>',
+                    </a>
 
-            3 => '<!-- Creative Studio Header -->
+                    <button class="navbar-toggler corporate-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <span class="toggler-line"></span>
+                        <span class="toggler-line"></span>
+                        <span class="toggler-line"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav corporate-nav ms-auto">
+                            @foreach($config[\'menu_items\'] ?? [] as $item)
+                                <li class="nav-item">
+                                    <a class="nav-link corporate-link" href="{{ $item[\'url\'] }}" 
+                                       @if($item[\'external\'] ?? false) target="_blank" @endif>
+                                        {{ $item[\'label\'] ?? $item[\'name\'] }}
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+
+                        <div class="corporate-actions">
+                            @if($config[\'show_auth_in_header\'] ?? true)
+                                @guest
+                                    <a href="/login" class="corporate-btn btn-ghost"><i class="fas fa-sign-in-alt"></i> Login</a>
+                                    <a href="/register" class="corporate-btn btn-solid"><i class="fas fa-user-plus"></i> Register</a>
+                                @else
+                                    @if(!auth()->user()->hasAnyRole([\'admin\', \'super-admin\']))
+                                        <div class="corporate-user-menu">
+                                            <a class="corporate-user-btn" href="#" data-bs-toggle="dropdown">
+                                                <span class="user-initial">{{ substr(auth()->user()->name, 0, 1) }}</span>
+                                                <span>{{ auth()->user()->name }}</span>
+                                            </a>
+                                            <ul class="dropdown-menu corporate-dropdown">
+                                                <li><a class="dropdown-item" href="/profile">Account Settings</a></li>
+                                                <li><a class="dropdown-item" href="/dashboard">Dashboard</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <form method="POST" action="/logout">@csrf
+                                                        <button type="submit" class="dropdown-item">Sign Out</button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    @endif
+                                @endguest
+                            @endif
+
+                            @if(!empty($config[\'cta_button\'][\'text\']))
+                                <a href="{{ $config[\'cta_button\'][\'url\'] ?? \'#\' }}" class="corporate-cta">
+                                    {{ $config[\'cta_button\'][\'text\'] }}
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </header>',
+
+
+        3 => '<!-- Creative Studio Header -->
 <div class="creative-header header-variant-' . $variant . '" id="mainNavbar">
     <div class="creative-background">
-        <div class="background-shapes">
-            <div class="shape shape-1"></div>
-            <div class="shape shape-2"></div>
-            <div class="shape shape-3"></div>
-        </div>
+        <div class="background-shapes"><div class="shape shape-1"></div><div class="shape shape-2"></div><div class="shape shape-3"></div></div>
     </div>
-    
+
     <nav class="navbar navbar-expand-lg creative-nav">
         <div class="container-fluid">
             <a class="navbar-brand creative-brand" href="/">
@@ -719,20 +745,16 @@ class DevelopmentSeeder extends Seeder
                     <span class="brand-sub">Design & Innovation</span>
                 </div>
             </a>
-            
+
             <button class="navbar-toggler creative-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <div class="burger-lines">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
+                <div class="burger-lines"><span></span><span></span><span></span></div>
             </button>
-            
+
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav creative-menu">
                     @foreach($config[\'menu_items\'] ?? [] as $item)
                         <li class="nav-item creative-item">
-                            <a class="nav-link creative-link" href="{{ $item[\'url\'] }}" 
+                            <a class="nav-link creative-link" href="{{ $item[\'url\'] }}"
                                @if($item[\'external\'] ?? false) target="_blank" @endif>
                                 <span class="link-content">{{ $item[\'label\'] ?? $item[\'name\'] }}</span>
                                 <span class="link-hover-effect"></span>
@@ -740,48 +762,39 @@ class DevelopmentSeeder extends Seeder
                         </li>
                     @endforeach
                 </ul>
-                
+
                 <div class="creative-user-section">
-                    @guest
-                        <div class="auth-buttons-creative">
-                            <a href="/login" class="btn-creative btn-login">
-                                <span>Enter</span>
-                                <div class="btn-bg"></div>
-                            </a>
-                            <a href="/register" class="btn-creative btn-signup">
-                                <span>Join Us</span>
-                                <div class="btn-bg"></div>
-                            </a>
-                        </div>
-                    @else
-                        <div class="creative-profile">
-                            <a class="profile-trigger" href="#" data-bs-toggle="dropdown">
-                                <div class="profile-avatar">
-                                    <span>{{ substr(auth()->user()->name, 0, 2) }}</span>
+                    @if($config[\'show_auth_in_header\'] ?? true)
+                        @guest
+                            <div class="auth-buttons-creative">
+                                <a href="/login" class="btn-creative btn-login"><span>Login</span><div class="btn-bg"></div></a>
+                                <a href="/register" class="btn-creative btn-signup"><span>Register</span><div class="btn-bg"></div></a>
+                            </div>
+                        @else
+                            @if(!auth()->user()->hasAnyRole([\'admin\', \'super-admin\']))
+                                <div class="creative-profile">
+                                    <a class="profile-trigger" href="#" data-bs-toggle="dropdown">
+                                        <div class="profile-avatar"><span>{{ substr(auth()->user()->name, 0, 2) }}</span></div>
+                                        <span class="profile-name">{{ auth()->user()->name }}</span>
+                                    </a>
+                                    <ul class="dropdown-menu creative-dropdown">
+                                        <li><a class="dropdown-item" href="/profile"><i class="fas fa-palette"></i> Creative Profile</a></li>
+                                        <li><a class="dropdown-item" href="/dashboard"><i class="fas fa-layer-group"></i> Projects</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form method="POST" action="/logout">@csrf
+                                                <button type="submit" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> Exit</button>
+                                            </form>
+                                        </li>
+                                    </ul>
                                 </div>
-                                <span class="profile-name">{{ auth()->user()->name }}</span>
-                            </a>
-                            <ul class="dropdown-menu creative-dropdown">
-                                <li><a class="dropdown-item" href="/profile"><i class="fas fa-palette"></i> Creative Profile</a></li>
-                                <li><a class="dropdown-item" href="/dashboard"><i class="fas fa-layer-group"></i> Projects</a></li>
-                                @if(auth()->user()->hasAnyRole([\'admin\', \'super-admin\']))
-                                    <li><a class="dropdown-item" href="/admin"><i class="fas fa-magic"></i> Studio Admin</a></li>
-                                @endif
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form method="POST" action="/logout">
-                                        @csrf
-                                        <button type="submit" class="dropdown-item"><i class="fas fa-sign-out-alt"></i> Exit</button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </div>
-                    @endguest
-                    
+                            @endif
+                        @endguest
+                    @endif
+
                     @if(!empty($config[\'cta_button\'][\'text\']))
                         <a href="{{ $config[\'cta_button\'][\'url\'] ?? \'#\' }}" class="creative-cta">
-                            <span>{{ $config[\'cta_button\'][\'text\'] }}</span>
-                            <div class="cta-particles"></div>
+                            <span>{{ $config[\'cta_button\'][\'text\'] }}</span><div class="cta-particles"></div>
                         </a>
                     @endif
                 </div>
@@ -790,61 +803,57 @@ class DevelopmentSeeder extends Seeder
     </nav>
 </div>',
 
-            4 => '<!-- Ultra-Clean Header -->
+        4 => '<!-- Ultra-Clean Header -->
 <header class="minimal-header header-variant-' . $variant . '" id="mainNavbar">
     <nav class="navbar navbar-expand-lg minimal-nav">
         <div class="container">
             <div class="navbar-content">
                 <a class="navbar-brand minimal-brand" href="/">
-                    @if(!empty($config[\'logo_url\']))
-                        <img src="{{ $config[\'logo_url\'] }}" alt="{{ $config[\'site_name\'] ?? \'Logo\' }}" class="minimal-logo">
-                    @endif
+                    @if(!empty($config[\'logo_url\']))<img src="{{ $config[\'logo_url\'] }}" alt="{{ $config[\'site_name\'] ?? \'Logo\' }}" class="minimal-logo">@endif
                     <span class="brand-text-minimal">{{ $config[\'site_name\'] ?? \'Minimal\' }}</span>
                 </a>
-                
+
                 <button class="navbar-toggler minimal-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <span class="line"></span>
-                    <span class="line"></span>
+                    <span class="line"></span><span class="line"></span>
                 </button>
-                
+
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav minimal-menu">
                         @foreach($config[\'menu_items\'] ?? [] as $item)
                             <li class="nav-item">
-                                <a class="nav-link minimal-link" href="{{ $item[\'url\'] }}" 
+                                <a class="nav-link minimal-link" href="{{ $item[\'url\'] }}"
                                    @if($item[\'external\'] ?? false) target="_blank" @endif>
-                                    {{ $item[\'label\'] ?? $item[\'name\'] }}
+                                   {{ $item[\'label\'] ?? $item[\'name\'] }}
                                 </a>
                             </li>
                         @endforeach
                     </ul>
-                    
+
                     <div class="minimal-actions">
-                        @guest
-                            <a href="/login" class="minimal-btn">Sign In</a>
-                            <a href="/register" class="minimal-btn minimal-btn-primary">Start</a>
-                        @else
-                            <div class="minimal-user">
-                                <a class="minimal-user-link" href="#" data-bs-toggle="dropdown">
-                                    {{ auth()->user()->name }}
-                                    <span class="user-dot"></span>
-                                </a>
-                                <ul class="dropdown-menu minimal-dropdown">
-                                    <li><a class="dropdown-item" href="/profile">Profile</a></li>
-                                    <li><a class="dropdown-item" href="/dashboard">Dashboard</a></li>
-                                    @if(auth()->user()->hasAnyRole([\'admin\', \'super-admin\']))
-                                        <li><a class="dropdown-item" href="/admin">Admin</a></li>
-                                    @endif
-                                    <li>
-                                        <form method="POST" action="/logout">
-                                            @csrf
-                                            <button type="submit" class="dropdown-item">Logout</button>
-                                        </form>
-                                    </li>
-                                </ul>
-                            </div>
-                        @endguest
-                        
+                        @if($config[\'show_auth_in_header\'] ?? true)
+                            @guest
+                                <a href="/login" class="minimal-btn">Login</a>
+                                <a href="/register" class="minimal-btn minimal-btn-primary">Register</a>
+                            @else
+                                @if(!auth()->user()->hasAnyRole([\'admin\', \'super-admin\']))
+                                    <div class="minimal-user">
+                                        <a class="minimal-user-link" href="#" data-bs-toggle="dropdown">
+                                            {{ auth()->user()->name }} <span class="user-dot"></span>
+                                        </a>
+                                        <ul class="dropdown-menu minimal-dropdown">
+                                            <li><a class="dropdown-item" href="/profile">Profile</a></li>
+                                            <li><a class="dropdown-item" href="/dashboard">Dashboard</a></li>
+                                            <li>
+                                                <form method="POST" action="/logout">@csrf
+                                                    <button type="submit" class="dropdown-item">Logout</button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                @endif
+                            @endguest
+                        @endif
+
                         @if(!empty($config[\'cta_button\'][\'text\']))
                             <a href="{{ $config[\'cta_button\'][\'url\'] ?? \'#\' }}" class="minimal-cta">
                                 {{ $config[\'cta_button\'][\'text\'] }}
@@ -857,17 +866,13 @@ class DevelopmentSeeder extends Seeder
     </nav>
 </header>',
 
-            5 => '<!-- Interactive Pro Header -->
+        5 => '<!-- Interactive Pro Header -->
 <div class="interactive-header header-variant-' . $variant . '" id="mainNavbar">
     <div class="header-effects">
         <div class="particle-system" id="headerParticles"></div>
-        <div class="gradient-orbs">
-            <div class="orb orb-1"></div>
-            <div class="orb orb-2"></div>
-            <div class="orb orb-3"></div>
-        </div>
+        <div class="gradient-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
     </div>
-    
+
     <nav class="navbar navbar-expand-lg interactive-nav">
         <div class="container-fluid">
             <a class="navbar-brand interactive-brand" href="/">
@@ -882,72 +887,60 @@ class DevelopmentSeeder extends Seeder
                     <span class="brand-secondary">Experience</span>
                 </div>
             </a>
-            
+
             <button class="navbar-toggler interactive-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <div class="toggler-icon">
-                    <span class="bar bar-1"></span>
-                    <span class="bar bar-2"></span>
-                    <span class="bar bar-3"></span>
-                </div>
+                <div class="toggler-icon"><span class="bar bar-1"></span><span class="bar bar-2"></span><span class="bar bar-3"></span></div>
             </button>
-            
+
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav interactive-menu mx-auto">
                     @foreach($config[\'menu_items\'] ?? [] as $item)
                         <li class="nav-item interactive-item">
-                            <a class="nav-link interactive-link" href="{{ $item[\'url\'] }}" 
+                            <a class="nav-link interactive-link" href="{{ $item[\'url\'] }}"
                                @if($item[\'external\'] ?? false) target="_blank" @endif data-text="{{ $item[\'label\'] ?? $item[\'name\'] }}">
                                 <span class="link-text">{{ $item[\'label\'] ?? $item[\'name\'] }}</span>
-                                <span class="link-background"></span>
-                                <span class="link-particles"></span>
+                                <span class="link-background"></span><span class="link-particles"></span>
                             </a>
                         </li>
                     @endforeach
                 </ul>
-                
-                <div class="interactive-user-zone">
-                    @guest
-                        <div class="auth-interactive">
-                            <a href="/login" class="interactive-btn btn-ghost">
-                                <span class="btn-text">Login</span>
-                                <div class="btn-ripple"></div>
-                            </a>
-                            <a href="/register" class="interactive-btn btn-solid">
-                                <span class="btn-text">Join</span>
-                                <div class="btn-glow"></div>
-                            </a>
-                        </div>
-                    @else
-                        <div class="user-interactive">
-                            <a class="user-trigger" href="#" data-bs-toggle="dropdown">
-                                <div class="user-avatar-interactive">
-                                    <span class="avatar-text">{{ substr(auth()->user()->name, 0, 1) }}</span>
-                                    <div class="avatar-ring"></div>
+
+                    <div class="interactive-user-zone">
+                    @if($config[\'show_auth_in_header\'] ?? true)
+                        @guest
+                            <div class="auth-interactive">
+                                <a href="/login" class="interactive-btn btn-ghost"><span class="btn-text">Login</span><div class="btn-ripple"></div></a>
+                                <a href="/register" class="interactive-btn btn-solid"><span class="btn-text">Register</span><div class="btn-glow"></div></a>
+                            </div>
+                        @else
+                            @if(!auth()->user()->hasAnyRole([\'admin\', \'super-admin\']))
+                                <div class="user-interactive">
+                                    <a class="user-trigger" href="#" data-bs-toggle="dropdown">
+                                        <div class="user-avatar-interactive">
+                                            <span class="avatar-text">{{ substr(auth()->user()->name, 0, 1) }}</span>
+                                            <div class="avatar-ring"></div>
+                                        </div>
+                                        <span class="user-name-interactive">{{ auth()->user()->name }}</span>
+                                        <div class="dropdown-indicator"></div>
+                                    </a>
+                                    <ul class="dropdown-menu interactive-dropdown">
+                                        <li><a class="dropdown-item" href="/profile"><i class="fas fa-user-astronaut"></i> Profile</a></li>
+                                        <li><a class="dropdown-item" href="/dashboard"><i class="fas fa-th"></i> Dashboard</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form method="POST" action="/logout">@csrf
+                                                <button type="submit" class="dropdown-item"><i class="fas fa-power-off"></i> Logout</button>
+                                            </form>
+                                        </li>
+                                    </ul>
                                 </div>
-                                <span class="user-name-interactive">{{ auth()->user()->name }}</span>
-                                <div class="dropdown-indicator"></div>
-                            </a>
-                            <ul class="dropdown-menu interactive-dropdown">
-                                <li><a class="dropdown-item" href="/profile"><i class="fas fa-user-astronaut"></i> Profile</a></li>
-                                <li><a class="dropdown-item" href="/dashboard"><i class="fas fa-rocket"></i> Control Center</a></li>
-                                @if(auth()->user()->hasAnyRole([\'admin\', \'super-admin\']))
-                                    <li><a class="dropdown-item" href="/admin"><i class="fas fa-satellite"></i> Command Center</a></li>
-                                @endif
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form method="POST" action="/logout">
-                                        @csrf
-                                        <button type="submit" class="dropdown-item"><i class="fas fa-power-off"></i> Power Down</button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </div>
-                    @endguest
-                    
+                            @endif
+                        @endguest
+                    @endif
+
                     @if(!empty($config[\'cta_button\'][\'text\']))
-                        <a href="{{ $config[\'cta_button\'][\'url\'] ?? \'#\' }}" class="cta-interactive">
-                            <span class="cta-text">{{ $config[\'cta_button\'][\'text\'] }}</span>
-                            <div class="cta-energy"></div>
+                        <a href="{{ $config[\'cta_button\'][\'url\'] ?? \'#\' }}" class="interactive-cta">
+                            <span>{{ $config[\'cta_button\'][\'text\'] }}</span><i class="fas fa-angle-double-right"></i>
                         </a>
                     @endif
                 </div>
@@ -955,10 +948,12 @@ class DevelopmentSeeder extends Seeder
         </div>
     </nav>
 </div>'
-        ];
+    ];
 
-        return $htmlVariants[$variant] ?? $htmlVariants[1];
-    }
+    return $htmlVariants[$variant] ?? $htmlVariants[1];
+}
+
+
 
     private function getHeaderCSS($variant): string
     {
@@ -1132,238 +1127,109 @@ class DevelopmentSeeder extends Seeder
     }
 }',
 
-            2 => '/* Corporate Elite Header */
-.corporate-header {
-    background: #ffffff;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                        2 => '/* Corporate Elite Header – clean & cohesive palette */
+.corporate-header{
+    --c-bg:#ffffff;
+    --c-text:#1f2a44;     /* نص أساسي */
+    --c-muted:#6b7a99;    /* نص ثانوي */
+    --c-accent:#4f46e5;   /* بنفسجي مزرق */
+    --c-accent-2:#7c3aed; /* بنفسجي أعمق */
+    --c-border:#e7eaf3;
+    background: var(--c-bg);
+    box-shadow: 0 2px 16px rgba(0,0,0,.06);
 }
 
-.header-top-bar {
-    background: #2c3e50;
-    color: #ecf0f1;
-    padding: 0.5rem 0;
-    font-size: 0.875rem;
+.main-navigation{ padding: 1.1rem 0; }
+
+.corporate-brand{
+    display:flex; align-items:center; gap:1rem; text-decoration:none;
+}
+.corporate-logo{ height:48px; object-fit:contain; }
+
+.brand-info{ display:flex; flex-direction:column; }
+.company-name{
+    margin:0; line-height:1.1;
+    font-size:1.5rem; font-weight:800; letter-spacing:-.3px;
+    color: var(--c-text);
 }
 
-.top-bar-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.corporate-toggler{
+    border:none; background:transparent; padding:.35rem .25rem; display:flex; flex-direction:column; gap:5px;
+}
+.toggler-line{ width:28px; height:2px; background:var(--c-text); opacity:.8; transition:.25s; }
+.corporate-toggler:hover .toggler-line{ opacity:1; transform:translateY(-1px); }
+
+.corporate-nav{ gap:.25rem; }
+.corporate-link{
+    position:relative;
+    color:var(--c-text)!important;
+    font-weight:600; font-size:1rem; letter-spacing:.2px;
+    padding:.75rem 1.1rem; border-radius:8px; text-decoration:none;
+    transition:color .25s, transform .25s;
+}
+.corporate-link::after{
+    content:""; position:absolute; left:1.1rem; right:1.1rem; bottom:.45rem;
+    height:2px; background:linear-gradient(90deg,var(--c-accent),var(--c-accent-2));
+    transform:scaleX(0); transform-origin:left; transition:transform .25s;
+    border-radius:2px;
+}
+.corporate-link:hover{ color:var(--c-accent)!important; transform:translateY(-1px); }
+.corporate-link:hover::after{ transform:scaleX(1); }
+
+.corporate-actions{ display:flex; align-items:center; gap:.6rem; margin-left:1rem; }
+
+/* Buttons */
+.corporate-btn{
+    display:inline-flex; align-items:center; gap:.5rem;
+    padding:.6rem 1rem; border-radius:10px; font-weight:700; text-decoration:none;
+    transition:transform .2s, box-shadow .2s, background .2s, color .2s, border .2s;
+}
+.corporate-btn.btn-ghost{
+    color:var(--c-text); background:transparent; border:1px solid var(--c-border);
+}
+.corporate-btn.btn-ghost:hover{
+    border-color:transparent; background:rgba(79,70,229,.08); color:var(--c-accent); transform:translateY(-1px);
+}
+.corporate-btn.btn-solid{
+    color:#fff; border:0; 
+    background:linear-gradient(135deg, var(--c-accent), var(--c-accent-2));
+    box-shadow:0 8px 18px rgba(79,70,229,.25);
+}
+.corporate-btn.btn-solid:hover{ filter:brightness(1.05); transform:translateY(-1px); }
+
+/* CTA */
+.corporate-cta{
+    margin-left:.25rem;
+    padding:.7rem 1.2rem; border-radius:12px; font-weight:800; text-decoration:none; color:#fff;
+    background:linear-gradient(135deg, var(--c-accent), var(--c-accent-2));
+    transition:transform .2s, box-shadow .2s, filter .2s;
+    box-shadow:0 10px 24px rgba(124,58,237,.25);
+}
+.corporate-cta:hover{ transform:translateY(-1px); filter:brightness(1.04); }
+
+/* User menu (non-admin only) */
+.corporate-user-menu .corporate-user-btn{
+    display:flex; align-items:center; gap:.55rem; color:var(--c-text); text-decoration:none;
+    padding:.55rem .9rem; border:1px solid var(--c-border); border-radius:10px; font-weight:700; transition:.2s;
+}
+.corporate-user-menu .corporate-user-btn:hover{ border-color:transparent; background:rgba(79,70,229,.06); color:var(--c-accent); }
+.user-initial{
+    width:34px; height:34px; border-radius:50%; display:grid; place-items:center;
+    background:linear-gradient(135deg, var(--c-accent), var(--c-accent-2)); color:#fff; font-weight:800;
 }
 
-.contact-info span {
-    margin-right: 2rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
+.corporate-dropdown{
+    border:0; border-radius:12px; padding:.6rem 0;
+    box-shadow:0 18px 40px rgba(0,0,0,.12);
 }
 
-.header-social a {
-    color: #ecf0f1;
-    margin-left: 1rem;
-    font-size: 1.1rem;
-    transition: color 0.3s ease;
-}
-
-.header-social a:hover {
-    color: #3498db;
-}
-
-.main-navigation {
-    background: #ffffff;
-    padding: 1.5rem 0;
-}
-
-.corporate-brand {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    gap: 1.5rem;
-}
-
-.corporate-logo {
-    height: 60px;
-}
-
-.brand-info {
-    display: flex;
-    flex-direction: column;
-}
-
-.company-name {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #2c3e50;
-    margin: 0;
-    line-height: 1.2;
-    letter-spacing: -1px;
-}
-
-.company-tagline {
-    font-size: 0.875rem;
-    color: #7f8c8d;
-    margin: 0;
-    font-style: italic;
-}
-
-.corporate-toggler {
-    border: none;
-    background: none;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 0.5rem;
-}
-
-.toggler-line {
-    width: 30px;
-    height: 3px;
-    background: #2c3e50;
-    transition: 0.3s;
-}
-
-.corporate-nav {
-    gap: 2rem;
-}
-
-.corporate-link {
-    color: #2c3e50 !important;
-    font-weight: 600;
-    font-size: 1.1rem;
-    padding: 1rem 1.5rem;
-    border-radius: 5px;
-    transition: all 0.3s ease;
-    position: relative;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.corporate-link::before {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 3px;
-    background: #3498db;
-    transition: width 0.3s ease;
-}
-
-.corporate-link:hover::before {
-    width: 100%;
-}
-
-.corporate-actions {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.corporate-btn {
-    padding: 0.75rem 2rem;
-    border-radius: 5px;
-    font-weight: 600;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.3s ease;
-}
-
-.corporate-btn.btn-secondary {
-    background: transparent;
-    border: 2px solid #7f8c8d;
-    color: #7f8c8d;
-}
-
-.corporate-btn.btn-secondary:hover {
-    background: #7f8c8d;
-    color: white;
-}
-
-.corporate-btn.btn-primary {
-    background: #3498db;
-    border: 2px solid #3498db;
-    color: white;
-}
-
-.corporate-btn.btn-primary:hover {
-    background: #2980b9;
-    border-color: #2980b9;
-}
-
-.corporate-cta {
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
-    color: white;
-    padding: 1rem 2.5rem;
-    border-radius: 5px;
-    text-decoration: none;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: all 0.3s ease;
-    margin-left: 1rem;
-}
-
-.corporate-cta:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
-    color: white;
-}
-
-.corporate-user-menu .corporate-user-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    color: #2c3e50;
-    text-decoration: none;
-    padding: 0.75rem 1.5rem;
-    border: 2px solid #bdc3c7;
-    border-radius: 5px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.user-initial {
-    width: 35px;
-    height: 35px;
-    background: #3498db;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-}
-
-.corporate-dropdown {
-    border: none;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-    border-radius: 10px;
-    margin-top: 0.5rem;
-    padding: 1rem 0;
-}
-
-@media (max-width: 991px) {
-    .header-top-bar {
-        display: none;
-    }
-    
-    .company-name {
-        font-size: 1.5rem;
-    }
-    
-    .corporate-nav {
-        margin: 2rem 0;
-    }
-    
-    .corporate-actions {
-        justify-content: center;
-        margin-top: 2rem;
-        padding-top: 2rem;
-        border-top: 2px solid #ecf0f1;
-    }
+/* Responsive */
+@media (max-width: 991px){
+    .main-navigation{ padding:.85rem 0; }
+    .corporate-nav{ margin:1rem 0; }
+    .corporate-actions{ justify-content:center; flex-wrap:wrap; gap:.7rem; margin-left:0; padding-top:.5rem; border-top:1px solid var(--c-border); }
 }',
+
 
             3 => '/* Creative Studio Header */
 .creative-header {
